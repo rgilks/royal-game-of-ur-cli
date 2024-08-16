@@ -1,4 +1,4 @@
-(ns state-machine
+(ns state
   (:require [config]
             [malli.core :as m]
             [malli.error :as me]

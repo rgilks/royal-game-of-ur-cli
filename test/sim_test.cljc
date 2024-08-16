@@ -1,25 +1,12 @@
 (ns sim-test
-  (:require [clojure.test :refer [are deftest is testing]]
+  (:require [clojure.test :refer [deftest is testing]]
             [config]
             [sim]
-            [state-machine :as ur]))
-
-(def test-board
-  [:A nil :B :A nil nil :B :A nil :B nil nil nil
-   nil nil nil :A :B nil nil nil nil :A :B])
-
-(def test-game-state
-  {:board test-board
-   :players {:A {:in-hand 2 :off-board 0}
-             :B {:in-hand 2 :off-board 0}}
-   :current-player :A
-   :roll 2
-   :state :choose-action
-   :selected-move nil})
+            [state]))
 
 (deftest test-play-turn
   (testing "play-turn advances game state"
-    (let [initial-state (ur/initialize-game)
+    (let [initial-state (state/initialize-game)
           [new-state _] (sim/play-sim initial-state (repeat 4 2) {})]
       (is (not= initial-state new-state))
       (is (contains? #{:roll-dice :end-game} (:state new-state))))))
@@ -28,35 +15,14 @@
   (testing "play-game reaches end state"
     (let [final-state (sim/play (repeatedly 1000 #(rand-int 5)))]
       (is (= :end-game (:state final-state)))
-      (is (ur/game-over? final-state)))))
-
-(deftest test-render-cell
-  (testing "render-cell returns correct symbols"
-    (are [board idx expected] (= expected (sim/render-cell board idx))
-      test-board 0 "1"
-      test-board 1 "-"
-      test-board 2 "2"
-      test-board 4 " "  ; Excluded cell
-      (assoc test-board 0 :rosette) 0 "✸")))
+      (is (state/game-over? final-state)))))
 
 (deftest test-play-sim
   (testing "play-sim advances game through multiple states"
-    (let [initial-state (assoc (ur/initialize-game) :state :roll-dice)
+    (let [initial-state (assoc (state/initialize-game) :state :roll-dice)
           [final-state _] (sim/play-sim initial-state [2 3 1 0 2 1] {})]
       (is (not= (:board initial-state) (:board final-state)))
       (is (some? (some identity (:board final-state)))))))
-
-(deftest test-print-board
-  (testing "print-board doesn't throw exceptions"
-    (is (nil? (sim/print-board test-board)))))
-
-(deftest test-print-game-state
-  (testing "print-game-state handles different states"
-    (are [state] (nil? (sim/print-game-state (assoc test-game-state :state state)))
-      :choose-action
-      :switch-turns
-      :land-on-rosette
-      :move-piece-off-board)))
 
 (deftest test-full-game-simulation
   (testing "Simulating a full game with predetermined dice rolls"

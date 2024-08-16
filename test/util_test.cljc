@@ -1,7 +1,7 @@
 (ns util-test
-  (:require [clojure.test :refer [are deftest is testing]]
-            [util :as util]
-            [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.test :refer [are deftest is testing]]
+            [util :as util]))
 
 (deftest test-logging
   (testing "log function"

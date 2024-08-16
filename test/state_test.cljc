@@ -1,8 +1,8 @@
-(ns state-machine-test
+(ns state-test
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
             [platform :as platform :refer [err]]
-            [state-machine :as ur]))
+            [state :as ur]))
 
 (defmacro thrown-with-msg? [error-type regex expr]
   `(try

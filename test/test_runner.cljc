@@ -1,12 +1,13 @@
 (ns test-runner
-  (:require [cljs.test :as test :refer-macros [run-tests] :refer [report]]
+  (:require [cli-test]
+            [cljs.test :as test :refer-macros [run-tests] :refer [report]]
             [clojure.data :as data]
             [clojure.string :as str]
-            [util-test]
-            [cli-test]
             [sim-test]
-            [state-machine-test]
-            [util :refer [enable-logging! disable-logging!]]))
+            [state-test]
+            [util :refer [enable-logging! disable-logging!]]
+            [util-test]
+            [view-test]))
 
 (def ^:dynamic *test-results* (atom {:pass 0 :fail 0 :error 0}))
 
@@ -66,7 +67,8 @@
    'util-test
    'cli-test
    'sim-test
-   'state-machine-test)
+   'view-test
+   'state-test)
   ;; Enable logging after tests if needed
   (enable-logging!))
 

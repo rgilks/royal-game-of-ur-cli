@@ -1,16 +1,15 @@
 (ns platform
   #?(:clj
-     (:require [clojure.java.io :as io])
+     (:require
+      ;; [clojure.java.io :as io]
+      )
      :cljs
-     (:require ["fs" :as fs]
-               ["readline-sync" :as readline-sync])))
+     (:require
+      ;; ["fs" :as fs]
+      ["readline-sync" :as readline-sync])))
 
 (def err
   #?(:clj Exception :cljs js/Error))
-
-(defn load-file! [filepath]
-  #?(:clj  (slurp (io/resource filepath))
-     :cljs (.readFileSync fs filepath "utf8")))
 
 (defn parse-int [s]
   (if (and s (re-matches #"\d+" (str s)))
@@ -33,10 +32,14 @@
              (.clear js/console)
              (.write js/process.stdout "\u001b[2J\u001b[0;0H"))))
 
-(defn current-time-ms []
-  #?(:clj  (System/currentTimeMillis)
-     :cljs (.getTime (js/Date.))))
+;; (defn load-file! [filepath]
+;;   #?(:clj  (slurp (io/resource filepath))
+;;      :cljs (.readFileSync fs filepath "utf8")))
 
-(defn exit [status]
-  #?(:clj  (System/exit status)
-     :cljs (.exit js/process status)))
+;; (defn current-time-ms []
+;;   #?(:clj  (System/currentTimeMillis)
+;;      :cljs (.getTime (js/Date.))))
+
+;; (defn exit [status]
+;;   #?(:clj  (System/exit status)
+;;      :cljs (.exit js/process status)))
