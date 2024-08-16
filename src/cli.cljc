@@ -23,20 +23,16 @@
   (platform/readln)
   (loop [state (state/start-game)]
     (platform/clear-console)
-    (view/print-game-state state)
     (case (:state state)
       :roll-dice
-      (do
-        (log (if (= (:current-player state) :A)
-               "\nRolling dice for you..."
-               "\nAI is rolling the dice..."))
-        (let [new-state (state/dice-roll state)]
-          (view/print-game-state new-state)
-          (platform/sleep 1500)
-          (recur new-state)))
+      (let [new-state (state/dice-roll state)]
+        (view/print-game-state new-state)
+        (platform/sleep 1500)
+        (recur new-state))
 
       :choose-action
       (let [possible-moves (state/get-moves state)]
+        (view/print-game-state state)
         (if (empty? possible-moves)
           (do
             (log (str (if (= (:current-player state) :A) "You have" "AI has") " no possible moves"))

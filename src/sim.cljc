@@ -1,7 +1,5 @@
 (ns sim
   (:require [config]
-            [malli.core :as m]
-            [malli.error :as me]
             [schema]
             [state]
             [view]))
@@ -9,11 +7,9 @@
 (defn play-sim [game-state rolls inputs]
   (loop [state game-state
          remaining-rolls rolls]
-    (assert (m/validate schema/game-state state)
-            (str "Invalid game state: "
-                 (me/humanize (m/explain schema/game-state state))))
 
-    (view/print-game-state state)
+    (when (#{:choose-action :end-game} (:state state))
+      (view/print-game-state state))
 
     (let [[new-state new-rolls] (state/transition state remaining-rolls inputs)]
       (if (or (= (:state new-state) :end-game)

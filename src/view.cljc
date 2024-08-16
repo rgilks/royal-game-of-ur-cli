@@ -39,7 +39,7 @@
   (let [triangles (shuffle (concat (repeat roll "▲") (repeat (- 4 roll) "△")))]
     (str/join "" (map #(cs % :bold) triangles))))
 
-(defn print-game-state [{:keys [board players roll current-player state]}]
+(defn print-game-state [{:keys [board players roll _current-player _state]}]
   (print-board board)
   (let [format-player
         (fn [color player]
@@ -51,8 +51,8 @@
               (when roll (str " " (display-dice-roll roll)))
               (format-player :yellow :B))))
   (log)
-  (when (= state :choose-action)
-    (log (str (if (= current-player :A) "Your" "AI's") " turn to move."))))
+  #_(when (= state :choose-action)
+      (log (str (if (= current-player :A) "Your" "AI's") " turn to move."))))
 
 (def index-to-coord
   (into {} (for [i (range 24)]
