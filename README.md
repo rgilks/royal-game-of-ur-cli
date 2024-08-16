@@ -2,21 +2,6 @@
 
 ![Royal Game of Ur Console](./docs/screen.png)
 
-## Table of Contents
-- [Royal Game of Ur](#royal-game-of-ur)
-  - [Table of Contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Features](#features)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-  - [Development](#development)
-  - [Usage](#usage)
-  - [Game Rules](#game-rules)
-  - [Project Structure](#project-structure)
-  - [Testing](#testing)
-  - [License](#license)
-
 ## Introduction
 
 The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of this ancient game, complete with a command-line interface and a robust state machine design.
