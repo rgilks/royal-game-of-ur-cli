@@ -24,6 +24,7 @@
     :else (:empty board-symbols)))
 
 (defn print-board [board]
+  (log "")
   (let [render-row (fn [start end label]
                      (str (cs label :cyan) " "
                           (str/join (map #(render-cell board %) (range start end)))))]

@@ -4,7 +4,7 @@
 
 (defn log [& args]
   (when @logging-enabled
-    (apply println args)))
+    (apply println " " args)))
 
 (defn enable-logging! []
   (reset! logging-enabled true))
