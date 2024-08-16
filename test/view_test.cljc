@@ -13,8 +13,8 @@
   (are [move expected] (= expected (view/format-move move))
     {:from :entry :to 4} "entry → A5"
     {:from 0 :to 4} "A1 → A5"
-    {:from 15 :to :off-board} "B8 → off board"
-    {:from 7 :to 8 :captured true} "A8 → B1\u001b[31m (captures)\u001b[0m"))
+    {:from 15 :to :off-board} "B8 → off"
+    {:from 7 :to 8 :captured true} "A8 → B1\u001b[31m capture\u001b[0m"))
 
 (deftest test-index-to-coord
   (are [idx expected] (= expected (get view/index-to-coord idx))

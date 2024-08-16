@@ -50,7 +50,7 @@
           (if (empty? possible-moves)
             (do
               ;; TODO: should be a view function
-              (log (str "No moves"))
+              (log (str "  No moves"))
               (platform/sleep 1500)
               (recur (state/choose-action state nil)))
             (let [selected-move (if (= (:current-player state) :A)
@@ -64,7 +64,7 @@
                 (do
                   (when (= (:current-player state) :B)
                      ;; TODO: should be a view function?
-                    (log (view/cs (str "AI: " (view/format-move selected-move)) :yellow))
+                    (log (view/cs (str "  AI: " (view/format-move selected-move)) :yellow))
                     (platform/sleep 1500))
                   (recur (state/choose-action state selected-move)))))))
 

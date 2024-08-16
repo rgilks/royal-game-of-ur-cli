@@ -13,8 +13,8 @@
 (def board-symbols
   {:A (cs " ●" :red)
    :B (cs " ●" :yellow)
-   :rosette (cs " ✧" :blue)
-   :empty (cs " ·" :blue)})
+   :rosette (cs " ✧" :cyan)
+   :empty (cs " ·" :cyan)})
 
 (defn render-cell [board idx]
   (cond
@@ -63,12 +63,12 @@
 (defn format-move [{:keys [from to captured]}]
   (str (if (= from :entry) "entry" (index-to-coord from))
        " → "
-       (if (= to :off-board) "off board" (index-to-coord to))
-       (when captured (cs " (captures)" :red))))
+       (if (= to :off-board) "off" (index-to-coord to))
+       (when captured (cs " capture" :red))))
 
 (defn print-moves [possible-moves]
   (doseq [[idx move] (map-indexed vector possible-moves)]
-    (log (str (cs (str (inc idx) " ") :red) (format-move move)))))
+    (log (str "  " (cs (str (inc idx) " ") :red) (format-move move)))))
 
 (defn print-winner-message [winner]
   (log "")
