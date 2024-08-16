@@ -80,7 +80,10 @@
 
 (defn print-welcome-message []
   (log (cs "Welcome to the Royal Game of Ur!" :blue))
+  (log "")
   (log (str (cs "●" :red) " Your pieces"))
   (log (str (cs "●" :yellow) " AI pieces"))
+  (log "")
   (log "The board is labeled with columns 1-8 and rows a-c.")
+  (log "Each turn enter the number of your chosen move (or 'q' to quit):")
   (log "Press Enter to begin!"))

@@ -64,4 +64,4 @@ META-INF/
 .clj-kondo/.cache
 .nbb
 
-_complied.*
+_compiled.*

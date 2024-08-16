@@ -1,6 +1,5 @@
 (ns cli
-  (:require [clojure.string :as str]
-            [config]
+  (:require [config]
             [platform]
             [state]
             [util :refer [log]]
@@ -9,13 +8,16 @@
 (defn get-user-move [possible-moves]
   (when (seq possible-moves)
     (view/print-moves possible-moves)
-    (let [choice (platform/parse-int (str/trim (platform/readln)))]
-      (if (and (pos? choice) (<= choice (count possible-moves)))
-        (nth possible-moves (dec choice))
-        (do
-          (log (view/cs (str "Invalid choice. Enter 1-" (count possible-moves)) :red))
-          (platform/readln)
-          (recur possible-moves))))))
+    (loop []
+      (let [input (platform/read-single-key)]
+        (if (= input "q")
+          :quit
+          (let [choice (platform/parse-int input)]
+            (if (and (pos? choice) (<= choice (count possible-moves)))
+              (nth possible-moves (dec choice))
+              (do
+                (log (view/cs (str "Invalid choice. Enter 1-" (count possible-moves) " or 'q' to quit") :red))
+                (recur)))))))))
 
 (defn play-game []
   (platform/clear-console)
@@ -41,15 +43,21 @@
           (let [selected-move (if (= (:current-player state) :A)
                                 (get-user-move possible-moves)
                                 (state/select-move :random possible-moves))]
-            (when (= (:current-player state) :B)
-              (log (str "AI's move: " (view/cs (view/format-move selected-move) :yellow)))
-              (platform/sleep 1500))
-            (recur (state/choose-action state selected-move)))))
+            (if (= selected-move :quit)
+              (do
+                (log "Thanks for playing! Goodbye.")
+                nil)
+              (do
+                (when (= (:current-player state) :B)
+                  (log (str "AI's move: " (view/cs (view/format-move selected-move) :yellow)))
+                  (platform/sleep 1500))
+                (recur (state/choose-action state selected-move)))))))
 
       :end-game
       (do
         (view/print-winner-message (:current-player state))
-        (view/print-game-state state)))))
+        (view/print-game-state state)
+        nil))))
 
 (defn -main []
   (play-game))

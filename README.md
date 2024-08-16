@@ -70,7 +70,7 @@ just
 
 Some useful commands include:
 
-- `just run`: Run the application
+- `just cli`: Run the application
 - `just watch`: Run unit tests and watch for changes
 - `just test`: Run unit tests
 - `just fmt`: Format Clojure files
@@ -88,7 +88,7 @@ just update-tools
 To start a new game:
 
 ```
-just run
+just cli
 ```
 
 This will launch the game in your terminal. Follow the on-screen instructions to play.
