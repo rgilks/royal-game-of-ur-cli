@@ -42,7 +42,7 @@
                                 (get-user-move possible-moves)
                                 (state/select-move :random possible-moves))]
             (when (= (:current-player state) :B)
-              (log (str "AI " (view/cs (view/format-move selected-move) :yellow)))
+              (log (str "AI's move: " (view/cs (view/format-move selected-move) :yellow)))
               (platform/sleep 1500))
             (recur (state/choose-action state selected-move)))))
 
