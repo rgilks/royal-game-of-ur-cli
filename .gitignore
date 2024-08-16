@@ -63,3 +63,5 @@ META-INF/
 .cpcache/
 .clj-kondo/.cache
 .nbb
+
+_complied.*

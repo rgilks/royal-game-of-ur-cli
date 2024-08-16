@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [util-test]
             [cli-test]
+            [sim-test]
             [state-machine-test]
             [util :refer [enable-logging! disable-logging!]]))
 
@@ -64,6 +65,7 @@
   (run-tests
    'util-test
    'cli-test
+   'sim-test
    'state-machine-test)
   ;; Enable logging after tests if needed
   (enable-logging!))

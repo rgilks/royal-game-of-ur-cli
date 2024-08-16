@@ -1,5 +1,6 @@
 (ns state-machine-test
   (:require [clojure.test :refer [are deftest is testing]]
+            [config]
             [platform :as platform :refer [err]]
             [state-machine :as ur]))
 
@@ -143,19 +144,6 @@
       (is (= :start-game (:state initial-state)))
       (is (nil? (:selected-move initial-state))))))
 
-(deftest test-play-turn
-  (testing "play-turn advances game state"
-    (let [initial-state (ur/initialize-game)
-          [new-state _] (ur/play-sim initial-state (repeat 4 2) {})]
-      (is (not= initial-state new-state))
-      (is (contains? #{:roll-dice :end-game} (:state new-state))))))
-
-(deftest test-play-game
-  (testing "play-game reaches end state"
-    (let [final-state (ur/play-game (repeatedly 1000 #(rand-int 5)))]
-      (is (= :end-game (:state final-state)))
-      (is (ur/game-over? final-state)))))
-
 (deftest test-validate-game-state
   (testing "validate-game-state accepts valid states"
     (is (= test-game-state (ur/validate-game-state test-game-state))))
@@ -176,15 +164,6 @@
   (testing "validate-total-pieces fails on invalid piece counts"
     (is (not (ur/validate-total-pieces
               (assoc-in test-game-state [:players :A :in-hand] 4))))))
-
-(deftest test-render-cell
-  (testing "render-cell returns correct symbols"
-    (are [board idx expected] (= expected (ur/render-cell board idx))
-      test-board 0 "1"
-      test-board 1 "-"
-      test-board 2 "2"
-      test-board 4 " "  ; Excluded cell
-      (assoc test-board 0 :rosette) 0 "✸")))
 
 (deftest test-start-game
   (testing "start-game initializes game correctly"
@@ -215,56 +194,10 @@
       (is (nil? (:selected-move new-state))
           (str "Expected selected-move to be nil, but got " (:selected-move new-state))))))
 
-(deftest test-play-sim
-  (testing "play-sim advances game through multiple states"
-    (let [initial-state (assoc (ur/initialize-game) :state :roll-dice)
-          [final-state _] (ur/play-sim initial-state [2 3 1 0 2 1] {})]
-      (is (not= (:board initial-state) (:board final-state)))
-      (is (some? (some identity (:board final-state)))))))
-
 (deftest test-board-config
   (testing "board-config contains correct values"
-    (is (= 24 (:size ur/board-config)))
-    (is (= #{0 6 11 16 22} (:rosettes ur/board-config)))
-    (is (= #{4 5 20 21} (:exclude ur/board-config)))
-    (is (vector? (get-in ur/board-config [:paths :A])))
-    (is (vector? (get-in ur/board-config [:paths :B])))))
-
-(deftest test-print-board
-  (testing "print-board doesn't throw exceptions"
-    (is (nil? (ur/print-board test-board)))))
-
-(deftest test-print-game-state
-  (testing "print-game-state handles different states"
-    (are [state] (nil? (ur/print-game-state (assoc test-game-state :state state)))
-      :choose-action
-      :switch-turns
-      :land-on-rosette
-      :move-piece-off-board)))
-
-(deftest test-full-game-simulation
-  (testing "Simulating a full game with predetermined dice rolls"
-    (let [roll-sequence (cycle [0 1 2 3 4])
-          final-state (ur/play-game roll-sequence)]
-
-      (is (= :end-game (:state final-state))
-          "Game should end after a long sequence of rolls")
-
-      (is (or (= 7 (get-in final-state [:players :A :off-board]))
-              (= 7 (get-in final-state [:players :B :off-board])))
-          "One player should have all 7 pieces off the board")
-
-      (is (= {:board
-              [:A :A nil nil nil nil nil nil :A nil :A :A :A
-               nil nil nil nil nil nil nil nil nil nil nil],
-              :players
-              {:A {:in-hand 1, :off-board 0}, :B {:in-hand 0, :off-board 7}},
-              :current-player :B,
-              :roll 4,
-              :state :end-game,
-              :selected-move {:from 23, :to :off-board, :captured nil}}
-             final-state))
-
-    ;;   (println "Final game state:")
-    ;;   (pprint final-state)
-      )))
+    (is (= 24 (:size config/board)))
+    (is (= #{0 6 11 16 22} (:rosettes config/board)))
+    (is (= #{4 5 20 21} (:exclude config/board)))
+    (is (vector? (get-in config/board [:paths :A])))
+    (is (vector? (get-in config/board [:paths :B])))))

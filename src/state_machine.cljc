@@ -1,47 +1,9 @@
 (ns state-machine
-  (:require [clojure.string :as str]
+  (:require [config]
             [malli.core :as m]
             [malli.error :as me]
+            [schema]
             [util :refer [log]]))
-
-(def board-config
-  {:size 24
-   :rosettes #{0 6 11 16 22}
-   :paths {:A [3 2 1 0 8 9 10 11 12 13 14 15 7 6]
-           :B [19 18 17 16 8 9 10 11 12 13 14 15 23 22]}
-   :exclude #{4 5 20 21}})
-
-(def states
-  #{:start-game
-    :roll-dice
-    :choose-action
-    :enter-piece
-    :move-piece
-    :land-on-rosette
-    :move-piece-off-board
-    :switch-turns
-    :end-game})
-
-(def player-schema
-  [:map
-   [:in-hand [:int {:min 0 :max 7}]]
-   [:off-board [:int {:min 0 :max 7}]]])
-
-(def board-position [:int {:min 0 :max 23}])
-
-(def game-state-schema
-  [:map
-   [:board [:vector {:min 24 :max 24} [:maybe [:enum :A :B]]]]
-   [:players [:map-of [:enum :A :B] player-schema]]
-   [:current-player [:enum :A :B]]
-   [:roll [:maybe [:int {:min 0 :max 4}]]]
-   [:state (into [:enum] states)]
-   [:selected-move
-    [:maybe
-     [:map
-      [:from [:or board-position [:enum :entry]]]
-      [:to [:or board-position [:enum :off-board]]]
-      [:captured [:maybe [:enum :A :B]]]]]]])
 
 (defn validate-total-pieces [state]
   (every? (fn [[player-key player-data]]
@@ -51,7 +13,7 @@
           (:players state)))
 
 (defn validate-game-state [state]
-  (if-let [error (m/explain game-state-schema state)]
+  (if-let [error (m/explain schema/game-state state)]
     (throw (ex-info "Invalid game state structure" (me/humanize error)))
     (if-not (validate-total-pieces state)
       (throw (ex-info "Invalid total pieces"
@@ -63,14 +25,16 @@
   (if (= player :A) :B :A))
 
 (defn get-piece-positions [board player]
-  (keep-indexed (fn [idx piece]
-                  (when (and (= piece player) (not (contains? (:exclude board-config) idx))) idx))
-                board))
+  (keep-indexed
+   (fn [idx piece]
+     (when (and (= piece player)
+                (not (contains? (:exclude config/board) idx))) idx))
+   board))
 
 (defn move-piece [board player from roll]
   (if (zero? roll)
     nil  ; No move possible on a roll of 0
-    (let [path (get-in board-config [:paths player])
+    (let [path (get-in config/board [:paths player])
           current-index (if (= from :entry) -1 (.indexOf path from))
           new-index (+ current-index roll)]
       (if (>= new-index (count path))
@@ -80,21 +44,23 @@
           (cond
             (nil? target) [new-pos nil]
             (= target player) nil  ; Invalid move
-            (and (contains? (:rosettes board-config) new-pos)
+            (and (contains? (:rosettes config/board) new-pos)
                  (not= target player)) nil  ; Can't land on opponent's rosette
             :else [new-pos target]))))))  ; Capture opponent's piece
 
 (defn update-board [board player from to]
   (cond-> board
-    (and (not= from :entry) (number? from) (< from (:size board-config))) (assoc from nil)
-    (and (not= to :off-board) (number? to) (< to (:size board-config))) (assoc to player)))
+    (and (not= from :entry) (number? from)
+         (< from (:size config/board))) (assoc from nil)
+    (and (not= to :off-board) (number? to)
+         (< to (:size config/board))) (assoc to player)))
 
 (defn get-possible-moves [game-state]
   (let [{:keys [board current-player roll players]} game-state]
     (if (zero? roll)
       []  ; No moves possible on a roll of 0
       (let [player-positions (get-piece-positions board current-player)
-            entry-point (first (get-in board-config [:paths current-player]))
+            entry-point (first (get-in config/board [:paths current-player]))
             can-enter? (and (pos? (get-in players [current-player :in-hand]))
                             (nil? (get board entry-point)))]
         (concat
@@ -166,10 +132,10 @@
        true (update :board update-board current-player from to)
        (= to :off-board) (-> (update-in [:players current-player :off-board] inc)
                              (assoc :state :move-piece-off-board))
-       (and (not= to :off-board) (contains? (:rosettes board-config) to)) (assoc :state :land-on-rosette)
+       (and (not= to :off-board) (contains? (:rosettes config/board) to)) (assoc :state :land-on-rosette)
        captured (-> (update-in [:players opponent :in-hand] inc)
                     (assoc :state :switch-turns))
-       (and (not= to :off-board) (not (contains? (:rosettes board-config) to)) (not captured)) (assoc :state :switch-turns))
+       (and (not= to :off-board) (not (contains? (:rosettes config/board) to)) (not captured)) (assoc :state :switch-turns))
      rolls]))
 
 (defmethod transition :land-on-rosette [game-state rolls]
@@ -192,47 +158,8 @@
 (defmethod transition :end-game [game-state rolls]
   [game-state rolls]) ; No transition, game is over
 
-(defn render-cell [board idx]
-  (cond
-    (contains? (:exclude board-config) idx) " "
-    :else
-    (let [cell (get board idx)]
-      (cond
-        (= cell :A) "1"
-        (= cell :B) "2"
-        (contains? (:rosettes board-config) idx) "✸"
-        (nil? cell) "-"
-        :else "?"))))
-
-(defn print-board [board]
-  (let [render-cell (partial render-cell board)
-        row-to-string (fn [start end]
-                        (str/join " " (map render-cell (range start end))))]
-    (log (row-to-string 0 8))
-    (log (row-to-string 8 16))
-    (log (row-to-string 16 24))))
-
-(defn print-game-state [state]
-  (let [player (-> state :current-player name)
-        event (case (:state state)
-                :choose-action (str "rolls " (:roll state))
-                :switch-turns ""
-                :land-on-rosette "landed on rosette"
-                :move-piece-off-board "moved piece off board"
-                nil)]
-    (when event
-      (when-not (str/blank? event)
-        (log player event))
-      (when (= (:state state) :switch-turns)
-        (print-board  (:board state))
-        (log (mapv #(if (< % 10)
-                      (str "0" %)
-                      (str %)) (range 0 24)))
-        (log (mapv #(if (nil? %) "  "  %) (:board state)))
-        (log "")))))
-
 (defn initialize-game []
-  {:board (vec (repeat (:size board-config) nil))
+  {:board (vec (repeat (:size config/board) nil))
    :players {:A {:in-hand 7 :off-board 0}
              :B {:in-hand 7 :off-board 0}}
    :current-player :A
@@ -276,35 +203,7 @@
           (first (play new-state [] {})))))
     (throw (ex-info "Invalid game state for choosing action" {:state (:state game-state)}))))
 
-;; Simulation
-(defn play-sim [game-state rolls inputs]
-  (loop [state game-state
-         remaining-rolls rolls]
-    (assert (m/validate game-state-schema state)
-            (str "Invalid game state: "
-                 (me/humanize (m/explain game-state-schema state))))
-
-    (print-game-state state)
-
-    (let [[new-state new-rolls] (transition state remaining-rolls inputs)]
-      (if (or (= (:state new-state) :end-game)
-              (and (= (:state new-state) :roll-dice) (empty? new-rolls)))
-        [new-state new-rolls]
-        (recur new-state new-rolls)))))
-
-(defn play-game [rolls]
-  (loop [game-state (initialize-game)
-         remaining-rolls rolls]
-    (if (or (= (:state game-state) :end-game) (empty? remaining-rolls))
-      game-state
-      (let [[new-state new-rolls] (play-sim game-state remaining-rolls {})]
-        (recur new-state new-rolls)))))
-
-;; Run the game
 (comment
-  (let [roll-dice (reduce + (repeatedly 4 #(rand-int 2)))]
-    (time (play-game (repeatedly roll-dice))))
-
   (def game (start-game))
   (def game-rolled (dice-roll game))
   (def possible-moves (get-moves game-rolled))

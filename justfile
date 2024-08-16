@@ -98,5 +98,9 @@ watch:
 # ===
 
 # Run the application
-run:
-   yarn ur
+cli:
+    yarn cli
+
+# Simulate the game running
+sim:
+    yarn sim

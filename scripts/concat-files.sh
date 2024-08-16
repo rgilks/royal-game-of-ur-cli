@@ -15,7 +15,7 @@ shift
 file_extensions=("$@")
 
 # Output file name (using the first extension)
-output_file="compiled.${file_extensions[0]}"
+output_file="_compiled.${file_extensions[0]}"
 
 # Temporary file for compilation
 temp_file=$(mktemp)

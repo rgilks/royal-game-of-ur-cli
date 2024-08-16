@@ -3,7 +3,8 @@
     "start": "nbb src/parser.cljs",
     "test": "nbb -cp src:test -m test-runner",
     "test:watch": "nodemon --watch src --watch test --ext cljs,cljc --exec 'clear && echo \"Running tests...\" && yarn test || true'",
-    "ur": "nbb -cp src -m cli"
+    "cli": "nbb -cp src -m cli",
+    "sim": "nbb -cp src -m sim"
   },
   "dependencies": {
     "nbb": "^1.2.188",

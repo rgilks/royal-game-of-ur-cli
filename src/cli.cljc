@@ -1,8 +1,9 @@
 (ns cli
-  (:require [state-machine :as game]
+  (:require [clojure.string :as str]
+            [config]
             [platform :as plat]
-            [util :refer [log]]
-            [clojure.string :as str]))
+            [state-machine :as game]
+            [util :refer [log]]))
 
 (def colors
   {:reset "[0m" :bold "[1m" :red "[31m" :green "[32m"
@@ -20,8 +21,8 @@
 (defn render-cell [board idx]
   (cond
     (some? (get board idx)) (get board-symbols (get board idx) (:empty board-symbols))
-    (contains? (:exclude game/board-config) idx) "  "
-    (contains? (:rosettes game/board-config) idx) (:rosette board-symbols)
+    (contains? (:exclude config/board) idx) "  "
+    (contains? (:rosettes config/board) idx) (:rosette board-symbols)
     :else (:empty board-symbols)))
 
 (defn print-board [board]
