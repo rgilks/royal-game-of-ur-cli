@@ -1,4 +1,5 @@
 (ns test-runner
+  #_{:clj-kondo/ignore [:unresolved-var]}
   (:require [cli-test]
             [cljs.test :as test :refer-macros [run-tests] :refer [report]]
             [clojure.data :as data]
@@ -22,9 +23,11 @@
       (when diff-b
         (println "  + Actual:  " (str/replace (pr-str diff-b) #"\n" "\n    "))))))
 
-(defmethod report [:cljs.test/default :pass] [m]
+#_{:clj-kondo/ignore [:unresolved-var]}
+(defmethod report [:cljs.test/default :pass] [_m]
   (swap! *test-results* update :pass inc))
 
+#_{:clj-kondo/ignore [:unresolved-var]}
 (defmethod report [:cljs.test/default :fail] [m]
   (swap! *test-results* update :fail inc)
   (let [{:keys [expected actual message]} m]
@@ -35,6 +38,7 @@
     (println "Actual:  " (pr-str actual))
     (print-diff expected actual)))
 
+#_{:clj-kondo/ignore [:unresolved-var]}
 (defmethod report [:cljs.test/default :error] [m]
   (swap! *test-results* update :error inc)
   (let [{:keys [message expected actual]} m]
@@ -46,7 +50,8 @@
     (when-let [cause (.-cause actual)]
       (println "Cause:" (pr-str cause)))))
 
-(defmethod report [:cljs.test/default :summary] [m]
+#_{:clj-kondo/ignore [:unresolved-var]}
+(defmethod report [:cljs.test/default :summary] [_m]
   (let [{:keys [pass fail error]} @*test-results*
         total (+ pass fail error)]
     (println "\n=== Test Summary ===")
