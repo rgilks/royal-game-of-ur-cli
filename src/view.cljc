@@ -47,7 +47,8 @@
                (cs (str (get-in players [player :in-hand])) color)
                (cs " → " color)
                (cs (str (get-in players [player :off-board])) color)))]
-    (log (str (format-player :red :A)
+    (log (str " "
+              (format-player :red :A)
               (when roll (str " " (display-dice-roll roll)))
               (format-player :yellow :B))))
   (log)
