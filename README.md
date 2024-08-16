@@ -38,6 +38,12 @@ This project uses version management to ensure consistent development environmen
 
 Ensure you have a compatible version manager installed on your system.
 
+Note that I developed this project on a Mac, so some commands may differ on other operating systems.
+
+The 'just' commands assume you are on a Mac and using asdf.
+
+Development was mostly done in ClojureScript using [node babashka (nbb)](https://github.com/babashka/nbb) though effort was made to keep the code compatible with Clojure.
+
 ### Installation
 
 1. Clone the repository:

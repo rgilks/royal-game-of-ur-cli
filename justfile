@@ -33,6 +33,7 @@ setup-hooks:
     chmod +x .git/hooks/pre-commit
     @echo "Git hooks have been set up successfully with the latest cljfmt and test runner."
 
+# Install Graphviz for generating state diagrams
 install-graphviz:
     brew install graphviz
 
@@ -67,15 +68,11 @@ fmt:
     @echo "Formatting Clojure files..."
     clj -Tcljfmt fix
 
-# Concatinate files
-concat-files root_folder *file_extension:
+# Concatinate all relevant files (for an LLM to read)
+concat:
     chmod +x ./scripts/concat-files.sh
     set -euo pipefail
-    ./scripts/concat-files.sh {{root_folder}} {{file_extension}}
-
-# Concatinate all files
-concat:
-    just concat-files . cljc cljs clj md dot edn json
+    ./scripts/concat-files.sh . cljc cljs clj md dot edn json
 
 # Generate a state diagram
 state-diagram:
@@ -97,10 +94,10 @@ watch:
 # Run
 # ===
 
-# Run the application
+# Run the cli application
 cli:
     yarn cli
 
-# Simulate the game running
+# Simulate a full game running in autopilot mode
 sim:
     yarn sim
