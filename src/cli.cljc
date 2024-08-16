@@ -18,6 +18,7 @@
               (do
                 (log (view/cs (str "Invalid choice. Enter 1-" (count possible-moves) " or 'q' to quit") :red))
                 (recur)))))))))
+
 (defn hide-cursor []
   (print "\u001b[?25l")
   (flush))
