@@ -1,14 +1,65 @@
+# Build and Deployment artifacts
+dist/
+target/
+deploy-resources/
+*.zip
+
+# Dependency directories
+node_modules/
+
+# Compiled source
+*.class
+*.py[cod]
+__pycache__/
+
+# Logs and databases
+*.log
+*.jar
+
+# IDEs and editors
+.idea/
+*.iml
+.vscode/
+.lsp/
+.calva/
+.dir-locals.el
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Application files
+*.app
+*.exe
+*.war
+
+# Media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+# Python specific
+*.ipynb
+myenv*/
+venv*/
+
+# Java specific
+TEST*.xml
+
+# Clojure specific
+classes/
+checkouts/
+generated/
 pom.xml
 pom.xml.asc
-*.jar
-*.class
-/lib/
-/classes/
-/target/
-/checkouts/
-.lein-deps-sum
-.lein-repl-history
-.lein-plugins/
-.lein-failures
+.lein-*
+.nrepl-history
 .nrepl-port
+project.clj
+META-INF/
 .cpcache/
+.clj-kondo/.cache
+.nbb

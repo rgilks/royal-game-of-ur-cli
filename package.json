@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "start": "nbb src/parser.cljs",
+    "test": "nbb -cp src:test -m test-runner",
+    "test:watch": "nodemon --watch src --watch test --ext cljs,cljc --exec 'clear && echo \"Running tests...\" && yarn test || true'",
+    "ur": "nbb -cp src -m cli"
+  },
+  "dependencies": {
+    "nbb": "^1.2.188",
+    "readline-sync": "^1.4.10"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

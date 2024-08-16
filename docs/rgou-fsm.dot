@@ -1,0 +1,36 @@
+digraph RoyalGameOfUr {
+    rankdir=LR;
+    node [shape = circle];
+    
+    start [label = "Start Game"];
+    roll [label = "Roll Dice"];
+    choose [label = "Choose Action"];
+    enter [label = "Enter Piece"];
+    move [label = "Move Piece"];
+    capture [label = "Capture\nOpponent"];
+    rosette [label = "Land on\nRosette"];
+    off_board [label = "Move Piece\nOff Board"];
+    switch [label = "Switch\nTurns"];
+    end [label = "End Game"];
+
+    start -> roll;
+    roll -> choose;
+    choose -> enter [label = "If valid &\npiece available"];
+    choose -> move [label = "If valid move"];
+    choose -> switch [label = "No valid moves"];
+    enter -> capture [label = "If opponent\non entry square"];
+    enter -> switch [label = "Normal entry"];
+    move -> capture [label = "If opponent\non same square"];
+    move -> rosette [label = "If lands on\nrosette"];
+    move -> off_board [label = "If last square"];
+    move -> switch [label = "Normal move"];
+    capture -> switch;
+    rosette -> roll [label = "Extra turn"];
+    off_board -> switch;
+    switch -> roll [label = "If game\nnot over"];
+    switch -> end [label = "If all pieces\noff board"];
+    
+    {rank=same; start roll choose}
+    {rank=same; enter move}
+    {rank=same; capture rosette off_board}
+}
