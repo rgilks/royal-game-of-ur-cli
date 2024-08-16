@@ -71,20 +71,15 @@
     (log (str (cs (str (inc idx) " ") :red) (format-move move)))))
 
 (defn print-winner-message [winner]
-  (log (cs "\n🎉🎉🎉 GAME OVER 🎉🎉🎉" :blue))
-  (log (cs (str "Congratulations to " (if (= winner :A) "You" "AI") "!") :green))
-  (log "You've completed the Royal Game of Ur!")
-  (if (= winner :A)
-    (log (cs "Well done, human! You've outsmarted the computer!" :green))
-    (log (cs "The computer wins. Better luck next time, human!" :red)))
-  (log (cs "Thanks for playing the Royal Game of Ur!" :blue)))
+  (log "")
+  (log (cs "GAME OVER" :red))
+  (log (cs (str (if (= winner :A) "You" "AI") " wins!") :green)))
 
 (defn print-welcome-message []
-  (log (cs "Welcome to the Royal Game of Ur!" :blue))
+  (log (cs "The Royal Game of Ur" :red))
   (log "")
   (log (str (cs "●" :red) " Your pieces"))
   (log (str (cs "●" :yellow) " AI pieces"))
   (log "")
-  (log "The board is labeled with columns 1-8 and rows a-c.")
-  (log "Each turn enter the number of your chosen move (or 'q' to quit):")
+  (log "Press 'q' to quit at any time.")
   (log "Press Enter to begin!"))

@@ -2,7 +2,7 @@
   (:require [config]
             [platform]
             [state]
-            [util :refer [log]]
+            [util :refer [log]] ;; should be removed
             [view]))
 
 (defn get-user-move [possible-moves]
@@ -16,7 +16,9 @@
             (if (and (pos? choice) (<= choice (count possible-moves)))
               (nth possible-moves (dec choice))
               (do
-                (log (view/cs (str "Invalid choice. Enter 1-" (count possible-moves) " or 'q' to quit") :red))
+                (log (view/cs
+                      (str "Invalid choice. Enter 1-"
+                           (count possible-moves) " or 'q' to quit") :red))
                 (recur)))))))))
 
 (defn hide-cursor []
@@ -47,19 +49,22 @@
           (view/print-game-state state)
           (if (empty? possible-moves)
             (do
-              (log (str (if (= (:current-player state) :A) "You have" "AI has") " no possible moves"))
+              ;; TODO: should be a view function
+              (log (str "No moves"))
               (platform/sleep 1500)
               (recur (state/choose-action state nil)))
             (let [selected-move (if (= (:current-player state) :A)
                                   (get-user-move possible-moves)
-                                  (state/select-move :random possible-moves))]
+                                  (state/select-move :strategic possible-moves))]
               (if (= selected-move :quit)
                 (do
+                   ;; TODO: should be a view function?
                   (log "Thanks for playing! Goodbye.")
                   nil)
                 (do
                   (when (= (:current-player state) :B)
-                    (log (str "AI's move: " (view/cs (view/format-move selected-move) :yellow)))
+                     ;; TODO: should be a view function?
+                    (log (view/cs (str "AI: " (view/format-move selected-move)) :yellow))
                     (platform/sleep 1500))
                   (recur (state/choose-action state selected-move)))))))
 
