@@ -37,6 +37,29 @@ setup-hooks:
 install-graphviz:
     brew install graphviz
 
+# =================
+# Development Tasks
+# =================
+
+# Format clojure
+fmt:
+    @echo "Formatting Clojure files..."
+    clj -Tcljfmt fix
+
+# Concatinate all relevant files (for an LLM to read)
+concat:
+    chmod +x ./scripts/concat-files.sh
+    set -euo pipefail
+    ./scripts/concat-files.sh . cljc cljs clj md dot edn json
+
+# Generate a state diagram
+state-diagram:
+    dot -Tpng -Gdpi=300 ./docs/rgou-fsm.dot -o ./docs/rgou-fsm.png
+
+# Update the node dependencies
+update:
+    yarn update
+
 # Update all tools to their latest versions
 update-tools:
     #!/usr/bin/env bash
@@ -58,25 +81,6 @@ update-tools:
     done < .tool-versions
     echo "All tools updated. New versions:"
     cat .tool-versions
-
-# =================
-# Development Tasks
-# =================
-
-# Format clojure
-fmt:
-    @echo "Formatting Clojure files..."
-    clj -Tcljfmt fix
-
-# Concatinate all relevant files (for an LLM to read)
-concat:
-    chmod +x ./scripts/concat-files.sh
-    set -euo pipefail
-    ./scripts/concat-files.sh . cljc cljs clj md dot edn json
-
-# Generate a state diagram
-state-diagram:
-    dot -Tpng -Gdpi=300 ./docs/rgou-fsm.dot -o ./docs/rgou-fsm.png
 
 # =======
 # Testing

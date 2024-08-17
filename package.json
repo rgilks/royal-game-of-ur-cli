@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "update": "ncu -u && rm -rf node_modules && rm yarn.lock && yarn",
     "start": "nbb src/parser.cljs",
     "test": "nbb -cp src:test -m test-runner",
     "test:watch": "nodemon --watch src --watch test --ext cljs,cljc --exec 'clear && echo \"Running tests...\" && yarn test || true'",
@@ -7,10 +8,11 @@
     "sim": "nbb -cp src -m sim"
   },
   "dependencies": {
-    "nbb": "^1.2.188",
+    "nbb": "^1.2.191",
+    "npm-check-updates": "^17.0.6",
     "readline-sync": "^1.4.10"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^3.1.4"
   }
 }
