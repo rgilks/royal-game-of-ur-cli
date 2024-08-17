@@ -228,7 +228,7 @@
   (if (= (:state game-state) :choose-action)
     (let [possible-moves (get-possible-moves game-state)]
       (if (empty? possible-moves)
-        (first (play game-state [] {:move-strategy :random}))  ; Switch turns if no moves are possible
+        (first (play game-state [] {:move-strategy :random}))  ; TODO: why is random strategy used here?
         (let [new-state (-> game-state
                             (assoc :selected-move selected-move)
                             (assoc :state (if (= (:from selected-move) :entry)

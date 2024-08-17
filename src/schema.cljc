@@ -31,3 +31,5 @@
       [:from [:or board-position [:enum :entry]]]
       [:to [:or board-position [:enum :off-board]]]
       [:captured [:maybe [:enum :A :B]]]]]]])
+
+;; TODO: Add strategy to player
