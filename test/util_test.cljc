@@ -6,8 +6,8 @@
 (deftest test-logging
   (testing "log function"
     (are [enabled? input expected]
-         (let [_ (if enabled? (util/enable-show!) (util/disable-show!))
-               output (with-out-str (util/show input))]
+         (let [_ (if enabled? (util/enable-print-line!) (util/disable-print-line!))
+               output (with-out-str (util/print-line input))]
            (if expected
              (str/includes? output input)
              (empty? output)))
@@ -18,16 +18,16 @@
   (testing "enable-logging! and disable-logging! functions"
     (are [action expected]
          (do (action)
-             (= @util/show-enabled expected))
+             (= @util/print-line-enabled expected))
 
-      util/enable-show!  true
-      util/disable-show! false)))
+      util/enable-print-line!  true
+      util/disable-print-line! false)))
 
 (deftest test-multiple-args
   (testing "log function with multiple arguments"
-    (util/enable-show!)
+    (util/enable-print-line!)
     (is (str/includes?
-         (with-out-str (util/show "Test" "multiple" "args"))
+         (with-out-str (util/print-line "Test" "multiple" "args"))
          "Test multiple args")
         "Should print all arguments")))
 
@@ -36,12 +36,28 @@
     (are [setup-fn expected]
          (let [_ (setup-fn)
                output (with-out-str
-                        (util/show "First log")
-                        (util/show "Second log"))]
+                        (util/print-line "First log")
+                        (util/print-line "Second log"))]
            (if expected
              (and (str/includes? output "First log")
                   (str/includes? output "Second log"))
              (empty? output)))
 
-      util/enable-show!  true
-      util/disable-show! false)))
+      util/enable-print-line!  true
+      util/disable-print-line! false)))
+
+(deftest test-str
+  (testing "c-str function"
+    (are [input expected] (= expected (apply util/str input))
+      [:red "Hello"] "\u001b[31mHello\u001b[0m"
+      [:blue "World"] "\u001b[34mWorld\u001b[0m"
+      [:green "Test"] "\u001b[32mTest\u001b[0m"
+      ["Plain text"] "Plain text"
+      [:red "Hello" " " "World"] "\u001b[31mHello World\u001b[0m")))
+
+(deftest test-show
+  (testing "show function calls util/show"
+    (with-redefs [util/print-line (fn [& args] (apply str args))]
+      (are [input expected] (= expected (apply util/show input))
+        ["Hello"] "Hello"
+        [:red "World"] "\u001b[31mWorld\u001b[0m"))))

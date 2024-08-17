@@ -1,49 +1,42 @@
 (ns view-test
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
+            [util :as util]
             [view]))
-
-(deftest test-c-str
-  (testing "c-str with color"
-    (are [color text expected] (= expected (view/c-str color text))
-      :red "Hello" "\u001b[31mHello\u001b[0m"
-      :blue "World" "\u001b[34mWorld\u001b[0m"
-      :green "Test" "\u001b[32mTest\u001b[0m"))
-
-  (testing "c-str without color"
-    (is (= "Plain text" (view/c-str "Plain text"))))
-
-  (testing "c-str with multiple text arguments"
-    (is (= "\u001b[31mHello World\u001b[0m" (view/c-str :red "Hello" " " "World")))))
-
-(deftest test-show
-  (testing "show function calls util/show"
-    (with-redefs [util/show (fn [& args] (apply str args))]
-      (is (= "Hello" (view/show "Hello")))
-      (is (= "\u001b[31mWorld\u001b[0m" (view/show :red "World"))))))
 
 (deftest test-cell
   (let [board {0 :A, 8 :B}]
     (testing "cell function"
-      (is (= (view/symbols :A) (view/cell board 0)))
-      (is (= (view/symbols :B) (view/cell board 8)))
-      (is (= (view/symbols :empty) (view/cell board 1)))
-      (is (= (view/symbols :rosette) (view/cell board 4)))
-      (is (= (view/symbols :blank) (view/cell board 20))))))
+      (are [idx expected] (= expected (view/cell board idx))
+        0 (view/symbols :A)
+        8 (view/symbols :B)
+        1 (view/symbols :empty)
+        6 (view/symbols :rosette)
+        20 (view/symbols :blank)))))
 
 (deftest test-board-row
-  (let [board {0 :A, 4 :B}]
-    (testing "board-row function"
-      (is (= (str (view/c-str :cyan "A ")
-                  (view/symbols :A)
-                  (view/symbols :empty)
-                  (view/symbols :empty)
-                  (view/symbols :empty)
-                  (view/symbols :B)
-                  (view/symbols :empty)
-                  (view/symbols :empty)
-                  (view/symbols :empty))
-             (view/board-row board 0 8 "A"))))))
+  (let [board {0 :A, 4 :B}
+        expected (str (util/str :cyan "A ")
+                      (view/symbols :A)
+                      (view/symbols :empty)
+                      (view/symbols :empty)
+                      (view/symbols :empty)
+                      (view/symbols :B)
+                      (view/symbols :blank)
+                      (view/symbols :rosette)
+                      (view/symbols :empty))]
+    (is (= expected (view/board-row board 0 8 "A")))))
+
+(deftest test-show-board
+  (testing "show-board function"
+    (let [board {0 :A, 8 :B}
+          calls (atom [])]
+      (with-redefs [util/show (fn [& args] (swap! calls conj args))]
+        (view/show-board board)
+        (are [idx expected] (= expected (nth @calls idx))
+          1 [:cyan "    1 2 3 4 5 6 7 8"]
+          3 [:cyan "│" (view/board-row board 0 8 "A") "│"])
+        (is (= 7 (count @calls)))))))
 
 (deftest test-show-roll
   (testing "show-roll function"
@@ -60,7 +53,7 @@
                          :B {:in-hand 4 :off-board 3}}
                :roll 2}]
     (testing "show-state doesn't throw an exception"
-      (with-redefs [view/show (constantly nil)]
+      (with-redefs [util/show (constantly nil)]
         (is (nil? (view/show-state state)))))))
 
 (deftest test-format-move
@@ -74,55 +67,53 @@
 (deftest test-show-moves
   (testing "show-moves function"
     (let [moves [{:from :entry :to 4} {:from 0 :to 4}]
-          expected-calls [[:red 1 " " "entry → A5"]
-                          [:red 2 " " "A1 → A5"]]]
-      (with-redefs [view/show (fn [& args] args)]
-        (is (= expected-calls (view/show-moves moves)))))))
+          calls (atom [])]
+      (with-redefs [util/show (fn [& args] (swap! calls conj args))]
+        (view/show-moves moves)
+        (is (= [[:red 1 " " "entry → A5"]
+                [:red 2 " " "A1 → A5"]]
+               @calls))))))
 
 (deftest test-show-winner
   (testing "show-winner function"
-    (with-redefs [view/show (fn [& args] args)]
-      (is (= [nil
-              [:red "GAME OVER"]
-              [:green "You win!"]]
-             (view/show-winner :A)))
-      (is (= [nil
-              [:red "GAME OVER"]
-              [:green "AI wins!"]]
-             (view/show-winner :B))))))
+    (are [winner expected] (= expected
+                              (let [calls (atom [])]
+                                (with-redefs [util/show (fn [& args] (swap! calls conj args))]
+                                  (view/show-winner winner)
+                                  @calls)))
+      :A [nil [:red "GAME OVER"] [:green "You win!"]]
+      :B [nil [:red "GAME OVER"] [:green "AI wins!"]])))
 
 (deftest test-show-welcome
   (testing "show-welcome function"
-    (with-redefs [view/show (fn [& args] args)
-                  view/c-str (fn [color & text] (apply str text))]
-      (is (= [[:red "The Royal Game of Ur"]
-              nil
-              ["● Your pieces"]
-              ["● AI pieces"]
-              nil
-              ["Press 'q' to quit at any time."]
-              ["Press Enter to begin!"]]
-             (view/show-welcome))))))
+    (let [calls (atom [])]
+      (with-redefs [util/show (fn [& args] (swap! calls conj args))]
+        (view/show-welcome)
+        (is (= [[:red "The Royal Game of Ur"]
+                nil
+                [(util/str :red "●") " Your pieces"]
+                [(util/str :yellow "●") " AI pieces"]
+                nil
+                ["Press 'q' to quit at any time."]
+                ["Press Enter to begin!"]]
+               @calls))))))
 
-(deftest test-show-no-moves
-  (testing "show-no-moves function"
-    (with-redefs [view/show (fn [& args] args)]
-      (is (= ["  No moves"] (view/show-no-moves))))))
-
-(deftest test-show-goodbye
-  (testing "show-goodbye function"
-    (with-redefs [view/show (fn [& args] args)]
-      (is (= ["Thanks for playing! Goodbye."] (view/show-goodbye))))))
+(deftest test-simple-messages
+  (testing "simple message functions"
+    (with-redefs [util/show (fn [& args] args)]
+      (are [func expected] (= expected (func))
+        view/show-no-moves ["  No moves"]
+        view/show-goodbye ["Thanks for playing! Goodbye."]))))
 
 (deftest test-show-invalid-choice
   (testing "show-invalid-choice function"
-    (with-redefs [view/show (fn [& args] args)]
+    (with-redefs [util/show (fn [& args] args)]
       (is (= [:red "Invalid choice. Enter 1-" 5 " or 'q' to quit"]
              (view/show-invalid-choice 5))))))
 
 (deftest test-show-ai-move
   (testing "show-ai-move function"
-    (with-redefs [view/show (fn [& args] args)]
+    (with-redefs [util/show (fn [& args] args)]
       (is (= [:yellow "  AI: " "A1 → B2"]
              (view/show-ai-move {:from 0 :to 9}))))))
 
