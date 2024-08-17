@@ -30,10 +30,9 @@
 
 (defn read-single-key []
   #?(:clj
-     (let [console (System/console)]
-       (if console
-         (str (.readPassword console "" (into-array Object [])))
-         (str (first (read-line)))))
+     (let [reader (java.io.BufferedReader.
+                   (java.io.InputStreamReader. System/in))]
+       (str (char (.read reader))))
      :cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
 

@@ -9,14 +9,17 @@
                         :main-class cli}}
   :native-image
   {:extra-deps {org.clojure/clojure {:mvn/version "1.11.1"}
-                clj.native-image/clj.native-image
-                {:git/url "https://github.com/taylorwood/clj.native-image.git"
-                 :sha "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}
-   :main-opts ["-m" "clj.native-image"
-               "cli"
-               "--initialize-at-build-time"
-               "-H:ResourceConfigurationFiles=resource-config.json"
-               "-H:ReflectionConfigurationFiles=reflect-config.json"
-               "-H:+ReportExceptionStackTraces"
-               "--verbose"
-               "--no-fallback"]}}}
+                 clj.native-image/clj.native-image
+                 {:git/url "https://github.com/taylorwood/clj.native-image.git"
+                  :sha "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}
+    :main-opts ["-m" "clj.native-image" "cli"
+                "--initialize-at-build-time"
+                "-H:+ReportExceptionStackTraces"
+                "--no-fallback"
+                "--verbose"
+                "-O1"
+                "-H:Name=royal-game-of-ur"
+                "-H:ResourceConfigurationFiles=resource-config.json"
+                "-H:ReflectionConfigurationFiles=reflect-config.json"]}}}
+
+

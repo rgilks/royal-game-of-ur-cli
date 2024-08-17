@@ -99,10 +99,10 @@
 
 (defmulti select-move (fn [strategy _game-state] strategy))
 
-(defmethod select-move :random [_ possible-moves]
+(defmethod select-move :random [_ possible-moves _game-state]
   (when (seq possible-moves) (rand-nth possible-moves)))
 
-(defmethod select-move :first-in-list [_ possible-moves]
+(defmethod select-move :first-in-list [_ possible-moves _game-state]
   (first possible-moves))
 
 (defn select-move-strategic [possible-moves game-state]
