@@ -61,15 +61,24 @@
       (let [player-positions (get-piece-positions board current-player)
             entry-point (first (get-in config/board [:paths current-player]))
             can-enter? (and (pos? (get-in players [current-player :in-hand]))
-                            (nil? (get board entry-point)))]
-        (concat
-         (when can-enter?
-           (when-let [move (move-piece board current-player :entry roll)]
-             [{:from :entry :to (first move) :captured (second move)}]))
-         (for [from player-positions
-               :let [move (move-piece board current-player from roll)]
-               :when move]
-           {:from from :to (first move) :captured (second move)}))))))
+                            (nil? (get board entry-point)))
+            path (get-in config/board [:paths current-player])
+            unsorted-moves (concat
+                            (when can-enter?
+                              (when-let [move (move-piece board current-player :entry roll)]
+                                [{:from :entry :to (first move) :captured (second move)}]))
+                            (for [from player-positions
+                                  :let [move (move-piece board current-player from roll)]
+                                  :when move]
+                              {:from from :to (first move) :captured (second move)}))]
+        (if path
+          (sort-by (fn [move]
+                     (cond
+                       (= (:from move) :entry) -1  ; Place :entry moves at the beginning
+                       (= (:to move) :off-board) (count path)  ; Place off-board moves at the end
+                       :else (or (.indexOf path (:from move)) 0)))  ; Use 0 if not found in path
+                   unsorted-moves)
+          unsorted-moves)))))
 
 (defn game-over? [game-state]
   (let [off-board-pieces
@@ -90,42 +99,33 @@
 (defmulti select-move (fn [strategy _game-state] strategy))
 
 (defmethod select-move :random [_ possible-moves]
-  (rand-nth possible-moves))
+  (when (seq possible-moves) (rand-nth possible-moves)))
 
 (defmethod select-move :first-in-list [_ possible-moves]
   (first possible-moves))
 
-(defn select-move-strategic [possible-moves]
+(defn select-move-strategic [possible-moves game-state]
   (when (seq possible-moves)
-    (let [player :B  ; Assuming AI is always player B
+    (let [player (:current-player game-state)
           rosettes (:rosettes config/board)
           path (get-in config/board [:paths player])]
       (or
-       ;; Priority 1: Move a piece off the board if possible
-       (first (filter #(= (:to %) :off-board) possible-moves))
-
-       ;; Priority 2: Capture an opponent's piece
-       (first (filter #(:captured %) possible-moves))
-
-       ;; Priority 3: Move to a rosette
-       (first (filter #(contains? rosettes (:to %)) possible-moves))
-
-       ;; Priority 4: Move furthest piece forward
-       (last (sort-by (fn [move]
-                        (if (= (:from move) :entry)
-                          -1  ; Place :entry moves at the beginning
-                          (.indexOf path (:from move))))
-                      possible-moves))
-
-       ;; Priority 5: Bring a new piece onto the board
-       (first (filter #(= (:from %) :entry) possible-moves))
-
-       ;; Fallback: Choose a random move
+       (when path  ; Only attempt to sort if path is defined
+         (last (sort-by (fn [move]
+                          (cond
+                            (= (:from move) :entry) -1  ; Place :entry moves at the beginning
+                            (= (:to move) :off-board) (count path)  ; Place off-board moves at the end
+                            :else (or (.indexOf path (:from move)) 0)))  ; Use 0 if not found in path
+                        possible-moves)))
+      ;;  (first (filter #(contains? rosettes (:to %)) possible-moves))
+      ;; (first (filter #(:captured %) possible-moves))
+      ;;  (first (filter #(contains? rosettes (:to %)) possible-moves))
+      ;;  (first (filter #(= (:from %) :entry) possible-moves))
        (rand-nth possible-moves)))))
 
 ;; Update the select-move multimethod to include the new strategy
-(defmethod select-move :strategic [_ possible-moves _game-state]
-  (select-move-strategic possible-moves))
+(defmethod select-move :strategic [_ possible-moves game-state]
+  (select-move-strategic possible-moves game-state))
 
 (defmethod transition :choose-action
   [game-state rolls inputs]

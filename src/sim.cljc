@@ -8,10 +8,10 @@
 (def config-atom
   (atom {:debug? false
          :show? false
-         :delay 100
-         :num-games 2
-         :strategy-a :first-in-list
-         :strategy-b :first-in-list}))
+         :delay 10
+         :num-games 10
+         :strategy-a :strategic
+         :strategy-b :random}))
 
 (defn debug [& args]
   (when (:debug? @config-atom)
@@ -20,7 +20,6 @@
 (defn handle-choose-action [game possible-moves strategy]
   (if-let [move (state/select-move strategy possible-moves)]
     (do
-      (view/show-ai-move move)
       (debug "Player" (:current-player game) "chose move:" (pr-str move))
       (state/choose-action game move))
     (do
@@ -59,32 +58,32 @@
         (recur updated-game)))))
 
 (defn play-game
-  ([strategy-a strategy-b]
-   (play-game (state/initialize-game) strategy-a strategy-b))
-  ([initial-state strategy-a strategy-b]
+  ([]
+   (play-game (state/initialize-game)))
+  ([initial-state]
    (if (:show? @config-atom)
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc initial-state
                       :strategy (if (= (:current-player initial-state) :A)
-                                  strategy-a
-                                  strategy-b))]
+                                  (:strategy-a @config-atom)
+                                  (:strategy-b @config-atom)))]
      (if (:game-over game)
        game
        (recur (-> game
                   play-turn
                   (assoc :strategy (if (= (:current-player game) :A)
-                                     strategy-a
-                                     strategy-b))))))))
+                                     (:strategy-a @config-atom)
+                                     (:strategy-b @config-atom)))))))))
 
 (defn run-simulation []
-  (loop [games-left  (:num-games @config-atom)
+  (loop [games-left (:num-games @config-atom)
          wins {:A 0 :B 0}]
     (if (zero? games-left)
       wins
-      (let [initial-game (state/initialize-game)
-            game-result (atom initial-game)
-            winner (:current-player @game-result)]
+      (let [game (state/initialize-game)
+            game-result (play-game game)
+            winner (:current-player game-result)]
         (recur (dec games-left)
                (update wins winner inc))))))
 
