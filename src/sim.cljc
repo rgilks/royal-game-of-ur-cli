@@ -7,8 +7,8 @@
 
 (def config-atom
   (atom {:debug? false
-         :show? false
-         :delay 40
+         :show? true
+         :delay 50
          :num-games 10
          :strategy-a :random
          :strategy-b :random}))
@@ -87,7 +87,7 @@
             game-result (play-game game)
             winner (:current-player game-result)]
         (when (:show? @config-atom)
-          (platform/sleep 4000))
+          (platform/sleep 1000))
         (recur (dec games-left)
                (update wins winner inc))))))
 
