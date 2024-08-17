@@ -7,7 +7,7 @@ default:
 # ======================
 
 # Initialize the project by configuring asdf, installing tools, setting up Git hooks
-init: setup-asdf setup-hooks install-graphviz install-nbb
+init: setup-asdf setup-hooks install-nbb install-graphviz install-graalvm
     yarn install
     @echo "Project initialized successfully!"
 
@@ -18,7 +18,6 @@ setup-asdf:
     asdf plugin add just || true
     asdf plugin add nodejs || true
     asdf plugin add yarn || true
-    
     asdf install
 
 # Install the latest version of nbb
@@ -36,6 +35,71 @@ setup-hooks:
 # Install Graphviz for generating state diagrams
 install-graphviz:
     brew install graphviz
+
+# Install and set up GraalVM
+install-graalvm:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    echo "Installing GraalVM..."
+    brew install --cask graalvm/tap/graalvm-ce-java11
+    
+    echo "Addressing macOS security measures..."
+    sudo xattr -rd com.apple.quarantine /Library/Java/JavaVirtualMachines/graalvm-ce-java11-*
+    
+    # Set JAVA_HOME to point to GraalVM
+    GRAALVM_HOME=$(find /Library/Java/JavaVirtualMachines -name "graalvm-ce-java11-*" | sort -V | tail -n 1)/Contents/Home
+    echo "export JAVA_HOME=$GRAALVM_HOME" >> ~/.zshrc
+    
+    # Add GraalVM bin to PATH
+    echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> ~/.zshrc
+    
+    # Reload shell configuration
+    source ~/.zshrc 2>/dev/null || echo "Please restart your terminal or run 'source ~/.bashrc' (or ~/.zshrc) to apply changes"
+    
+    echo "Installing native-image..."
+    $GRAALVM_HOME/bin/gu install native-image
+    
+    echo "GraalVM setup complete. Please restart your terminal or run 'source ~/.bashrc' (or ~/.zshrc) to apply changes."
+
+# Verify GraalVM installation
+verify-graalvm:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    echo "Verifying GraalVM installation..."
+    
+    if [ -n "$JAVA_HOME" ] && [[ "$JAVA_HOME" == *"graalvm"* ]]; then
+        echo "JAVA_HOME is set correctly to: $JAVA_HOME"
+    else
+        echo "JAVA_HOME is not set correctly. Please run 'just setup-graalvm' again."
+        exit 1
+    fi
+    
+    if command -v native-image >/dev/null 2>&1; then
+        echo "native-image is installed and accessible."
+    else
+        echo "native-image is not found. Please run 'just setup-graalvm' again."
+        exit 1
+    fi
+    
+    java -version
+    native-image --version
+    
+    echo "GraalVM verification complete."
+
+# Uninstall GraalVM
+uninstall-graalvm:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    echo "Uninstalling GraalVM..."
+    brew uninstall --cask graalvm-ce-java11
+    
+    echo "Removing JAVA_HOME and PATH modifications..."
+    sed -i '' '/graalvm/d' ~/.bashrc ~/.zshrc
+    
+    echo "GraalVM uninstalled. Please restart your terminal for changes to take effect."
 
 # =================
 # Development Tasks
@@ -81,6 +145,32 @@ update-tools:
     done < .tool-versions
     echo "All tools updated. New versions:"
     cat .tool-versions
+
+# Buld the project
+build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    echo "Creating target directory..."
+    mkdir -p target
+    
+    echo "Building uberjar..."
+    clojure -X:uberjar
+    
+    if [ ! -f target/royal-game-of-ur.jar ]; then
+        echo "Error: Jar file not created. Check the compilation output above."
+        exit 1
+    fi
+    
+    echo "Creating native image..."
+    clojure -M:native-image
+    
+    if [ ! -f royal-game-of-ur ]; then
+        echo "Error: Native image not created. Check the native-image output above."
+        exit 1
+    fi
+    
+    echo "Build successful. You can run the game with ./royal-game-of-ur"
 
 # =======
 # Testing

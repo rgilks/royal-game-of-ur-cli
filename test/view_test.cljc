@@ -16,7 +16,7 @@
 
 (deftest test-board-row
   (let [board {0 :A, 4 :B}
-        expected (str (util/str :cyan "A ")
+        expected (str (util/cstr :cyan "A ")
                       (view/symbols :A)
                       (view/symbols :empty)
                       (view/symbols :empty)
@@ -91,8 +91,8 @@
         (view/show-welcome)
         (is (= [[:red "The Royal Game of Ur"]
                 nil
-                [(util/str :red "●") " Your pieces"]
-                [(util/str :yellow "●") " AI pieces"]
+                [(util/cstr :red "●") " Your pieces"]
+                [(util/cstr :yellow "●") " AI pieces"]
                 nil
                 ["Press 'q' to quit at any time."]
                 ["Press Enter to begin!"]]

@@ -21,7 +21,7 @@
     (with-redefs [platform/read-single-key (constantly "q")
                   view/show-moves (constantly nil)]
       (is (thrown-with-msg?
-           platform/err
+           #?(:clj Throwable :cljs :default)
            #"User quit"
            (cli/get-user-move [{:from :entry :to 4} {:from 0 :to 4}])))))
 
@@ -85,7 +85,8 @@
 
   (testing "Handle end game state"
     (with-redefs [view/show-winner (constantly nil)]
-      (is (thrown-with-msg? platform/err #"Game over"
+      (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
+                            #"Game over"
                             (cli/handle {:state :end-game, :current-player :A}))))))
 
 (deftest test-play-game
@@ -111,7 +112,8 @@
                   platform/sleep (constantly nil)
                   cli/handle (fn [game] (throw (ex-info "Unexpected error" {:reason :unexpected})))
                   util/show-cursor (constantly nil)]
-      (is (thrown-with-msg? platform/err #"Unexpected error" (cli/play-game))))))
+      (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
+                            #"Unexpected error" (cli/play-game))))))
 
 (deftest test-main
   (testing "Main function execution"

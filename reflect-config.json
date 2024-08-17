@@ -1,0 +1,42 @@
+[
+	{
+		"name": "java.lang.Class",
+		"methods": [
+			{
+				"name": "forName",
+				"parameterTypes": [
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "getMethod",
+				"parameterTypes": [
+					"java.lang.String",
+					"[Ljava.lang.Class;"
+				]
+			},
+			{
+				"name": "getMethods",
+				"parameterTypes": []
+			},
+			{
+				"name": "getDeclaredMethods",
+				"parameterTypes": []
+			},
+			{
+				"name": "getConstructors",
+				"parameterTypes": []
+			},
+			{
+				"name": "getField",
+				"parameterTypes": [
+					"java.lang.String"
+				]
+			},
+			{
+				"name": "getFields",
+				"parameterTypes": []
+			}
+		]
+	}
+]

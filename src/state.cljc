@@ -87,10 +87,11 @@
 
 (defmulti transition (fn [game-state _rolls _inputs] (:state game-state)))
 
-(defmethod transition :start-game [game-state rolls]
+(defmethod transition :start-game [game-state rolls _inputs]
   [(assoc game-state :state :roll-dice) rolls])
 
-(defmethod transition :roll-dice [game-state [current-roll & remaining-rolls]]
+(defmethod transition :roll-dice
+  [game-state [current-roll & remaining-rolls] _inputs]
   [(-> game-state
        (assoc :roll current-roll)
        (assoc :state :choose-action))

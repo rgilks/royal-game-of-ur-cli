@@ -1,4 +1,5 @@
 (ns cli
+  (:gen-class)
   (:require [config]
             [platform]
             [state]
@@ -66,8 +67,8 @@
       (view/show-state game)
       (platform/sleep short-wait)
       (recur (handle game)))
-    (catch platform/err e
-      (when-not (= {:reason :expected} (ex-data e))
+    (catch #?(:clj Throwable :cljs :default) e
+      (when-not (= :expected (:reason (ex-data e)))
         (throw e)))
     (finally
       (util/show-cursor))))

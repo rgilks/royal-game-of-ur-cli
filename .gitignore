@@ -65,3 +65,10 @@ META-INF/
 .nbb
 
 _compiled.*
+
+
+# Build artifacts
+cli.build_artifacts.txt
+royal-game-of-ur
+royal-game-of-ur.build_artifacts.txt
+cli

@@ -1,13 +1,13 @@
 (ns view
   (:require [clojure.string :as str]
             [config]
-            [util :refer [str show]]))
+            [util :refer [cstr show]]))
 
 (def symbols
-  {:A (str :red " ●")
-   :B (str :yellow " ●")
-   :rosette (str :cyan " ✧")
-   :empty (str :cyan " ·")
+  {:A (cstr :red " ●")
+   :B (cstr :yellow " ●")
+   :rosette (cstr :cyan " ✧")
+   :empty (cstr :cyan " ·")
    :blank "  "})
 
 (defn cell [board idx]
@@ -18,9 +18,9 @@
     :else (:empty symbols)))
 
 (defn board-row [board start end label]
-  (str (str :cyan label " ")
-       (apply str (map #(cell board %)
-                       (range start end)))))
+  (cstr (cstr :cyan label " ")
+        (apply cstr (map #(cell board %)
+                         (range start end)))))
 
 (defn show-board [board]
   (show)
@@ -34,33 +34,33 @@
   (->> (concat (repeat roll "▲")
                (repeat (- 4 roll) "△"))
        shuffle
-       (map #(str :bold %))
+       (map #(cstr :bold %))
        str/join))
 
 (defn player-stats [color player-data]
-  (str color
-       " " (:in-hand player-data)
-       " → "
-       (:off-board player-data)))
+  (cstr color
+        " " (:in-hand player-data)
+        " → "
+        (:off-board player-data)))
 
 (defn show-state [{:keys [board players roll]}]
   (show-board board)
   (show " " (player-stats :red (:A players))
         (if roll
-          (str " " (show-roll roll))
+          (cstr " " (show-roll roll))
           "     ")
         (player-stats :yellow (:B players)))
   (show))
 
 (def coords
   (into {} (for [i (range 24)]
-             [i (str (nth "ABC" (quot i 8)) (inc (mod i 8)))])))
+             [i (cstr (nth "ABC" (quot i 8)) (inc (mod i 8)))])))
 
 (defn format-move [{:keys [from to captured]}]
-  (str (if (= from :entry) "entry" (coords from))
-       " → "
-       (if (= to :off-board) "off" (coords to))
-       (when captured (str :red " capture"))))
+  (cstr (if (= from :entry) "entry" (coords from))
+        " → "
+        (if (= to :off-board) "off" (coords to))
+        (when captured (cstr :red " capture"))))
 
 (defn show-moves [moves]
   (doseq [[idx move] (map-indexed vector moves)]
@@ -74,8 +74,8 @@
 (defn show-welcome []
   (show :red "The Royal Game of Ur")
   (show)
-  (show (str :red "●") " Your pieces")
-  (show (str :yellow "●") " AI pieces")
+  (show (cstr :red "●") " Your pieces")
+  (show (cstr :yellow "●") " AI pieces")
   (show)
   (show "Press 'q' to quit at any time.")
   (show "Press Enter to begin!"))

@@ -1,25 +1,14 @@
 (ns platform
-  #?(:clj
-     (:require
-      ;; [clojure.java.io :as io]
-      )
-     :cljs
-     (:require
-      ;; ["fs" :as fs]
-      ["readline-sync" :as readline-sync])))
-
-(def err
-  #?(:clj Exception :cljs js/Error))
+  #?(:clj (:require [clojure.java.io :as io])
+     :cljs (:require
+            ["fs" :as fs]
+            ["readline-sync" :as readline-sync])))
 
 (defn parse-int [s]
   (if (and s (re-matches #"\d+" (str s)))
     #?(:clj (Integer/parseInt s)
        :cljs (js/parseInt s))
     0))
-
-(defn parse-long [s]
-  #?(:clj (Long/parseLong s)
-     :cljs (js/parseInt s)))
 
 (defn parse-bool [s]
   (= s "true"))
@@ -48,9 +37,9 @@
      :cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
 
-;; (defn load-file! [filepath]
-;;   #?(:clj  (slurp (io/resource filepath))
-;;      :cljs (.readFileSync fs filepath "utf8")))
+(defn load-file! [filepath]
+  #?(:clj  (slurp (io/resource filepath))
+     :cljs (.readFileSync fs filepath "utf8")))
 
 ;; (defn current-time-ms []
 ;;   #?(:clj  (System/currentTimeMillis)

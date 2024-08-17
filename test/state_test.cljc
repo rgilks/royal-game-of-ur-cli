@@ -1,7 +1,7 @@
 (ns state-test
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
-            [platform :as platform :refer [err]]
+            [platform]
             [state :as ur]
             [test-utils :refer [thrown-with-msg?]]))
 
@@ -162,7 +162,9 @@
 
   (testing "validate-game-state throws on invalid states"
     (are [invalid-state]
-         (thrown-with-msg? err #"Invalid game state" (ur/validate-game-state invalid-state))
+         (thrown-with-msg? #?(:clj Throwable :cljs :default)
+                           #"Invalid game state"
+                           (ur/validate-game-state invalid-state))
       (assoc test-game-state :board [])  ; Invalid board size
       (assoc-in test-game-state [:players :A :in-hand] 8)  ; Too many pieces in hand
       (assoc test-game-state :current-player :C)  ; Invalid player
@@ -185,7 +187,8 @@
       (is (<= 0 (:roll rolled-state) 4))))
 
   (testing "dice-roll throws on invalid state"
-    (is (thrown-with-msg? err #"Invalid game state for rolling dice"
+    (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
+                          #"Invalid game state for rolling dice"
                           (ur/dice-roll test-game-state)))))
 
 (deftest test-choose-action

@@ -17,7 +17,7 @@
   {:reset "[0m" :bold "[1m" :red "[31m" :green "[32m"
    :yellow "[33m" :blue "[34m" :cyan "[36m"})
 
-(defn str
+(defn cstr
   "Enhanced string function that supports color formatting.
    If the first argument is a color keyword, it applies that color to the rest of the arguments.
    Otherwise, it behaves like the regular str function."
@@ -32,7 +32,7 @@
     (apply clojure.core/str args)))
 
 (defn show [& args]
-  (print-line (apply str args)))
+  (print-line (apply cstr args)))
 
 (defn hide-cursor [] (print "\u001b[?25l") (flush))
 (defn show-cursor [] (print "\u001b[?25h") (flush))

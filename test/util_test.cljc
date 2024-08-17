@@ -48,7 +48,7 @@
 
 (deftest test-str
   (testing "c-str function"
-    (are [input expected] (= expected (apply util/str input))
+    (are [input expected] (= expected (apply util/cstr input))
       [:red "Hello"] "\u001b[31mHello\u001b[0m"
       [:blue "World"] "\u001b[34mWorld\u001b[0m"
       [:green "Test"] "\u001b[32mTest\u001b[0m"
