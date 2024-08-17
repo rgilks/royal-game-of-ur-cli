@@ -24,22 +24,33 @@
   (if (= player :A) :B :A))
 
 (defn get-piece-positions [board player]
-  (keep-indexed
-   (fn [idx piece]
-     (when (and (= piece player)
-                (not (contains? (:exclude config/board) idx))) idx))
-   board))
+  (keep-indexed #(when (= %2 player) %1) board))
+
+(defn find-index [path value]
+  (loop [idx 0
+         remaining path]
+    (cond
+      (empty? remaining) nil
+      (= (first remaining) value) idx
+      :else (recur (inc idx) (rest remaining)))))
+
+(defn find-next-position [path from roll]
+  (let [start-index (or (find-index path from) -1)
+        remaining-path (drop (inc start-index) path)]
+    (nth remaining-path (dec roll) nil)))
 
 (defn move-piece [board player from roll]
   (if (zero? roll)
     nil  ; No move possible on a roll of 0
     (let [path (get-in config/board [:paths player])
-          current-index (if (= from :entry) -1 (.indexOf path from))
-          new-index (+ current-index roll)]
-      (if (>= new-index (count path))
-        [:off-board nil]
-        (let [new-pos (nth path new-index)
-              target (get board new-pos)]
+          new-pos (if (= from :entry)
+                    (first path)
+                    (find-next-position path from roll))]
+      (if (nil? new-pos)
+        (if (and (number? from) (>= (+ from roll) (apply max path)))
+          [:off-board nil]
+          nil)
+        (let [target (get board new-pos)]
           (cond
             (nil? target) [new-pos nil]
             (= target player) nil  ; Invalid move
@@ -58,7 +69,7 @@
   (cond
     (= (:from move) :entry) -1
     (= (:to move) :off-board) (count path)
-    :else (or (.indexOf path (:from move)) 0)))
+    :else (or (find-index path (:from move)) 0)))
 
 (defn get-possible-moves [{:keys [board current-player roll players]}]
   (when (pos? roll)
@@ -77,11 +88,15 @@
                             :when move]
                         {:from from :to (first move) :captured (second move)})
 
-          unsorted-moves (concat entry-move board-moves)]
+          all-moves (concat entry-move board-moves)]
 
-      (if path
-        (sort-by (partial move-priority path) unsorted-moves)
-        unsorted-moves))))
+      (sort-by (fn [move]
+                 (cond
+                   (= (:from move) :entry) -1
+                   (= (:to move) :off-board) (count path)
+                   :else (or (find-index path (:from move))
+                             (inc (apply max (map #(find-index path %) path))))))
+               all-moves))))
 
 (defn game-over? [game-state]
   (let [off-board-pieces
@@ -112,9 +127,7 @@
   (when (seq possible-moves)
     (let [player (:current-player game-state)
           path (get-in config/board [:paths player])]
-      (if path
-        (last (sort-by (partial move-priority path) possible-moves))
-        (rand-nth possible-moves)))))
+      (last (sort-by (partial move-priority path) possible-moves)))))
 
 (defmethod select-move :strategic [_ possible-moves game-state]
   (select-move-strategic possible-moves game-state))
@@ -126,7 +139,7 @@
     (if (empty? possible-moves)
       [(assoc game-state :state :switch-turns) rolls]
       (let [selected-move (or (some-> (:selected-move inputs))
-                              (select-move strategy possible-moves))]
+                              (select-move strategy possible-moves game-state))]
         [(-> game-state
              (assoc :selected-move selected-move)
              (assoc :state (if (= (:from selected-move) :entry)
@@ -220,23 +233,12 @@
   (if (= (:state game-state) :choose-action)
     (let [possible-moves (get-possible-moves game-state)]
       (if (empty? possible-moves)
-        (first (play game-state [] {:move-strategy :random}))  ; TODO: why is random strategy used here?
+        (first (play game-state [] {:move-strategy :random}))
         (let [new-state (-> game-state
                             (assoc :selected-move selected-move)
                             (assoc :state (if (= (:from selected-move) :entry)
                                             :enter-piece
                                             :move-piece)))]
           (first (play new-state [] {})))))
-    (throw (ex-info "Invalid game state for choosing action" {:state (:state game-state)}))))
-
-(comment
-  (def game (start-game))
-  (def game-rolled (dice-roll game))
-  (def possible-moves (get-moves game-rolled))
-  (def game-after-move (choose-action game-rolled (first possible-moves)))
-  (def game-rolled-again (dice-roll game-after-move))
-  (def new-possible-moves (get-moves game-rolled-again))
-  (println new-possible-moves)
-  (def game-after-second-move (choose-action game-rolled-again
-                                             (first new-possible-moves)))
-  (println game-after-second-move))
+    (throw (ex-info "Invalid game state for choosing action"
+                    {:state (:state game-state)}))))

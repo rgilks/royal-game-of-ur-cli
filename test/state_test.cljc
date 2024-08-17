@@ -51,12 +51,11 @@
 
 (deftest test-get-possible-moves
   (testing "get-possible-moves returns all valid moves"
-    (is (= #{{:from 0 :to 9 :captured :B}
-             {:from 3 :to 1 :captured nil}
-             {:from 7 :to :off-board :captured nil}
-             {:from 16 :to 2 :captured :B}
-             {:from 22 :to 2 :captured :B}}
-           (set (ur/get-possible-moves test-game-state)))))
+    (is (= [{:from 3 :to 1 :captured nil}
+            {:from 0 :to 9 :captured :B}
+            {:from 16 :to 2 :captured :B}
+            {:from 22 :to 2 :captured :B}]
+           (ur/get-possible-moves test-game-state))))
 
   (testing "get-possible-moves with no valid moves"
     (let [no-move-state (assoc test-game-state :roll 0)]
@@ -72,20 +71,20 @@
 
 (deftest test-transitions
   (testing "transitions between game states"
-    (are [initial-state rolls expected-state]
-         (let [[new-state _] (ur/transition initial-state rolls)]
+    (are [initial-state rolls inputs expected-state]
+         (let [[new-state _] (ur/transition initial-state rolls inputs)]
            (contains? expected-state (:state new-state)))
 
-      {:state :start-game} [] #{:roll-dice}
+      {:state :start-game} [3] {} #{:roll-dice}
 
-      {:state :roll-dice} [3] #{:choose-action}
+      {:state :roll-dice} [3] {} #{:choose-action}
 
       {:state :choose-action
        :board test-board
        :players {:A {:in-hand 6 :off-board 0}
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
-       :roll 2} [] #{:enter-piece :move-piece}
+       :roll 2} [] {:move-strategy :random} #{:enter-piece :move-piece}
 
       {:state :enter-piece
        :board test-board
@@ -93,7 +92,7 @@
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
        :roll 3
-       :selected-move {:from :entry :to 3 :captured nil}} [] #{:switch-turns}
+       :selected-move {:from :entry :to 3 :captured nil}} [] {} #{:switch-turns}
 
       {:state :move-piece
        :board test-board
@@ -101,14 +100,14 @@
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
        :roll 2
-       :selected-move {:from 0 :to 2 :captured :B}} [] #{:switch-turns}
+       :selected-move {:from 0 :to 2 :captured :B}} [] {} #{:switch-turns}
 
       {:state :land-on-rosette
        :board [:A nil :B :A nil nil :A :A nil :B nil nil
                nil nil nil nil :A :B nil nil nil nil :A :B]
        :players {:A {:in-hand 0 :off-board 0}
                  :B {:in-hand 7 :off-board 0}}
-       :current-player :A} [] #{:roll-dice}
+       :current-player :A} [] {} #{:roll-dice}
 
       {:state :move-piece-off-board
        :board [:A nil :B nil nil nil :B :A nil :B nil nil
@@ -116,13 +115,13 @@
        :players {:A {:in-hand 0 :off-board 6}
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
-       :selected-move {:from 15 :to :off-board :captured nil}} [] #{:switch-turns}
+       :selected-move {:from 15 :to :off-board :captured nil}} [] {} #{:switch-turns}
 
       {:state :switch-turns
        :board test-board
        :players {:A {:in-hand 0 :off-board 7}
                  :B {:in-hand 7 :off-board 0}}
-       :current-player :A} [] #{:end-game})))
+       :current-player :A} [] {} #{:end-game})))
 
 (deftest test-initialize-game
   (testing "initialize-game creates correct initial state"
@@ -195,8 +194,8 @@
   (testing "choose-action advances game state correctly"
     (let [move {:from 0 :to 2 :captured :B}
           new-state (ur/choose-action test-game-state move)]
-      (is (contains? #{:roll-dice :move-piece :enter-piece} (:state new-state))
-          (str "Expected :roll-dice, :move-piece, or :enter-piece, but got " (:state new-state)))
+      (is (contains? #{:roll-dice :move-piece :enter-piece :switch-turns} (:state new-state))
+          (str "Expected :roll-dice, :move-piece, :enter-piece, or :switch-turns, but got " (:state new-state)))
       (is (nil? (:selected-move new-state))
           (str "Expected selected-move to be nil, but got " (:selected-move new-state))))))
 

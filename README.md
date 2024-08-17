@@ -14,20 +14,25 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 - AI opponent with configurable strategies
 - Comprehensive test suite
 - Colorized output for enhanced user experience
+- Simulation mode for running multiple games with different strategies
 
 ## Getting Started
 
 ### Prerequisites
 
-This project uses version management to ensure consistent development environments. You can use tools like `asdf`, `mise`, or any other version manager of your choice. The required tool versions are specified in the `.tool-versions` file.
+This project uses version management to ensure consistent development environments. We recommend using `asdf` as the version manager. The required tool versions are specified in the `.tool-versions` file.
 
-Ensure you have a compatible version manager installed on your system.
+Ensure you have the following tools installed on your system:
+
+- asdf
+- Clojure
+- Node.js
+- Yarn
+- Java (GraalVM)
+- Just (command runner)
+- Graphviz (for generating state diagrams)
 
 Note that this project was developed on a Mac, so some commands may differ on other operating systems.
-
-The 'just' commands assume you are on a Mac and using asdf.
-
-Development was mostly done in ClojureScript using [node babashka (nbb)](https://github.com/babashka/nbb) though effort was made to keep the code compatible with Clojure.
 
 ### Installation
 
@@ -37,17 +42,14 @@ Development was mostly done in ClojureScript using [node babashka (nbb)](https:/
    cd royal-game-of-ur
    ```
 
-2. Install the required tool versions:
-   If you're using `asdf`, `mise`, or a compatible version manager, it should automatically pick up the versions from `.tool-versions`. If not, manually install the specified versions of each tool.
-
-3. Initialize the project:
+2. Initialize the project:
    ```
    just init
    ```
 
    This command will:
-   - Install the required tool versions (if using `asdf`)
-   - Set up necessary tools (including Graphviz and nbb)
+   - Set up asdf and install required plugins and versions
+   - Install necessary tools (including Graphviz, nbb, and GraalVM)
    - Set up Git hooks
    - Install project dependencies
    - Perform any other necessary initialization steps
@@ -68,8 +70,10 @@ Some useful commands include:
 - `just fmt`: Format Clojure files
 - `just concat`: Concatenate all project files
 - `just state-diagram`: Generate the state diagram
+- `just sim`: Run a simulation with custom parameters
+- `just build`: Build the project (creates uberjar and native image)
 
-To update all tools to their latest versions (if using `asdf`):
+To update all tools to their latest versions:
 
 ```
 just update-tools
@@ -85,10 +89,15 @@ just cli
 
 This will launch the game in your terminal. Follow the on-screen instructions to play.
 
-To run a simulation of a full game in autopilot mode:
+To run a simulation of multiple games with different strategies:
 
 ```
-just sim
+just sim [num_games] [strategy_a] [strategy_b] [debug] [show] [delay]
+```
+
+For example:
+```
+just sim 1000 strategic random true false 0
 ```
 
 ## Game Rules
@@ -126,6 +135,20 @@ For continuous testing during development:
 
 ```
 just watch
+```
+
+## Building
+
+To build the project (create uberjar and native image):
+
+```
+just build
+```
+
+After building, you can run the game with:
+
+```
+./royal-game-of-ur
 ```
 
 ## License
