@@ -18,7 +18,7 @@
     (apply println args)))
 
 (defn handle-choose-action [game possible-moves strategy]
-  (if-let [move (state/select-move strategy possible-moves)]
+  (if-let [move (state/select-move strategy possible-moves game)]
     (do
       (debug "Player" (:current-player game) "chose move:" (pr-str move))
       (state/choose-action game move))

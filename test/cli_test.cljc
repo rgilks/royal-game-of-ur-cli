@@ -46,14 +46,14 @@
 (deftest test-get-move
   (testing "Get move for player A"
     (with-redefs [cli/get-user-move (constantly {:from :entry :to 4})]
-      (is (= {:from :entry :to 4} (cli/get-move :A [{:from :entry :to 4}])))))
+      (is (= {:from :entry :to 4} (cli/get-move :A [{:from :entry :to 4}] nil)))))
 
   (testing "Get move for player B (AI)"
     (with-redefs [state/select-move (constantly {:from 0 :to 4})]
-      (is (= {:from 0 :to 4} (cli/get-move :B [{:from 0 :to 4}])))))
+      (is (= {:from 0 :to 4} (cli/get-move :B [{:from 0 :to 4}] nil)))))
 
   (testing "No moves available"
-    (is (nil? (cli/get-move :A [])))))
+    (is (nil? (cli/get-move :A [] nil)))))
 
 (deftest test-handle
   (testing "Handle roll dice state"

@@ -31,16 +31,16 @@
 (defmethod handle :roll-dice [game]
   (state/dice-roll game))
 
-(defn get-move [player possible-moves]
+(defn get-move [player possible-moves game]
   (cond
     (empty? possible-moves) nil
     (= player :A) (get-user-move possible-moves)
-    :else (state/select-move :strategic possible-moves)))
+    :else (state/select-move :strategic possible-moves game)))
 
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)
         player (:current-player game)]
-    (if-let [move (get-move player possible-moves)]
+    (if-let [move (get-move player possible-moves game)]
       (do
         (when (= player :B)
           (view/show-ai-move move)

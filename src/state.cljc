@@ -54,31 +54,34 @@
     (and (not= to :off-board) (number? to)
          (< to (:size config/board))) (assoc to player)))
 
-(defn get-possible-moves [game-state]
-  (let [{:keys [board current-player roll players]} game-state]
-    (if (zero? roll)
-      []  ; No moves possible on a roll of 0
-      (let [player-positions (get-piece-positions board current-player)
-            entry-point (first (get-in config/board [:paths current-player]))
-            can-enter? (and (pos? (get-in players [current-player :in-hand]))
-                            (nil? (get board entry-point)))
-            path (get-in config/board [:paths current-player])
-            unsorted-moves (concat
-                            (when can-enter?
-                              (when-let [move (move-piece board current-player :entry roll)]
-                                [{:from :entry :to (first move) :captured (second move)}]))
-                            (for [from player-positions
-                                  :let [move (move-piece board current-player from roll)]
-                                  :when move]
-                              {:from from :to (first move) :captured (second move)}))]
-        (if path
-          (sort-by (fn [move]
-                     (cond
-                       (= (:from move) :entry) -1  ; Place :entry moves at the beginning
-                       (= (:to move) :off-board) (count path)  ; Place off-board moves at the end
-                       :else (or (.indexOf path (:from move)) 0)))  ; Use 0 if not found in path
-                   unsorted-moves)
-          unsorted-moves)))))
+(defn- move-priority [path move]
+  (cond
+    (= (:from move) :entry) -1
+    (= (:to move) :off-board) (count path)
+    :else (or (.indexOf path (:from move)) 0)))
+
+(defn get-possible-moves [{:keys [board current-player roll players]}]
+  (when (pos? roll)
+    (let [player-positions (get-piece-positions board current-player)
+          path (get-in config/board [:paths current-player])
+          entry-point (first path)
+          can-enter? (and (pos? (get-in players [current-player :in-hand]))
+                          (nil? (get board entry-point)))
+
+          entry-move (when can-enter?
+                       (when-let [move (move-piece board current-player :entry roll)]
+                         [{:from :entry :to (first move) :captured (second move)}]))
+
+          board-moves (for [from player-positions
+                            :let [move (move-piece board current-player from roll)]
+                            :when move]
+                        {:from from :to (first move) :captured (second move)})
+
+          unsorted-moves (concat entry-move board-moves)]
+
+      (if path
+        (sort-by (partial move-priority path) unsorted-moves)
+        unsorted-moves))))
 
 (defn game-over? [game-state]
   (let [off-board-pieces
@@ -97,34 +100,22 @@
        (assoc :state :choose-action))
    remaining-rolls])
 
-(defmulti select-move (fn [strategy _game-state] strategy))
+(defmulti select-move (fn [strategy _ _] strategy))
 
-(defmethod select-move :random [_ possible-moves _game-state]
+(defmethod select-move :random [_ possible-moves _]
   (when (seq possible-moves) (rand-nth possible-moves)))
 
-(defmethod select-move :first-in-list [_ possible-moves _game-state]
+(defmethod select-move :first-in-list [_ possible-moves _]
   (first possible-moves))
 
 (defn select-move-strategic [possible-moves game-state]
   (when (seq possible-moves)
     (let [player (:current-player game-state)
-          rosettes (:rosettes config/board)
           path (get-in config/board [:paths player])]
-      (or
-       (when path  ; Only attempt to sort if path is defined
-         (last (sort-by (fn [move]
-                          (cond
-                            (= (:from move) :entry) -1  ; Place :entry moves at the beginning
-                            (= (:to move) :off-board) (count path)  ; Place off-board moves at the end
-                            :else (or (.indexOf path (:from move)) 0)))  ; Use 0 if not found in path
-                        possible-moves)))
-      ;;  (first (filter #(contains? rosettes (:to %)) possible-moves))
-      ;; (first (filter #(:captured %) possible-moves))
-      ;;  (first (filter #(contains? rosettes (:to %)) possible-moves))
-      ;;  (first (filter #(= (:from %) :entry) possible-moves))
-       (rand-nth possible-moves)))))
+      (if path
+        (last (sort-by (partial move-priority path) possible-moves))
+        (rand-nth possible-moves)))))
 
-;; Update the select-move multimethod to include the new strategy
 (defmethod select-move :strategic [_ possible-moves game-state]
   (select-move-strategic possible-moves game-state))
 
@@ -143,7 +134,7 @@
                              :move-piece)))
          rolls]))))
 
-(defmethod transition :enter-piece [game-state rolls]
+(defmethod transition :enter-piece [game-state rolls _inputs]
   (let [{:keys [current-player selected-move]} game-state
         {:keys [to]} selected-move]
     [(-> game-state
@@ -152,7 +143,7 @@
          (assoc :state :switch-turns))
      rolls]))
 
-(defmethod transition :move-piece [game-state rolls]
+(defmethod transition :move-piece [game-state rolls _inputs]
   (let [{:keys [current-player selected-move]} game-state
         {:keys [from to captured]} selected-move
         opponent (other-player (:current-player game-state))]
@@ -166,13 +157,13 @@
        (and (not= to :off-board) (not (contains? (:rosettes config/board) to)) (not captured)) (assoc :state :switch-turns))
      rolls]))
 
-(defmethod transition :land-on-rosette [game-state rolls]
+(defmethod transition :land-on-rosette [game-state rolls _inputs]
   [(assoc game-state :state :roll-dice) rolls])
 
-(defmethod transition :move-piece-off-board [game-state rolls]
+(defmethod transition :move-piece-off-board [game-state rolls _inputs]
   [(assoc game-state :state :switch-turns) rolls])
 
-(defmethod transition :switch-turns [game-state rolls]
+(defmethod transition :switch-turns [game-state rolls _inputs]
   (if (game-over? game-state)
     [(assoc game-state :state :end-game) rolls]
     (let [new-player (other-player (:current-player game-state))]
@@ -183,7 +174,7 @@
            (assoc :state :roll-dice))
        rolls])))
 
-(defmethod transition :end-game [game-state rolls]
+(defmethod transition :end-game [game-state rolls _inputs]
   [game-state rolls]) ; No transition, game is over
 
 (defn random-first-player []
