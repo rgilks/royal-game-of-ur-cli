@@ -23,7 +23,7 @@ This project uses version management to ensure consistent development environmen
 
 Ensure you have a compatible version manager installed on your system.
 
-Note that I developed this project on a Mac, so some commands may differ on other operating systems.
+Note that this project was developed on a Mac, so some commands may differ on other operating systems.
 
 The 'just' commands assume you are on a Mac and using asdf.
 
@@ -49,6 +49,7 @@ Development was mostly done in ClojureScript using [node babashka (nbb)](https:/
    - Install the required tool versions (if using `asdf`)
    - Set up necessary tools (including Graphviz and nbb)
    - Set up Git hooks
+   - Install project dependencies
    - Perform any other necessary initialization steps
 
 ## Development
@@ -83,6 +84,12 @@ just cli
 ```
 
 This will launch the game in your terminal. Follow the on-screen instructions to play.
+
+To run a simulation of a full game in autopilot mode:
+
+```
+just sim
+```
 
 ## Game Rules
 
