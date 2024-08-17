@@ -147,6 +147,15 @@
       (is (= 7 (get-in game [:players :A :in-hand])))
       (is (= 7 (get-in game [:players :B :in-hand]))))))
 
+(deftest test-start-game-with-specified-player
+  (testing "start-game initializes game correctly with specified player"
+    (let [game (ur/start-game :A)]
+      (is (= :roll-dice (:state game)))
+      (is (= :A (:current-player game)))
+      (is (every? nil? (:board game)))
+      (is (= 7 (get-in game [:players :A :in-hand])))
+      (is (= 7 (get-in game [:players :B :in-hand]))))))
+
 (deftest test-validate-game-state
   (testing "validate-game-state accepts valid states"
     (is (= test-game-state (ur/validate-game-state test-game-state))))
@@ -167,15 +176,6 @@
   (testing "validate-total-pieces fails on invalid piece counts"
     (is (not (ur/validate-total-pieces
               (assoc-in test-game-state [:players :A :in-hand] 4))))))
-
-(deftest test-start-game
-  (testing "start-game initializes game correctly"
-    (let [game (ur/start-game)]
-      (is (= :roll-dice (:state game)))
-      (is (= :A (:current-player game)))
-      (is (every? nil? (:board game)))
-      (is (= 7 (get-in game [:players :A :in-hand])))
-      (is (= 7 (get-in game [:players :B :in-hand]))))))
 
 (deftest test-dice-roll
   (testing "dice-roll advances game state correctly"

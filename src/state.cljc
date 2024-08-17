@@ -208,8 +208,10 @@
         (recur (validate-game-state new-state) new-rolls)))))
 
 ;; Public API
-(defn start-game []
-  (first (play (initialize-game) [] {})))
+(defn start-game
+  ([] (start-game nil))
+  ([starting-player]
+   (first (play (initialize-game starting-player) [] {}))))
 
 (defn dice-roll [game-state]
   (if (= (:state game-state) :roll-dice)
