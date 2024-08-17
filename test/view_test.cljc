@@ -70,8 +70,8 @@
           calls (atom [])]
       (with-redefs [util/show (fn [& args] (swap! calls conj args))]
         (view/show-moves moves)
-        (is (= [[:red 1 " " "entry → A5"]
-                [:red 2 " " "A1 → A5"]]
+        (is (= [[:red " " 1 " " "entry → A5"]
+                [:red " " 2 " " "A1 → A5"]]
                @calls))))))
 
 (deftest test-show-winner

@@ -64,7 +64,7 @@
 
 (defn show-moves [moves]
   (doseq [[idx move] (map-indexed vector moves)]
-    (show :red (inc idx) " " (format-move move))))
+    (show :red " "  (inc idx) " " (format-move move))))
 
 (defn show-winner [winner]
   (show)

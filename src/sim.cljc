@@ -8,7 +8,7 @@
 (def config-atom
   (atom {:debug? false
          :show? false
-         :delay 10
+         :delay 40
          :num-games 10
          :strategy-a :random
          :strategy-b :random}))
@@ -50,6 +50,8 @@
 (defn play-turn [game]
   (loop [current-game game]
     (let [updated-game (handle current-game)]
+      (when (:show? @config-atom)
+        (platform/clear-console))
       (view/show-state updated-game)
       (when (:show? @config-atom)
         (platform/sleep (:delay @config-atom)))
@@ -84,6 +86,8 @@
       (let [game (state/initialize-game)
             game-result (play-game game)
             winner (:current-player game-result)]
+        (when (:show? @config-atom)
+          (platform/sleep 4000))
         (recur (dec games-left)
                (update wins winner inc))))))
 
