@@ -42,13 +42,15 @@
 
 (defn play-game
   ([strategy-a strategy-b print-output?]
-   (play-game (state/start-game) strategy-a strategy-b print-output?))
+   (play-game (state/initialize-game) strategy-a strategy-b print-output?))
   ([initial-state strategy-a strategy-b print-output?]
    (if print-output?
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc initial-state
-                      :strategy strategy-a
+                      :strategy (if (= (:current-player initial-state) :A)
+                                  strategy-a
+                                  strategy-b)
                       :print-output? print-output?)]
      (if (:game-over game)
        game
@@ -58,12 +60,12 @@
                                      strategy-a
                                      strategy-b))))))))
 
-(defn run-simulation [num-games strategy-a strategy-b print-output?]
+(defn run-simulation [num-games strategy-a strategy-b print-output? & [starting-player]]
   (loop [games-left num-games
          wins {:A 0 :B 0}]
     (if (zero? games-left)
       wins
-      (let [game-result (play-game strategy-a strategy-b print-output?)
+      (let [game-result (play-game (state/initialize-game starting-player) strategy-a strategy-b print-output?)
             winner (:current-player game-result)]
         (recur (dec games-left)
                (update wins winner inc))))))
@@ -87,9 +89,9 @@
   (= s "true"))
 
 (defn -main [& args]
-  (let [num-games (or (some-> args first parse-long) 1)
+  (let [num-games (or (some-> args first parse-long) 10)
         strategy-a (or (second args) :first-in-list)
-        strategy-b (or (nth args 2) :strategic)
+        strategy-b (or (nth args 2) :first-in-list)
         print-output? (parse-bool (or (nth args 3 "false") "false"))]
     (println "Running" num-games "games...")
     (println "Player A strategy:" strategy-a)

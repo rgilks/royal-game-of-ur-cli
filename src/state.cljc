@@ -185,14 +185,19 @@
 (defmethod transition :end-game [game-state rolls]
   [game-state rolls]) ; No transition, game is over
 
-(defn initialize-game []
-  {:board (vec (repeat (:size config/board) nil))
-   :players {:A {:in-hand 7 :off-board 0}
-             :B {:in-hand 7 :off-board 0}}
-   :current-player :A
-   :roll nil
-   :state :start-game
-   :selected-move nil})
+(defn random-first-player []
+  (if (< (rand) 0.5) :A :B))
+
+(defn initialize-game
+  ([] (initialize-game nil))
+  ([starting-player]
+   {:board (vec (repeat (:size config/board) nil))
+    :players {:A {:in-hand 7 :off-board 0}
+              :B {:in-hand 7 :off-board 0}}
+    :current-player (or starting-player (random-first-player))
+    :roll nil
+    :state :start-game
+    :selected-move nil}))
 
 (defn play [game-state rolls inputs]
   (loop [state (validate-game-state game-state)

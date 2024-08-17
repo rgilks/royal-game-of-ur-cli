@@ -126,7 +126,7 @@
 
 (deftest test-initialize-game
   (testing "initialize-game creates correct initial state"
-    (let [initial-state (ur/initialize-game)]
+    (let [initial-state (ur/initialize-game :A)]  ; Specify :A as the starting player for deterministic tests
       (is (= 24 (count (:board initial-state))))
       (is (every? nil? (:board initial-state)))
       (is (= 7 (get-in initial-state [:players :A :in-hand])))
@@ -137,6 +137,15 @@
       (is (nil? (:roll initial-state)))
       (is (= :start-game (:state initial-state)))
       (is (nil? (:selected-move initial-state))))))
+
+(deftest test-start-game
+  (testing "start-game initializes game correctly"
+    (let [game (ur/start-game)]
+      (is (= :roll-dice (:state game)))
+      (is (contains? #{:A :B} (:current-player game)))
+      (is (every? nil? (:board game)))
+      (is (= 7 (get-in game [:players :A :in-hand])))
+      (is (= 7 (get-in game [:players :B :in-hand]))))))
 
 (deftest test-validate-game-state
   (testing "validate-game-state accepts valid states"
