@@ -31,9 +31,9 @@
                          :B {:in-hand 4 :off-board 3}}
                :roll 2}]
     (testing "print-game-state doesn't throw an exception"
-      (is (nil? (view/print-game-state state))))))
+      (is (nil? (view/show-state state))))))
 
 (deftest test-print-winner-message
   (testing "print-winner-message doesn't throw an exception"
-    (is (nil? (view/print-winner-message :A)))
-    (is (nil? (view/print-winner-message :B)))))
+    (is (nil? (view/show-winner :A)))
+    (is (nil? (view/show-winner :B)))))

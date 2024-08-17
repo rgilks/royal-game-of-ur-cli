@@ -9,7 +9,7 @@
 (deftest test-get-user-move
   (testing "Valid single-key input"
     (with-redefs [platform/read-single-key (constantly "1")
-                  view/print-moves (constantly nil)
+                  view/show-moves (constantly nil)
                   show (constantly nil)]
       (let [moves [{:from :entry :to 4} {:from 0 :to 4}]]
         (is (= (first moves) (cli/get-user-move moves))))))
@@ -19,7 +19,7 @@
       (with-redefs [platform/read-single-key #(let [input (first @inputs)]
                                                 (swap! inputs rest)
                                                 input)
-                    view/print-moves (constantly nil)
+                    view/show-moves (constantly nil)
                     show (constantly nil)]
         (let [moves [{:from :entry :to 4} {:from 0 :to 4} {:from 4 :to 8}]]
           (is (= {:from 4 :to 8} (cli/get-user-move moves)))))))
@@ -29,21 +29,21 @@
       (with-redefs [platform/read-single-key #(let [input (first @inputs)]
                                                 (swap! inputs rest)
                                                 input)
-                    view/print-moves (constantly nil)
+                    view/show-moves (constantly nil)
                     show (constantly nil)]
         (let [moves [{:from :entry :to 4} {:from 0 :to 4} {:from 4 :to 8}]]
           (is (= (second moves) (cli/get-user-move moves)))))))
 
   (testing "Quit input"
     (with-redefs [platform/read-single-key (constantly "q")
-                  view/print-moves (constantly nil)
+                  view/show-moves (constantly nil)
                   show (constantly nil)]
       (let [moves [{:from :entry :to 4} {:from 0 :to 4}]]
         (is (= :quit (cli/get-user-move moves))))))
 
   (testing "Empty moves list"
     (with-redefs [platform/read-single-key (constantly "1")
-                  view/print-moves (constantly nil)
+                  view/show-moves (constantly nil)
                   show (constantly nil)]
       (is (nil? (cli/get-user-move []))))))
 
@@ -76,9 +76,9 @@
                                :roll nil
                                :selected-move nil})
                   platform/clear-console (constantly nil)
-                  view/print-welcome-message (constantly nil)
-                  view/print-game-state (constantly nil)
-                  view/print-winner-message (constantly nil)
+                  view/show-welcome (constantly nil)
+                  view/show-state (constantly nil)
+                  view/show-winner (constantly nil)
                   platform/readln (constantly nil)
                   platform/sleep (constantly nil)]
       (is (nil? (cli/play-game)))))
@@ -103,8 +103,8 @@
                   state/get-moves (constantly [{:from :entry :to 4}])
                   cli/get-user-move (constantly :quit)
                   platform/clear-console (constantly nil)
-                  view/print-welcome-message (constantly nil)
-                  view/print-game-state (constantly nil)
+                  view/show-welcome (constantly nil)
+                  view/show-state (constantly nil)
                   platform/readln (constantly nil)
                   platform/sleep (constantly nil)
                   show (constantly nil)]

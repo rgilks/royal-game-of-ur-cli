@@ -16,18 +16,18 @@
    :rosette (cs " ✧" :cyan)
    :empty (cs " ·" :cyan)})
 
-(defn render-cell [board idx]
+(defn show-cell [board idx]
   (cond
     (some? (get board idx)) (get board-symbols (get board idx) (:empty board-symbols))
     (contains? (:exclude config/board) idx) "  "
     (contains? (:rosettes config/board) idx) (:rosette board-symbols)
     :else (:empty board-symbols)))
 
-(defn print-board [board]
+(defn show-board [board]
   (show "")
   (let [render-row (fn [start end label]
                      (str (cs label :cyan) " "
-                          (str/join (map #(render-cell board %) (range start end)))))]
+                          (str/join (map #(show-cell board %) (range start end)))))]
     (show (cs "    1 2 3 4 5 6 7 8" :cyan))
     (show (cs "┌──────────────────┐" :cyan))
     (doseq [[start end label] [[0 8 "A"] [8 16 "B"] [16 24 "C"]]]
@@ -36,12 +36,12 @@
                  (cs "│" :cyan))))
     (show (cs "└──────────────────┘" :cyan))))
 
-(defn display-dice-roll [roll]
+(defn show-roll [roll]
   (let [triangles (shuffle (concat (repeat roll "▲") (repeat (- 4 roll) "△")))]
     (str/join "" (map #(cs % :bold) triangles))))
 
-(defn print-game-state [{:keys [board players roll _current-player _state]}]
-  (print-board board)
+(defn show-state [{:keys [board players roll _current-player _state]}]
+  (show-board board)
   (let [format-player
         (fn [color player]
           (str (cs " " color)
@@ -50,7 +50,7 @@
                (cs (str (get-in players [player :off-board])) color)))]
     (show (str " "
                (format-player :red :A)
-               (when roll (str " " (display-dice-roll roll)))
+               (when roll (str " " (show-roll roll)))
                (format-player :yellow :B))))
   (show)
   #_(when (= state :choose-action)
@@ -66,16 +66,16 @@
        (if (= to :off-board) "off" (index-to-coord to))
        (when captured (cs " capture" :red))))
 
-(defn print-moves [possible-moves]
+(defn show-moves [possible-moves]
   (doseq [[idx move] (map-indexed vector possible-moves)]
     (show (str "  " (cs (str (inc idx) " ") :red) (format-move move)))))
 
-(defn print-winner-message [winner]
+(defn show-winner [winner]
   (show "")
   (show (cs "GAME OVER" :red))
   (show (cs (str (if (= winner :A) "You" "AI") " wins!") :green)))
 
-(defn print-welcome-message []
+(defn show-welcome []
   (show (cs "The Royal Game of Ur" :red))
   (show "")
   (show (str (cs "●" :red) " Your pieces"))
@@ -84,15 +84,14 @@
   (show "Press 'q' to quit at any time.")
   (show "Press Enter to begin!"))
 
-(defn print-invalid-choice [max-choice]
+(defn show-invalid-choice [max-choice]
   (show (cs (str "Invalid choice. Enter 1-" max-choice " or 'q' to quit") :red)))
 
-(defn print-no-moves []
+(defn show-no-moves []
   (show "  No moves"))
 
-(defn print-goodbye-message []
+(defn show-goodbye []
   (show "Thanks for playing! Goodbye."))
 
-(defn print-ai-move [selected-move]
+(defn show-ai-move [selected-move]
   (show (cs (str "  AI: " (format-move selected-move)) :yellow)))
-
