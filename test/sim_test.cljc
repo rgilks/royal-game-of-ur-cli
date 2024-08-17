@@ -15,7 +15,7 @@
 
 (deftest test-play-game
   (testing "play-game reaches end state"
-    (let [final-state (sim/play-game :first-in-list :strategic false)]
+    (let [final-state (sim/play-game (state/initialize-game) :first-in-list :strategic)]
       (are [expected actual] (= expected actual)
         :end-game (:state final-state)
         true (:game-over final-state)
@@ -24,7 +24,7 @@
 (deftest test-run-simulation
   (testing "run-simulation completes specified number of games"
     (let [num-games 2
-          results (sim/run-simulation num-games :first-in-list :strategic false)]
+          results (sim/run-simulation num-games :first-in-list :strategic)]
       (are [expected actual] (= expected actual)
         num-games (+ (:A results) (:B results)))
       (are [pred] (pred results)
@@ -48,7 +48,7 @@
 
 (deftest test-full-game-simulation
   (testing "Simulating a full game"
-    (let [final-state (sim/play-game :first-in-list :strategic false)]
+    (let [final-state (sim/play-game (state/initialize-game) :first-in-list :strategic)]
       (are [expected actual message] (= expected actual)
         :end-game (:state final-state) "Game should end after a full simulation"
         true (:game-over final-state) "Game should be marked as over")
@@ -66,3 +66,36 @@
                         7)
         :A
         :B))))
+
+(deftest test-debug-function
+  (testing "debug function prints when debug? is true"
+    (let [original-config @sim/config-atom]
+      (try
+        (swap! sim/config-atom assoc :debug? true)
+        (is (= "Test debug message\n"
+               (with-out-str (sim/debug "Test debug message"))))
+        (finally
+          (reset! sim/config-atom original-config)))))
+
+  (testing "debug function doesn't print when debug? is false"
+    (let [original-config @sim/config-atom]
+      (try
+        (swap! sim/config-atom assoc :debug? false)
+        (is (= "" (with-out-str (sim/debug "Test debug message"))))
+        (finally
+          (reset! sim/config-atom original-config))))))
+
+#_(deftest test-handle-choose-action
+    (testing "handle-choose-action selects a move when possible"
+      (let [game {:current-player :A}
+            possible-moves [{:from 0 :to 1}]
+            strategy :first-in-list
+            result (sim/handle-choose-action game possible-moves strategy)]
+        (is (some? result) "Should return a non-nil result when a move is possible")))
+
+    (testing "handle-choose-action handles no possible moves"
+      (let [game {:current-player :A}
+            possible-moves []
+            strategy :first-in-list
+            result (sim/handle-choose-action game possible-moves strategy)]
+        (is (= game result) "Should return the original game state when no moves are possible"))))

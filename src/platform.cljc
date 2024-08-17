@@ -17,6 +17,13 @@
        :cljs (js/parseInt s))
     0))
 
+(defn parse-long [s]
+  #?(:clj (Long/parseLong s)
+     :cljs (js/parseInt s)))
+
+(defn parse-bool [s]
+  (= s "true"))
+
 (defn readln []
   #?(:clj  (read-line)
      :cljs (.question readline-sync "")))
