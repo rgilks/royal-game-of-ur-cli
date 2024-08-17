@@ -45,8 +45,10 @@
 
 (defn show-state [{:keys [board players roll]}]
   (show-board board)
-  (show (player-stats :red (:A players))
-        (when roll (str " " (show-roll roll)))
+  (show " " (player-stats :red (:A players))
+        (if roll
+          (str " " (show-roll roll))
+          "     ")
         (player-stats :yellow (:B players)))
   (show))
 
@@ -78,8 +80,11 @@
   (show "Press 'q' to quit at any time.")
   (show "Press Enter to begin!"))
 
-(def show-no-moves #(show "  No moves"))
-(def show-goodbye #(show "Thanks for playing! Goodbye."))
+(defn show-no-moves []
+  (show "  No moves"))
+
+(defn show-goodbye []
+  (show "Thanks for playing! Goodbye.\n"))
 
 (defn show-invalid-choice [max-choice]
   (show :red "Invalid choice. Enter 1-" max-choice " or 'q' to quit"))

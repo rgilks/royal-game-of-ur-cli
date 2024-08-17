@@ -33,3 +33,7 @@
 
 (defn show [& args]
   (print-line (apply str args)))
+
+(defn hide-cursor [] (print "\u001b[?25l") (flush))
+(defn show-cursor [] (print "\u001b[?25h") (flush))
+

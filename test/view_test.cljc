@@ -103,7 +103,7 @@
     (with-redefs [util/show (fn [& args] args)]
       (are [func expected] (= expected (func))
         view/show-no-moves ["  No moves"]
-        view/show-goodbye ["Thanks for playing! Goodbye."]))))
+        view/show-goodbye ["Thanks for playing! Goodbye.\n"]))))
 
 (deftest test-show-invalid-choice
   (testing "show-invalid-choice function"
