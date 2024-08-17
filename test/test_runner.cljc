@@ -6,7 +6,7 @@
             [clojure.string :as str]
             [sim-test]
             [state-test]
-            [util :refer [enable-logging! disable-logging!]]
+            [util :refer [enable-show! disable-show!]]
             [util-test]
             [view-test]))
 
@@ -67,7 +67,7 @@
 (defn run-all-tests! []
   (reset! *test-results* {:pass 0 :fail 0 :error 0})
   ;; Disable logging for tests
-  (disable-logging!)
+  (disable-show!)
   (run-tests
    'util-test
    'cli-test
@@ -75,7 +75,7 @@
    'view-test
    'state-test)
   ;; Enable logging after tests if needed
-  (enable-logging!))
+  (enable-show!))
 
 (defn -main []
   (run-all-tests!))

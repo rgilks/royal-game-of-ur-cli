@@ -3,14 +3,14 @@
             [clojure.test :refer [deftest testing is]]
             [platform]
             [state]
-            [util :refer [log]]
+            [util :refer [show]]
             [view]))
 
 (deftest test-get-user-move
   (testing "Valid single-key input"
     (with-redefs [platform/read-single-key (constantly "1")
                   view/print-moves (constantly nil)
-                  log (constantly nil)]
+                  show (constantly nil)]
       (let [moves [{:from :entry :to 4} {:from 0 :to 4}]]
         (is (= (first moves) (cli/get-user-move moves))))))
 
@@ -20,7 +20,7 @@
                                                 (swap! inputs rest)
                                                 input)
                     view/print-moves (constantly nil)
-                    log (constantly nil)]
+                    show (constantly nil)]
         (let [moves [{:from :entry :to 4} {:from 0 :to 4} {:from 4 :to 8}]]
           (is (= {:from 4 :to 8} (cli/get-user-move moves)))))))
 
@@ -30,21 +30,21 @@
                                                 (swap! inputs rest)
                                                 input)
                     view/print-moves (constantly nil)
-                    log (constantly nil)]
+                    show (constantly nil)]
         (let [moves [{:from :entry :to 4} {:from 0 :to 4} {:from 4 :to 8}]]
           (is (= (second moves) (cli/get-user-move moves)))))))
 
   (testing "Quit input"
     (with-redefs [platform/read-single-key (constantly "q")
                   view/print-moves (constantly nil)
-                  log (constantly nil)]
+                  show (constantly nil)]
       (let [moves [{:from :entry :to 4} {:from 0 :to 4}]]
         (is (= :quit (cli/get-user-move moves))))))
 
   (testing "Empty moves list"
     (with-redefs [platform/read-single-key (constantly "1")
                   view/print-moves (constantly nil)
-                  log (constantly nil)]
+                  show (constantly nil)]
       (is (nil? (cli/get-user-move []))))))
 
 (deftest test-play-game
@@ -107,5 +107,5 @@
                   view/print-game-state (constantly nil)
                   platform/readln (constantly nil)
                   platform/sleep (constantly nil)
-                  log (constantly nil)]
+                  show (constantly nil)]
       (is (nil? (cli/play-game))))))

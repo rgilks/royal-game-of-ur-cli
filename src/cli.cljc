@@ -2,7 +2,6 @@
   (:require [config]
             [platform]
             [state]
-            [util :refer [log]] ;; should be removed
             [view]))
 
 (defn get-user-move [possible-moves]
@@ -16,9 +15,7 @@
             (if (and (pos? choice) (<= choice (count possible-moves)))
               (nth possible-moves (dec choice))
               (do
-                (log (view/cs
-                      (str "Invalid choice. Enter 1-"
-                           (count possible-moves) " or 'q' to quit") :red))
+                (view/print-invalid-choice (count possible-moves))
                 (recur)))))))))
 
 (defn hide-cursor []
@@ -49,8 +46,7 @@
           (view/print-game-state state)
           (if (empty? possible-moves)
             (do
-              ;; TODO: should be a view function
-              (log (str "  No moves"))
+              (view/print-no-moves)
               (platform/sleep 1500)
               (recur (state/choose-action state nil)))
             (let [selected-move (if (= (:current-player state) :A)
@@ -58,13 +54,11 @@
                                   (state/select-move :strategic possible-moves))]
               (if (= selected-move :quit)
                 (do
-                   ;; TODO: should be a view function?
-                  (log "Thanks for playing! Goodbye.")
+                  (view/print-goodbye-message)
                   nil)
                 (do
                   (when (= (:current-player state) :B)
-                     ;; TODO: should be a view function?
-                    (log (view/cs (str "  AI: " (view/format-move selected-move)) :yellow))
+                    (view/print-ai-move selected-move)
                     (platform/sleep 1500))
                   (recur (state/choose-action state selected-move)))))))
 

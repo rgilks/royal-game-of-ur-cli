@@ -2,8 +2,7 @@
   (:require [config]
             [malli.core :as m]
             [malli.error :as me]
-            [schema]
-            [util :refer [log]]))
+            [schema]))
 
 (defn validate-total-pieces [state]
   (every? (fn [[player-key player-data]]
@@ -80,7 +79,6 @@
 (defmulti transition (fn [game-state _rolls _inputs] (:state game-state)))
 
 (defmethod transition :start-game [game-state rolls]
-  (log "Starting game")
   [(assoc game-state :state :roll-dice) rolls])
 
 (defmethod transition :roll-dice [game-state [current-roll & remaining-rolls]]
@@ -207,7 +205,6 @@
 (defn start-game []
   (first (play (initialize-game) [] {})))
 
-;; TODO: move to util namespace
 (defn dice-roll [game-state]
   (if (= (:state game-state) :roll-dice)
     (let [roll (reduce + (repeatedly 4 #(rand-int 2)))]
@@ -239,7 +236,7 @@
   (def game-after-move (choose-action game-rolled (first possible-moves)))
   (def game-rolled-again (dice-roll game-after-move))
   (def new-possible-moves (get-moves game-rolled-again))
-  (log new-possible-moves)
+  (println new-possible-moves)
   (def game-after-second-move (choose-action game-rolled-again
                                              (first new-possible-moves)))
-  (log  game-after-second-move))
+  (println game-after-second-move))

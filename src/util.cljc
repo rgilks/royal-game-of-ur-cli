@@ -1,13 +1,13 @@
 (ns util)
 
-(def logging-enabled (atom true))
+(def show-enabled (atom true))
 
-(defn log [& args]
-  (when @logging-enabled
+(defn show [& args]
+  (when @show-enabled
     (apply println " " args)))
 
-(defn enable-logging! []
-  (reset! logging-enabled true))
+(defn enable-show! []
+  (reset! show-enabled true))
 
-(defn disable-logging! []
-  (reset! logging-enabled false))
+(defn disable-show! []
+  (reset! show-enabled false))
