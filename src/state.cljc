@@ -130,7 +130,7 @@
 (defmethod transition :choose-action
   [game-state rolls inputs]
   (let [possible-moves (get-possible-moves game-state)
-        strategy (get inputs :move-strategy :first-in-list)]
+        strategy (get inputs :move-strategy :random)]
     (if (empty? possible-moves)
       [(assoc game-state :state :switch-turns) rolls]
       (let [selected-move (or (some-> (:selected-move inputs))
@@ -228,7 +228,7 @@
   (if (= (:state game-state) :choose-action)
     (let [possible-moves (get-possible-moves game-state)]
       (if (empty? possible-moves)
-        (first (play game-state [] {:move-strategy :default}))  ; Switch turns if no moves are possible
+        (first (play game-state [] {:move-strategy :random}))  ; Switch turns if no moves are possible
         (let [new-state (-> game-state
                             (assoc :selected-move selected-move)
                             (assoc :state (if (= (:from selected-move) :entry)

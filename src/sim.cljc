@@ -9,8 +9,8 @@
   (atom {:debug? false
          :show? false
          :delay 10
-         :num-games 10
-         :strategy-a :strategic
+         :num-games 100
+         :strategy-a :random
          :strategy-b :random}))
 
 (defn debug [& args]
