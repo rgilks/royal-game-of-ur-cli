@@ -96,31 +96,32 @@
   (first possible-moves))
 
 (defn select-move-strategic [possible-moves]
-  (let [player :B  ; Assuming AI is always player B
-        rosettes (:rosettes config/board)
-        path (get-in config/board [:paths player])]
-    (or
-     ;; Priority 1: Move a piece off the board if possible
-     (first (filter #(= (:to %) :off-board) possible-moves))
+  (when (seq possible-moves)
+    (let [player :B  ; Assuming AI is always player B
+          rosettes (:rosettes config/board)
+          path (get-in config/board [:paths player])]
+      (or
+       ;; Priority 1: Move a piece off the board if possible
+       (first (filter #(= (:to %) :off-board) possible-moves))
 
-     ;; Priority 2: Capture an opponent's piece
-     (first (filter #(:captured %) possible-moves))
+       ;; Priority 2: Capture an opponent's piece
+       (first (filter #(:captured %) possible-moves))
 
-     ;; Priority 3: Move to a rosette
-     (first (filter #(contains? rosettes (:to %)) possible-moves))
+       ;; Priority 3: Move to a rosette
+       (first (filter #(contains? rosettes (:to %)) possible-moves))
 
-     ;; Priority 4: Move furthest piece forward
-     (last (sort-by (fn [move]
-                      (if (= (:from move) :entry)
-                        -1  ; Place :entry moves at the beginning
-                        (.indexOf path (:from move))))
-                    possible-moves))
+       ;; Priority 4: Move furthest piece forward
+       (last (sort-by (fn [move]
+                        (if (= (:from move) :entry)
+                          -1  ; Place :entry moves at the beginning
+                          (.indexOf path (:from move))))
+                      possible-moves))
 
-     ;; Priority 5: Bring a new piece onto the board
-     (first (filter #(= (:from %) :entry) possible-moves))
+       ;; Priority 5: Bring a new piece onto the board
+       (first (filter #(= (:from %) :entry) possible-moves))
 
-     ;; Fallback: Choose a random move
-     (rand-nth possible-moves))))
+       ;; Fallback: Choose a random move
+       (rand-nth possible-moves)))))
 
 ;; Update the select-move multimethod to include the new strategy
 (defmethod select-move :strategic [_ possible-moves _game-state]

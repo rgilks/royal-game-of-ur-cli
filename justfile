@@ -102,6 +102,6 @@ watch:
 cli:
     yarn cli
 
-# Simulate a full game running in autopilot mode
-sim:
-    yarn sim
+# Run a simulation with custom parameters
+sim *args:
+    yarn sim {{args}}
