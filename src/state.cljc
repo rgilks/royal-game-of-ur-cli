@@ -186,7 +186,7 @@
   [game-state rolls]) ; No transition, game is over
 
 (defn random-first-player []
-  (if (< (rand) 0.5) :A :B))
+  (if (zero? (rand-int 2)) :A :B))
 
 (defn initialize-game
   ([] (initialize-game nil))

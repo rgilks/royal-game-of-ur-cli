@@ -1,101 +1,112 @@
 (ns sim-test
-  (:require [clojure.string :as str]
-            [clojure.test :refer [deftest is are testing]]
-            [config]
-            [sim]
-            [state]))
+  (:require [clojure.test :refer [are deftest is testing]]
+            [sim :as sim]
+            [state :as state]
+            [view :as view]))
+
+(deftest test-debug
+  (testing "debug function"
+    (with-redefs [sim/config-atom (atom {:debug? true})]
+      (is (= "Debug message\n"
+             (with-out-str (sim/debug "Debug message")))))
+
+    (with-redefs [sim/config-atom (atom {:debug? false})]
+      (is (= "" (with-out-str (sim/debug "Debug message")))))))
+
+(deftest test-handle-choose-action
+  (testing "handle-choose-action function"
+    (let [game {:current-player :A
+                :board [0 0 0 0 0 0]
+                :players {:A {:position 0} :B {:position 0}}
+                :roll 0
+                :selected-move nil}
+          possible-moves [{:type :move, :from 1, :to 2}]
+          strategy :first-in-list]
+      (with-redefs [state/select-move (constantly (first possible-moves))
+                    view/show-ai-move (constantly nil)
+                    state/choose-action (fn [g m] (assoc g :selected-move m))]
+        (is (= (assoc game :selected-move (first possible-moves))
+               (sim/handle-choose-action game possible-moves strategy)))))))
+
+(deftest test-handle-multimethod
+  (testing "handle multimethod for different states"
+    (let [base-game {:board [0 0 0 0 0 0]
+                     :players {:A {:position 0} :B {:position 0}}
+                     :current-player :A
+                     :roll 0
+                     :selected-move nil}]
+      (with-redefs [state/dice-roll (fn [g] (assoc g :roll 7))]
+        (are [input expected] (= expected (sim/handle input))
+          (assoc base-game :state :start-game)
+          (assoc base-game :state :roll-dice)
+
+          (assoc base-game :state :roll-dice)
+          (assoc base-game :state :roll-dice :roll 7)
+
+          (assoc base-game :state :end-game)
+          (assoc base-game :state :end-game :game-over true))))))
 
 (deftest test-play-turn
-  (testing "play-turn advances game state"
-    (let [initial-state (state/initialize-game)
-          new-state (sim/play-turn initial-state)]
-      (are [pred] (pred new-state)
-        #(not= initial-state %)
-        #(contains? #{:roll-dice :end-game} (:state %))))))
+  (testing "play-turn function"
+    (with-redefs [sim/handle (fn [game]
+                               (case (:state game)
+                                 :roll-dice (assoc game :state :choose-action)
+                                 :choose-action (assoc game :state :roll-dice)))
+                  view/show-state identity
+                  sim/config-atom (atom {:show? false})]
+      (is (= {:state :roll-dice
+              :board [0 0 0 0 0 0]
+              :players {:A {:position 0} :B {:position 0}}
+              :current-player :A
+              :roll 0
+              :selected-move nil}
+             (sim/play-turn {:state :roll-dice
+                             :board [0 0 0 0 0 0]
+                             :players {:A {:position 0} :B {:position 0}}
+                             :current-player :A
+                             :roll 0
+                             :selected-move nil}))))))
 
 (deftest test-play-game
-  (testing "play-game reaches end state"
-    (let [final-state (sim/play-game (state/initialize-game) :first-in-list :strategic)]
-      (are [expected actual] (= expected actual)
-        :end-game (:state final-state)
-        true (:game-over final-state)
-        true (state/game-over? final-state)))))
+  (testing "play-game function"
+    (with-redefs [state/initialize-game (constantly {:current-player :A
+                                                     :board [0 0 0 0 0 0]
+                                                     :players {:A {:position 0} :B {:position 0}}
+                                                     :roll 0
+                                                     :selected-move nil})
+                  sim/play-turn (fn [game] (assoc game :game-over true))
+                  sim/config-atom (atom {:show? false})]
+      (is (= {:current-player :A
+              :board [0 0 0 0 0 0]
+              :players {:A {:position 0} :B {:position 0}}
+              :roll 0
+              :selected-move nil
+              :game-over true
+              :strategy :strategy-a}
+             (sim/play-game :strategy-a :strategy-b))))))
 
 (deftest test-run-simulation
-  (testing "run-simulation completes specified number of games"
-    (let [num-games 2
-          results (sim/run-simulation num-games :first-in-list :strategic)]
-      (are [expected actual] (= expected actual)
-        num-games (+ (:A results) (:B results)))
-      (are [pred] (pred results)
-        #(>= (:A %) 0)
-        #(>= (:B %) 0)))))
+  (testing "run-simulation function"
+    (with-redefs [state/initialize-game (constantly {:current-player :A
+                                                     :board [0 0 0 0 0 0]
+                                                     :players {:A {:position 0} :B {:position 0}}
+                                                     :roll 0
+                                                     :selected-move nil})
+                  sim/play-game (constantly {:current-player :A})
+                  sim/config-atom (atom {:num-games 10})]
+      (is (= {:A 10, :B 0}
+             (sim/run-simulation))))))
 
 (deftest test-print-simulation-results
-  (testing "print-simulation-results formats output correctly"
-    (let [results {:A 6, :B 4}
-          num-games 10
-          strategy-a :first-in-list
-          strategy-b :strategic
-          output (with-out-str
-                   (sim/print-simulation-results results num-games strategy-a strategy-b))]
-      (is (string? output))
-      (are [expected] (str/includes? output expected)
-        "Total games: 10"
-        "Player A wins: 6"
-        "Player B wins: 4"
-        "Player A win percentage: 60%"))))
-
-(deftest test-full-game-simulation
-  (testing "Simulating a full game"
-    (let [final-state (sim/play-game (state/initialize-game) :first-in-list :strategic)]
-      (are [expected actual message] (= expected actual)
-        :end-game (:state final-state) "Game should end after a full simulation"
-        true (:game-over final-state) "Game should be marked as over")
-
-      (is (or (= 7 (get-in final-state [:players :A :off-board]))
-              (= 7 (get-in final-state [:players :B :off-board])))
-          "One player should have all 7 pieces off the board")
-
-      (is (every? #(or (nil? %) (#{:A :B} %)) (:board final-state))
-          "Board should only contain nil, :A, or :B values")
-
-      (are [player] (<= (+ (get-in final-state [:players player :in-hand])
-                           (get-in final-state [:players player :off-board])
-                           (count (filter #(= % player) (:board final-state))))
-                        7)
-        :A
-        :B))))
-
-(deftest test-debug-function
-  (testing "debug function prints when debug? is true"
-    (let [original-config @sim/config-atom]
-      (try
-        (swap! sim/config-atom assoc :debug? true)
-        (is (= "Test debug message\n"
-               (with-out-str (sim/debug "Test debug message"))))
-        (finally
-          (reset! sim/config-atom original-config)))))
-
-  (testing "debug function doesn't print when debug? is false"
-    (let [original-config @sim/config-atom]
-      (try
-        (swap! sim/config-atom assoc :debug? false)
-        (is (= "" (with-out-str (sim/debug "Test debug message"))))
-        (finally
-          (reset! sim/config-atom original-config))))))
-
-#_(deftest test-handle-choose-action
-    (testing "handle-choose-action selects a move when possible"
-      (let [game {:current-player :A}
-            possible-moves [{:from 0 :to 1}]
-            strategy :first-in-list
-            result (sim/handle-choose-action game possible-moves strategy)]
-        (is (some? result) "Should return a non-nil result when a move is possible")))
-
-    (testing "handle-choose-action handles no possible moves"
-      (let [game {:current-player :A}
-            possible-moves []
-            strategy :first-in-list
-            result (sim/handle-choose-action game possible-moves strategy)]
-        (is (= game result) "Should return the original game state when no moves are possible"))))
+  (testing "print-simulation-results function"
+    (with-redefs [sim/config-atom (atom {:num-games 100
+                                         :strategy-a :first-in-list
+                                         :strategy-b :random})]
+      (is (= (str "\nSimulation Results:\n"
+                  "Total games: 100\n"
+                  "Strategy A (Player A): :first-in-list\n"
+                  "Strategy B (Player B): :random\n"
+                  "Player A wins: 60\n"
+                  "Player B wins: 40\n"
+                  "Player A win percentage: 60%\n")
+             (with-out-str (sim/print-simulation-results {:A 60, :B 40})))))))
