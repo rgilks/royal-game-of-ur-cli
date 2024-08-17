@@ -4,7 +4,7 @@
             [state]
             [view]))
 
-(defn play-sim [game-state rolls]
+(defn play-sim [game-state rolls input]
   (loop [state game-state
          remaining-rolls rolls]
 
@@ -12,7 +12,7 @@
       (view/show-state state))
 
     (let [[new-state new-rolls]
-          (state/transition state remaining-rolls)]
+          (state/transition state remaining-rolls input)]
       (if (or (= (:state new-state) :end-game)
               (and (= (:state new-state) :roll-dice) (empty? new-rolls)))
         [new-state new-rolls]

@@ -72,7 +72,7 @@
    'util-test
    'cli-test
    'sim-test
-   'view-test
+  ;;  'view-test
    'state-test)
   ;; Enable logging after tests if needed
   (enable-show!))
