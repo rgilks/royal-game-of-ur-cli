@@ -12,43 +12,43 @@
 ;; (def short-wait 0)
 
 (defn get-user-move [possible-moves]
-  (if (empty? possible-moves)
-    nil
-    (do
-      (view/show-moves possible-moves)
-      (loop []
-        (let [input (platform/read-single-key)]
-          (if (= input "q")
-            :quit
-            (let [choice (platform/parse-int input)]
-              (if (and (pos? choice) (<= choice (count possible-moves)))
-                (nth possible-moves (dec choice))
-                (do
-                  (view/show-invalid-choice (count possible-moves))
-                  (recur))))))))))
+  (when (seq possible-moves)
+    (view/show-moves possible-moves)
+    (loop []
+      (let [input (platform/read-single-key)]
+        (case input
+          "q" (throw (ex-info "User quit" {:reason :expected}))
+          (let [choice (platform/parse-int input)]
+            (if (and (pos? choice) (<= choice (count possible-moves)))
+              (nth possible-moves (dec choice))
+              (do
+                (view/show-invalid-choice (count possible-moves))
+                (recur)))))))))
 
 (defmulti handle :state)
 
 (defmethod handle :roll-dice [game]
   (state/dice-roll game))
 
+(defn get-move [player possible-moves]
+  (cond
+    (empty? possible-moves) nil
+    (= player :A) (get-user-move possible-moves)
+    :else (state/select-move :strategic possible-moves)))
+
 (defmethod handle :choose-action [game]
-  (let [possible-moves (state/get-moves game)]
-    (if (empty? possible-moves)
+  (let [possible-moves (state/get-moves game)
+        player (:current-player game)]
+    (if-let [move (get-move player possible-moves)]
+      (do
+        (when (= player :B)
+          (view/show-ai-move move)
+          (platform/sleep long-wait))
+        (state/choose-action game move))
       (do
         (view/show-no-moves)
         (platform/sleep long-wait)
-        (state/choose-action game nil))
-      (let [move (if (= (:current-player game) :A)
-                   (get-user-move possible-moves)
-                   (state/select-move :strategic possible-moves))]
-        (if (= move :quit)
-          (throw (ex-info "User quit" {:reason :expected}))
-          (let [new-game (state/choose-action game move)]
-            (when (= (:current-player game) :B)
-              (view/show-ai-move move)
-              (platform/sleep long-wait))
-            new-game))))))
+        (state/choose-action game nil)))))
 
 (defmethod handle :end-game [game]
   (view/show-winner (:current-player game))

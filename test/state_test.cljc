@@ -2,14 +2,8 @@
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
             [platform :as platform :refer [err]]
-            [state :as ur]))
-
-(defmacro thrown-with-msg? [error-type regex expr]
-  `(try
-     ~expr
-     false
-     (catch ~error-type e#
-       (boolean (re-find ~regex (ex-message e#))))))
+            [state :as ur]
+            [test-utils :refer [thrown-with-msg?]]))
 
 (def test-board
   [:A nil :B :A nil nil :B :A nil :B nil nil nil

@@ -3,6 +3,7 @@
             [clojure.test :refer [are deftest is testing]]
             [platform]
             [state]
+            [test-utils :refer [thrown-with-msg?]]
             [util]
             [view]))
 
@@ -14,8 +15,15 @@
            (= expected-move (cli/get-user-move moves)))
 
       "1" {:from :entry :to 4} [{:from :entry :to 4} {:from 0 :to 4}]
-      "2" {:from 0 :to 4} [{:from :entry :to 4} {:from 0 :to 4}]
-      "q" :quit [{:from :entry :to 4} {:from 0 :to 4}]))
+      "2" {:from 0 :to 4} [{:from :entry :to 4} {:from 0 :to 4}]))
+
+  (testing "User quits the game"
+    (with-redefs [platform/read-single-key (constantly "q")
+                  view/show-moves (constantly nil)]
+      (is (thrown-with-msg?
+           platform/err
+           #"User quit"
+           (cli/get-user-move [{:from :entry :to 4} {:from 0 :to 4}])))))
 
   (testing "Invalid inputs followed by valid input"
     (are [inputs expected-move moves]
@@ -35,6 +43,18 @@
                   view/show-moves (constantly nil)]
       (is (nil? (cli/get-user-move []))))))
 
+(deftest test-get-move
+  (testing "Get move for player A"
+    (with-redefs [cli/get-user-move (constantly {:from :entry :to 4})]
+      (is (= {:from :entry :to 4} (cli/get-move :A [{:from :entry :to 4}])))))
+
+  (testing "Get move for player B (AI)"
+    (with-redefs [state/select-move (constantly {:from 0 :to 4})]
+      (is (= {:from 0 :to 4} (cli/get-move :B [{:from 0 :to 4}])))))
+
+  (testing "No moves available"
+    (is (nil? (cli/get-move :A [])))))
+
 (deftest test-handle
   (testing "Handle roll dice state"
     (with-redefs [state/dice-roll (constantly :rolled-game)]
@@ -50,24 +70,18 @@
   (testing "Handle choose action for player A"
     (let [move {:from :entry :to 4}]
       (with-redefs [state/get-moves (constantly [move])
-                    cli/get-user-move (constantly move)
+                    cli/get-move (constantly move)
                     state/choose-action (constantly :next-game)]
         (is (= :next-game (cli/handle {:state :choose-action, :current-player :A}))))))
 
   (testing "Handle choose action for player B (AI)"
     (let [move {:from :entry :to 4}]
       (with-redefs [state/get-moves (constantly [move])
-                    state/select-move (constantly move)
+                    cli/get-move (constantly move)
                     state/choose-action (constantly :next-game)
                     view/show-ai-move (constantly nil)
                     platform/sleep (constantly nil)]
         (is (= :next-game (cli/handle {:state :choose-action, :current-player :B}))))))
-
-  (testing "Handle user quit"
-    (with-redefs [state/get-moves (constantly [{:from :entry :to 4}])
-                  cli/get-user-move (constantly :quit)]
-      (is (thrown-with-msg? platform/err #"User quit"
-                            (cli/handle {:state :choose-action, :current-player :A})))))
 
   (testing "Handle end game state"
     (with-redefs [view/show-winner (constantly nil)]
