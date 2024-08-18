@@ -43,13 +43,19 @@
   (if (zero? roll)
     nil  ; No move possible on a roll of 0
     (let [path (get-in config/board [:paths player])
+          last-square (last path)
           new-pos (if (= from :entry)
                     (first path)
                     (find-next-position path from roll))]
-      (if (nil? new-pos)
-        (if (and (number? from) (>= (+ from roll) (apply max path)))
-          [:off-board nil]
-          nil)
+      (cond
+        ;; If the new position is beyond the last square, move off board
+        (and (number? from) (or (nil? new-pos) (> (+ (find-index path from) roll) (find-index path last-square))))
+        [:off-board nil]
+
+        (nil? new-pos)
+        nil
+
+        :else
         (let [target (get board new-pos)]
           (cond
             (nil? target) [new-pos nil]
@@ -64,12 +70,6 @@
          (< from (:size config/board))) (assoc from nil)
     (and (not= to :off-board) (number? to)
          (< to (:size config/board))) (assoc to player)))
-
-(defn- move-priority [path move]
-  (cond
-    (= (:from move) :entry) -1
-    (= (:to move) :off-board) (count path)
-    :else (or (find-index path (:from move)) 0)))
 
 (defn get-possible-moves [{:keys [board current-player roll players]}]
   (when (pos? roll)
@@ -115,6 +115,28 @@
        (assoc :state :choose-action))
    remaining-rolls])
 
+(defn select-move-strategic [possible-moves game-state]
+  (when (seq possible-moves)
+    (let [player (:current-player game-state)
+          path (get-in config/board [:paths player])
+          last-square (last path)]
+      (or
+       ;; Prioritize moving a piece off the board if possible
+       (first (filter #(= (:to %) :off-board) possible-moves))
+       ;; Next, prioritize moving to the last square on the path
+       (first (filter #(= (:to %) last-square) possible-moves))
+       ;; Then, prioritize capturing opponent's pieces
+       (first (filter :captured possible-moves))
+       ;; Next, prioritize moving to a rosette
+       (first (filter #(contains? (:rosettes config/board) (:to %)) possible-moves))
+       ;; Finally, move the furthest piece along the path
+       (last (sort-by (fn [move]
+                        (cond
+                          (= (:from move) :entry) -1
+                          (= (:to move) :off-board) (count path)
+                          :else (or (find-index path (:from move)) 0)))
+                      possible-moves))))))
+
 (defmulti select-move (fn [strategy _ _] strategy))
 
 (defmethod select-move :random [_ possible-moves _]
@@ -122,12 +144,6 @@
 
 (defmethod select-move :first-in-list [_ possible-moves _]
   (first possible-moves))
-
-(defn select-move-strategic [possible-moves game-state]
-  (when (seq possible-moves)
-    (let [player (:current-player game-state)
-          path (get-in config/board [:paths player])]
-      (last (sort-by (partial move-priority path) possible-moves)))))
 
 (defmethod select-move :strategic [_ possible-moves game-state]
   (select-move-strategic possible-moves game-state))

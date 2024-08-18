@@ -53,6 +53,7 @@
   (testing "get-possible-moves returns all valid moves"
     (is (= [{:from 3 :to 1 :captured nil}
             {:from 0 :to 9 :captured :B}
+            {:from 7 :to :off-board :captured nil}
             {:from 16 :to 2 :captured :B}
             {:from 22 :to 2 :captured :B}]
            (ur/get-possible-moves test-game-state))))

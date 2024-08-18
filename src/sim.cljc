@@ -10,7 +10,7 @@
   (atom {:debug? false
          :show? false
          :delay 50
-         :num-games 10
+         :num-games 200
          :strategy-a :random
          :strategy-b :random}))
 
