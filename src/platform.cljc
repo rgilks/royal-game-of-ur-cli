@@ -1,7 +1,8 @@
 (ns platform
- ;;  #?(:clj (:require [clojure.java.io :as io]))
+  #?(:clj (:import
+           [org.jline.terminal TerminalBuilder]))
   #?(:cljs (:require
-            ;; ["fs" :as fs]
+
             ["readline-sync" :as readline-sync])))
 
 (defn get-core-count []
@@ -34,20 +35,16 @@
 
 (defn read-single-key []
   #?(:clj
-     (let [reader (java.io.BufferedReader.
-                   (java.io.InputStreamReader. System/in))]
-       (str (char (.read reader))))
-     :cljs
+     (let [terminal (.. (TerminalBuilder/builder)
+                        (system true)
+                        (build))
+           reader (.reader terminal)]
+       (try
+         (.enterRawMode terminal)
+         (str (char (.read reader)))
+         (finally
+           (.close reader)
+           (.close terminal)))))
+
+  #?(:cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
-
-;; (defn load-file! [filepath]
-;;   #?(:clj  (slurp (io/resource filepath))
-;;      :cljs (.readFileSync fs filepath "utf8")))
-
-;; (defn current-time-ms []
-;;   #?(:clj  (System/currentTimeMillis)
-;;      :cljs (.getTime (js/Date.))))
-
-;; (defn exit [status]
-;;   #?(:clj  (System/exit status)
-;;      :cljs (.exit js/process status)))
