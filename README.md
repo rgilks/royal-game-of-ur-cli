@@ -4,17 +4,18 @@
 
 ## Introduction
 
-The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of this ancient game, complete with a command-line interface and a robust state machine design.
+The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of this ancient game, complete with a command-line interface, robust state machine design, and AI opponents with configurable strategies.
 
 ## Features
 
 - Faithful implementation of the Royal Game of Ur rules
 - Command-line interface for easy gameplay
 - Robust state machine design for game logic
-- AI opponent with configurable strategies
+- Multiple AI opponents with configurable strategies
 - Comprehensive test suite
 - Colorized output for enhanced user experience
 - Simulation mode for running multiple games with different strategies
+- Cross-platform compatibility (Clojure and ClojureScript)
 
 ## Technologies Used
 
