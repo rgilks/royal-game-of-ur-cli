@@ -1,42 +1,61 @@
 [
-	{
-		"name": "java.lang.Class",
-		"methods": [
-			{
-				"name": "forName",
-				"parameterTypes": [
-					"java.lang.String"
-				]
-			},
-			{
-				"name": "getMethod",
-				"parameterTypes": [
-					"java.lang.String",
-					"[Ljava.lang.Class;"
-				]
-			},
-			{
-				"name": "getMethods",
-				"parameterTypes": []
-			},
-			{
-				"name": "getDeclaredMethods",
-				"parameterTypes": []
-			},
-			{
-				"name": "getConstructors",
-				"parameterTypes": []
-			},
-			{
-				"name": "getField",
-				"parameterTypes": [
-					"java.lang.String"
-				]
-			},
-			{
-				"name": "getFields",
-				"parameterTypes": []
-			}
-		]
-	}
+  {
+    "name": "java.lang.Class",
+    "methods": [
+      { "name": "forName", "parameterTypes": ["java.lang.String"] },
+      {
+        "name": "getMethod",
+        "parameterTypes": ["java.lang.String", "java.lang.Class[]"]
+      },
+      { "name": "getMethods", "parameterTypes": [] },
+      { "name": "getDeclaredMethods", "parameterTypes": [] },
+      { "name": "getConstructors", "parameterTypes": [] },
+      { "name": "getField", "parameterTypes": ["java.lang.String"] },
+      { "name": "getFields", "parameterTypes": [] }
+    ]
+  },
+  {
+    "name": "java.lang.reflect.Method",
+    "methods": [
+      {
+        "name": "invoke",
+        "parameterTypes": ["java.lang.Object", "java.lang.Object[]"]
+      }
+    ]
+  },
+  {
+    "name": "clojure.lang.RT",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "clojure.lang.Compiler",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "clojure.lang.PersistentList",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "clojure.lang.Namespace",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "clojure.lang.Var",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  }
 ]
