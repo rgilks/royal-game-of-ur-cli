@@ -93,13 +93,17 @@ update-tools:
 # Testing
 # =======
 
-# Run all unit tests
+# Run all unit tests (nbb)
 test:
     yarn test
 
-# Run unit tests and watch for changes
+# Run unit tests and watch for changes (nbb)
 test-watch:
     yarn test:watch
+
+# Run all unit tests (Clojure)
+test-clj:
+    clojure -M:test
 
 # =================
 # Build and Execute
@@ -109,10 +113,31 @@ test-watch:
 build:
     ./scripts/build_project.sh
 
-# Run the CLI application
+# Run the CLI application (nbb)
 run:
     yarn cli
 
-# Run a simulation with custom parameters
+# Run the CLI application (Clojure)
+run-clj:
+    clojure -M:run
+
+# Run a simulation with custom parameters (nbb)
 sim *args:
     yarn sim {{args}}
+
+# Run a simulation with custom parameters (Clojure)
+sim-clj *args:
+    clojure -M:sim {{args}}
+
+# =================
+# Utility Commands
+# =================
+
+# Run a REPL (Clojure)
+repl:
+    clojure -M:dev
+
+# Clean the project (remove build artifacts)
+clean:
+    rm -rf target
+    rm -rf .cpcache

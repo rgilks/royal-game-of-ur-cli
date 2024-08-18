@@ -1,4 +1,4 @@
-{:paths ["src" "resources"]
+{:paths ["src" "test" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         metosin/malli {:mvn/version "0.9.2"}}
  :aliases
@@ -8,6 +8,20 @@
 
   :cljfmt
   {:main-opts ["-m" "cljfmt.main"]}
+
+  :test
+  {:extra-paths ["test"]
+   :extra-deps {io.github.cognitect-labs/test-runner
+                {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                 :sha "705ad25bbf0228b1c38d0244a36001c2987d7337"}}
+   :main-opts ["-m" "cognitect.test-runner"]
+   :exec-fn cognitect.test-runner.api/test}
+
+  :run
+  {:main-opts ["-m" "cli"]}
+
+  :sim
+  {:main-opts ["-m" "sim"]}
 
   :build
   {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}

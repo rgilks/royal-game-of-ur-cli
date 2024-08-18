@@ -67,7 +67,7 @@ Before you begin, make sure you have the following installed:
 
    This command will:
    - Set up asdf and install required plugins and versions
-   - Install necessary tools (including nbb and GraalVM)
+   - Install necessary tools (including GraalVM, Clojure, Node.js, nbb and Yarn)
    - Set up Git hooks
    - Install project dependencies
    - Perform any other necessary initialization steps
@@ -82,13 +82,15 @@ just
 
 Some useful commands include:
 
-- `just cli`: Run the application
-- `just watch`: Run unit tests and watch for changes
-- `just test`: Run unit tests
+- `just run`: Run the CLI application (using nbb)
+- `just run-clj`: Run the CLI application (using Clojure)
+- `just test`: Run unit tests (using nbb)
+- `just test-clj`: Run unit tests (using Clojure)
+- `just test-watch`: Run unit tests and watch for changes (using nbb)
 - `just fmt`: Format Clojure files
-- `just concat`: Concatenate all project files
-- `just state-diagram`: Generate the state diagram
-- `just sim`: Run a simulation with custom parameters
+- `just sim`: Run a simulation with custom parameters (using nbb)
+- `just sim-clj`: Run a simulation with custom parameters (using Clojure)
+- `just repl`: Start a Clojure REPL
 - `just build`: Build the project (creates uberjar and native image)
 
 To update all tools to their latest versions:
@@ -102,7 +104,7 @@ just update-tools
 To start a new game:
 
 ```
-just cli
+just run
 ```
 
 This will launch the game in your terminal. Follow the on-screen instructions to play.
@@ -146,13 +148,13 @@ just sim 1000 strategic random true false 0
 To run the test suite:
 
 ```
-just test
+just test-clj
 ```
 
-For continuous testing during development:
+For continuous testing during development (using nbb):
 
 ```
-just watch
+just test-watch
 ```
 
 ## Building
