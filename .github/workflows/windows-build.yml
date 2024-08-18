@@ -1,0 +1,35 @@
+name: Build Windows Executable
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Set up Clojure
+      uses: DeLaGuardo/setup-clojure@10.1
+      with:
+        cli: latest
+    - name: Install GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        version: '22.3.0'
+        java-version: '17'
+        components: 'native-image'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build native image
+      run: |
+        clojure -T:build uber
+        native-image -jar target/royal-game-of-ur.jar -H:Name=royal-game-of-ur.exe
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: royal-game-of-ur-windows
+        path: royal-game-of-ur.exe
