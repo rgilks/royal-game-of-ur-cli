@@ -13,14 +13,7 @@ if [ ! -f target/royal-game-of-ur.jar ]; then
 fi
 
 echo "Creating native image..."
-native-image \
-    -jar target/royal-game-of-ur.jar \
-    -H:Name=royal-game-of-ur \
-    -H:+ReportExceptionStackTraces \
-    --initialize-at-build-time \
-    --verbose \
-    --no-fallback \
-    -J-Xmx3g
+clojure -M:native-image
 
 if [ ! -f royal-game-of-ur ]; then
     echo "Error: Native image not created. Check the native-image output above."

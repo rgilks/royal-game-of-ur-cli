@@ -9,6 +9,10 @@
   :cljfmt
   {:main-opts ["-m" "cljfmt.main"]}
 
+  :build
+  {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
+   :ns-default build}
+
   :uberjar
   {:replace-deps {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
    :exec-fn hf.depstar/uberjar
@@ -30,5 +34,3 @@
                "-H:Name=royal-game-of-ur"
                "-H:ResourceConfigurationFiles=resource-config.json"
                "-H:ReflectionConfigurationFiles=reflect-config.json"]}}}
-
-
