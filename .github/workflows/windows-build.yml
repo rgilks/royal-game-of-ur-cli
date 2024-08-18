@@ -27,7 +27,7 @@ jobs:
     - name: Build native image
       run: |
         clojure -T:build uber
-        native-image -jar target/royal-game-of-ur.jar -H:Name=royal-game-of-ur.exe
+        native-image -jar target/royal-game-of-ur.jar -H:ReflectionConfigurationFiles=reflect-config.json -H:ResourceConfigurationFiles=resource-config.json -H:+ReportExceptionStackTraces -H:Name=royal-game-of-ur.exe
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
