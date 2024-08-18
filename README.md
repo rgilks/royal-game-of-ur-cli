@@ -86,7 +86,7 @@ Some useful commands include:
 - `just run-clj`: Run the CLI application (using Clojure)
 - `just test`: Run unit tests (using nbb)
 - `just test-clj`: Run unit tests (using Clojure)
-- `just test-watch`: Run unit tests and watch for changes (using nbb)
+- `just watch`: Run unit tests and watch for changes (using nbb)
 - `just fmt`: Format Clojure files
 - `just sim`: Run a simulation with custom parameters (using nbb)
 - `just sim-clj`: Run a simulation with custom parameters (using Clojure)
@@ -154,7 +154,7 @@ just test-clj
 For continuous testing during development (using nbb):
 
 ```
-just test-watch
+just watch
 ```
 
 ## Building

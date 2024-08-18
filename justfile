@@ -98,7 +98,7 @@ test:
     yarn test
 
 # Run unit tests and watch for changes (nbb)
-test-watch:
+watch:
     yarn test:watch
 
 # Run all unit tests (Clojure)

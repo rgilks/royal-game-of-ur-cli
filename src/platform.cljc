@@ -1,7 +1,7 @@
 (ns platform
-  #?(:clj (:require [clojure.java.io :as io])
-     :cljs (:require
-            ["fs" :as fs]
+ ;;  #?(:clj (:require [clojure.java.io :as io]))
+  #?(:cljs (:require
+            ;; ["fs" :as fs]
             ["readline-sync" :as readline-sync])))
 
 (defn get-core-count []
@@ -40,9 +40,9 @@
      :cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
 
-(defn load-file! [filepath]
-  #?(:clj  (slurp (io/resource filepath))
-     :cljs (.readFileSync fs filepath "utf8")))
+;; (defn load-file! [filepath]
+;;   #?(:clj  (slurp (io/resource filepath))
+;;      :cljs (.readFileSync fs filepath "utf8")))
 
 ;; (defn current-time-ms []
 ;;   #?(:clj  (System/currentTimeMillis)
