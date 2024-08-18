@@ -20,19 +20,37 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 
 ### Prerequisites
 
-This project uses version management to ensure consistent development environments. We recommend using `asdf` as the version manager. The required tool versions are specified in the `.tool-versions` file.
+This project was developed on a Mac (specifically an M1 Mac). Users on different operating systems may need to adapt these instructions to their environment.
 
-Ensure you have the following tools installed on your system:
+Before you begin, make sure you have the following installed:
 
-- asdf
-- Clojure
-- Node.js
-- Yarn
-- Java (GraalVM)
-- Just (command runner)
-- Graphviz (for generating state diagrams)
+1. **Homebrew**: If you don't have Homebrew installed, run the following command in your terminal:
 
-Note that this project was developed on a Mac, so some commands may differ on other operating systems.
+   ```
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+   After installation, make sure to follow the instructions in the terminal to add Homebrew to your PATH.
+
+2. **Git**: Install Git using Homebrew:
+   
+   ```
+   brew install git
+   ```
+
+3. **asdf**: Install asdf using Homebrew:
+
+   ```
+   brew install asdf
+   ```
+
+   After installation, add the following to your `~/.zshrc` or `~/.bash_profile`:
+
+   ```
+   echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ~/.zshrc
+   ```
+
+   Then, restart your terminal or run `source ~/.zshrc`.
 
 ### Installation
 
@@ -49,7 +67,7 @@ Note that this project was developed on a Mac, so some commands may differ on ot
 
    This command will:
    - Set up asdf and install required plugins and versions
-   - Install necessary tools (including Graphviz, nbb, and GraalVM)
+   - Install necessary tools (including nbb and GraalVM)
    - Set up Git hooks
    - Install project dependencies
    - Perform any other necessary initialization steps
@@ -150,6 +168,20 @@ After building, you can run the game with:
 ```
 ./royal-game-of-ur
 ```
+
+## Troubleshooting
+
+If you encounter any issues during setup or running the game, please check the following:
+
+1. Ensure all prerequisites are correctly installed in the order specified.
+2. Make sure your `PATH` includes the necessary directories for the installed tools.
+3. If you're using a non-Mac system, you may need to adapt some of the commands or find alternative ways to install the required tools.
+
+If problems persist, please open an issue on the GitHub repository.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
