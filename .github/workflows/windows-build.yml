@@ -32,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: royal-game-of-ur-windows
-        path: royal-game-of-ur.exe
+        path: D:\a\royal-game-of-ur-cli\royal-game-of-ur-cli\royal-game-of-ur.exe
