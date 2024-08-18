@@ -4,6 +4,7 @@
             [platform]
             [state]
             [strategy.first-in-list]
+            [strategy.minimax]
             [strategy.random]
             [strategy.strategic]
             [util :refer [enable-print-line! disable-print-line!]]
@@ -13,10 +14,10 @@
   (atom {:debug? false
          :show? false
          :delay 50
-         :num-games 100
+         :num-games 1
          :parallel 8 ;; Adjust this value to match the number of performance 
                      ;; cores on your machine
-         :strategy-a :random
+         :strategy-a :minimax
          :strategy-b :first-in-list}))
 
 (defn debug [& args]

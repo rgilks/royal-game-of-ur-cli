@@ -5,6 +5,9 @@
 
             ["readline-sync" :as readline-sync])))
 
+(def infinity #?(:clj Double/POSITIVE_INFINITY
+                 :cljs js/Number.POSITIVE_INFINITY))
+
 (defn parse-int [s]
   (if (and s (re-matches #"\d+" (str s)))
     #?(:clj (Integer/parseInt s)
