@@ -1,6 +1,6 @@
-# Understanding Minimax in Game AI: The Royal Game of Ur Example
+# The Minimax Algorithm
 
-The minimax algorithm is a fundamental decision-making technique used in artificial intelligence for two-player turn-based games. It's particularly effective in games with perfect information, where both players have complete knowledge of the game state. In this article, we'll explore how minimax works and how it's implemented in the Royal Game of Ur.
+The minimax algorithm is a decision-making technique used in artificial intelligence for two-player turn-based games. It's particularly effective in games with perfect information, where both players have complete knowledge of the game state. Here we'll look at how minimax works and how it's implemented.
 
 ## What is Minimax?
 
@@ -197,7 +197,7 @@ While minimax with alpha-beta pruning is powerful, its performance can be furthe
 
 ## Conclusion
 
-The minimax algorithm with alpha-beta pruning provides a powerful way for an AI to make decisions in turn-based games. In the Royal Game of Ur, it allows the AI to look several moves ahead and choose the best possible move, considering both its own opportunities and the opponent's potential responses.
+The minimax algorithm with alpha-beta pruning provides an effectice way for an AI to make decisions in turn-based games. It allows the AI to look several moves ahead and choose the best possible move, considering both its own opportunities and the opponent's potential responses.
 
 While this implementation provides a strong AI player, it's worth noting that the effectiveness of the minimax algorithm heavily depends on the accuracy of the evaluation function and the depth of the search. Deeper searches generally lead to stronger play but require more computational resources.
 

@@ -17,58 +17,64 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 - Simulation mode for running multiple games with different strategies
 - Cross-platform compatibility (Clojure and ClojureScript)
 
+## AI Strategies
+
+This project implements several AI strategies for playing the Royal Game of Ur. Currently, the most effective strategy is the **Minimax algorithm**. You can find a detailed explanation of how the Minimax algorithm works in our [Minimax Algorithm Documentation](./docs/minimax.md).
+
+The Minimax algorithm provides a strong AI opponent by looking ahead several moves and choosing the best possible move, considering both its own opportunities and the opponent's potential responses. It's currently the best-performing strategy in our simulations.
+
+Other implemented strategies include:
+- Random: Chooses moves randomly
+- First-in-list: Always chooses the first available move
+- Strategic: Uses a simple heuristic to prioritize moves
+
+You can experiment with different strategies and depths for the Minimax algorithm using the command-line interface or the simulation mode.
+
 ## Technologies Used
 
 This project utilizes a variety of technologies and tools:
 
-1. [Clojure](https://clojure.org/): A dynamic, functional programming language for the JVM, used as the primary language for the project.
-2. [ClojureScript](https://clojurescript.org/): A compiler for Clojure that targets JavaScript, allowing the game to run in browser environments.
-3. [nbb](https://github.com/babashka/nbb): A scripting environment for ClojureScript, used for running ClojureScript without compilation.
-4. [Malli](https://github.com/metosin/malli): A data-driven schema library for Clojure(Script), used for data validation and schema definitions.
-5. [core.async](https://github.com/clojure/core.async): A Clojure(Script) library for asynchronous programming, used for running simulations concurrently.
-6. [JLine](https://github.com/jline/jline3): A Java library for handling console input, used for improved terminal interactions in the Clojure version.
-7. [readline-sync](https://github.com/anseki/readline-sync): A npm package for synchronous readline in Node.js, used for console input in the ClojureScript version.
-8. [just](https://github.com/casey/just): A command runner used for various development tasks and running the game.
-9. [asdf](https://asdf-vm.com/): A version manager for multiple runtime versions, used to manage Clojure, Node.js, and other tool versions.
-10. [yarn](https://yarnpkg.com/): A package manager for JavaScript, used to manage Node.js dependencies.
-11. [GraalVM](https://www.graalvm.org/): A high-performance JDK distribution, used for creating native executables of the game.
-12. [Graphviz](https://graphviz.org/): An open-source graph visualization software, used for generating state diagrams.
+1. [Clojure](https://clojure.org/): A dynamic, functional programming language for the JVM
+2. [ClojureScript](https://clojurescript.org/): A compiler for Clojure that targets JavaScript
+3. [nbb](https://github.com/babashka/nbb): A scripting environment for ClojureScript
+4. [Malli](https://github.com/metosin/malli): A data-driven schema library for Clojure(Script)
+5. [core.async](https://github.com/clojure/core.async): A Clojure(Script) library for asynchronous programming
+6. [JLine](https://github.com/jline/jline3): A Java library for handling console input
+7. [readline-sync](https://github.com/anseki/readline-sync): A npm package for synchronous readline in Node.js
+8. [just](https://github.com/casey/just): A command runner for various development tasks
+9. [asdf](https://asdf-vm.com/): A version manager for multiple runtime versions
+10. [yarn](https://yarnpkg.com/): A package manager for JavaScript
+11. [GraalVM](https://www.graalvm.org/): A high-performance JDK distribution
+12. [Graphviz](https://graphviz.org/): An open-source graph visualization software
 
 ## Getting Started
 
 ### Prerequisites
 
-This project was developed on a Mac (specifically an M1 Mac). Users on different operating systems may need to adapt these instructions to their environment.
+This project was developed on a Mac (M1). Users on different operating systems may need to adapt these instructions to their environment.
 
 Before you begin, make sure you have the following installed:
 
-1. **Homebrew**: If you don't have Homebrew installed, run the following command in your terminal:
-
+1. **Homebrew**: Install with:
    ```
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
+   Follow the terminal instructions to add Homebrew to your PATH.
 
-   After installation, make sure to follow the instructions in the terminal to add Homebrew to your PATH.
-
-2. **Git**: Install Git using Homebrew:
-   
+2. **Git**: Install with Homebrew:
    ```
    brew install git
    ```
 
-3. **asdf**: Install asdf using Homebrew:
-
+3. **asdf**: Install with Homebrew:
    ```
    brew install asdf
    ```
-
-   After installation, add the following to your `~/.zshrc` or `~/.bash_profile`:
-
+   Add to your `~/.zshrc` or `~/.bash_profile`:
    ```
    echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ~/.zshrc
    ```
-
-   Then, restart your terminal or run `source ~/.zshrc`.
+   Restart your terminal or run `source ~/.zshrc`.
 
 ### Installation
 
@@ -98,7 +104,7 @@ This project uses `just` as a command runner. To see all available commands, run
 just
 ```
 
-Some useful commands include:
+Key commands include:
 
 - `just run`: Run the CLI application (using nbb)
 - `just run-clj`: Run the CLI application (using Clojure)
@@ -111,7 +117,7 @@ Some useful commands include:
 - `just repl`: Start a Clojure REPL
 - `just build`: Build the project (creates uberjar and native image)
 
-To update all tools to their latest versions:
+To update all tools:
 
 ```
 just update-tools
@@ -185,13 +191,13 @@ just watch
 
 ## Building
 
-To build the project (create uberjar and native image):
+Build the project (create uberjar and native image):
 
 ```
 just build
 ```
 
-After building, you can run the game with:
+Run the built game:
 
 ```
 ./royal-game-of-ur
