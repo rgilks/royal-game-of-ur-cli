@@ -28,8 +28,14 @@ jobs:
       run: |
         clojure -T:build uber
         native-image -jar target/royal-game-of-ur.jar -H:ReflectionConfigurationFiles=reflect-config.json -H:ResourceConfigurationFiles=resource-config.json -H:+ReportExceptionStackTraces -H:Name=royal-game-of-ur.exe
-    - name: Upload artifact
+    - name: List directory contents
+      run: |
+        dir
+        dir *.exe
+    - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: royal-game-of-ur-windows
-        path: D:\a\royal-game-of-ur-cli\royal-game-of-ur-cli\royal-game-of-ur.exe
+        path: |
+          *.exe
+          *.txt
