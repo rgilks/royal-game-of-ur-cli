@@ -12,13 +12,14 @@
 
 (def config-atom
   (atom {:debug? false
-         :show? false
-         :delay 50
-         :num-games 1
-         :parallel 8 ;; Adjust this value to match the number of performance 
-                     ;; cores on your machine
-         :strategy-a :minimax
-         :strategy-b :first-in-list}))
+         :show? true
+         :delay 20
+         :num-games 10
+         :parallel 8
+         :strategies {:A {:name :minimax
+                          :params {:depth 2}}
+                      :B {:name :minimax
+                          :params {:depth 20}}}}))
 
 (defn debug [& args]
   (when (:debug? @config-atom)
@@ -27,8 +28,8 @@
 (defn print-simulation-results [results]
   (println "\nSimulation Results:")
   (println "Total games:" (:num-games @config-atom))
-  (println "Strategy A (Player A):"  (:strategy-a @config-atom))
-  (println "Strategy B (Player B):"  (:strategy-b @config-atom))
+  (println "Strategy A (Player A):"  (get-in @config-atom [:strategies :A :name]))
+  (println "Strategy B (Player B):"  (get-in @config-atom [:strategies :B :name]))
   (println "Player A wins:" (:A results))
   (println "Player B wins:" (:B results))
   (let [win-percentage-a (double (* (/ (:A results)
@@ -59,7 +60,7 @@
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)]
     (debug "Possible moves for" (:current-player game) ":" (pr-str possible-moves))
-    (handle-choose-action game possible-moves (:strategy game))))
+    (handle-choose-action game possible-moves (get-in game [:strategy :name]))))
 
 (defmethod handle :end-game [game]
   (view/show-winner (:current-player game))
@@ -86,16 +87,12 @@
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc initial-state
-                      :strategy (if (= (:current-player initial-state) :A)
-                                  (:strategy-a @config-atom)
-                                  (:strategy-b @config-atom)))]
+                      :strategy (get-in @config-atom [:strategies (:current-player initial-state)]))]
      (if (:game-over game)
        game
        (recur (-> game
                   play-turn
-                  (assoc :strategy (if (= (:current-player game) :A)
-                                     (:strategy-a @config-atom)
-                                     (:strategy-b @config-atom)))))))))
+                  (assoc :strategy (get-in @config-atom [:strategies (:current-player game)]))))))))
 
 (defn run-single-chunk [chunk]
   (reduce (fn [wins _]
@@ -148,27 +145,15 @@
            (recur (dec games-left)
                   (update wins winner inc)))))))
 
-(defn -main [& args]
-  (let [num-games (or (some-> args first parse-long) (:num-games @config-atom))
-        strategy-a (or (second args) (:strategy-a @config-atom))
-        strategy-b (or (nth args 2) (:strategy-b @config-atom))
-        debug? (platform/parse-bool (nth args 3 (str (:debug? @config-atom))))
-        show? (platform/parse-bool (nth args 4 (str (:show? @config-atom))))
-        delay (or (some-> args (nth 5 nil) parse-long) (:delay @config-atom))]
-    (swap! config-atom assoc
-           :debug? debug?
-           :show? show?
-           :delay delay
-           :num-games num-games
-           :strategy-a strategy-a
-           :strategy-b strategy-b)
-    (println "Running" num-games "games...")
-    (println "Player A strategy:" strategy-a)
-    (println "Player B strategy:" strategy-b)
-    (println "Debug mode:" debug?)
-    (println "Show mode:" show?)
-    (println "Delay:" delay)
-    (println "Parallel:" (:parallel @config-atom))
-    (time (let [results (run-simulation)]
-            (print-simulation-results results)))))
-
+(defn -main []
+  (println "Running" (:num-games @config-atom) "games...")
+  (println "Player A strategy:" (get-in @config-atom [:strategies :A :name])
+           (get-in @config-atom [:strategies :A :params]))
+  (println "Player B strategy:" (get-in @config-atom [:strategies :B :name])
+           (get-in @config-atom [:strategies :B :params]))
+  (println "Debug mode:" (str (:debug? @config-atom)))
+  (println "Show mode:" (str (:show? @config-atom)))
+  (println "Delay:" (:delay @config-atom))
+  (println "Parallel:" (:parallel @config-atom))
+  (time (let [results (run-simulation)]
+          (print-simulation-results results))))

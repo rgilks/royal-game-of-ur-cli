@@ -99,13 +99,16 @@
 (deftest test-print-simulation-results
   (testing "print-simulation-results function"
     (with-redefs [sim/config-atom (atom {:num-games 100
-                                         :strategy-a :first-in-list
-                                         :strategy-b :random})]
+                                         :strategies {:A {:name :minimax
+                                                          :params {:depth 2}}
+                                                      :B {:name :minimax
+                                                          :params {:depth 4}}}})]
       (is (= (str "\nSimulation Results:\n"
                   "Total games: 100\n"
-                  "Strategy A (Player A): :first-in-list\n"
-                  "Strategy B (Player B): :random\n"
+                  "Strategy A (Player A): :minimax\n"
+                  "Strategy B (Player B): :minimax\n"
                   "Player A wins: 60\n"
                   "Player B wins: 40\n"
                   "Player A win percentage: 60%\n")
              (with-out-str (sim/print-simulation-results {:A 60, :B 40})))))))
+

@@ -126,12 +126,12 @@ run-clj:
     clojure -M:run
 
 # Run a simulation with custom parameters (nbb)
-sim *args:
-    yarn sim {{args}}
+sim:
+    yarn sim
 
 # Run a simulation with custom parameters (Clojure)
-sim-clj *args:
-    clojure -M:sim {{args}}
+sim-clj:
+    clojure -M:sim
 
 # =================
 # Utility Commands

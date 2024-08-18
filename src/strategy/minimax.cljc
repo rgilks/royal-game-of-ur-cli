@@ -2,8 +2,6 @@
   (:require [platform]
             [state :as state]))
 
-(def max-depth 3)
-
 (defn- score-player [game-state player]
   (+ (* 10 (get-in game-state [:players player :off-board]))
      (count (state/get-piece-positions (:board game-state) player))))
@@ -55,7 +53,8 @@
 
 (defn select-move [possible-moves game-state]
   (when (seq possible-moves)
-    (second (minimax game-state max-depth true (- platform/infinity) platform/infinity))))
+    (let [depth (get-in game-state [:strategy :params :depth] 3)]  ; Default to depth 3 if not specified
+      (second (minimax game-state depth true (- platform/infinity) platform/infinity)))))
 
 (defmethod state/select-move :minimax [_ possible-moves game-state]
   (select-move possible-moves game-state))

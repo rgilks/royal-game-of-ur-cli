@@ -4,6 +4,7 @@
             [platform]
             [state]
             [strategy.first-in-list]
+            [strategy.minimax]
             [strategy.random]
             [strategy.strategic]
             [util]
@@ -38,7 +39,7 @@
   (cond
     (empty? possible-moves) nil
     (= player :A) (get-user-move possible-moves)
-    :else (state/select-move :first-in-list possible-moves game)))
+    :else (state/select-move (get-in game [:strategy :name]) possible-moves game)))
 
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)
@@ -59,13 +60,15 @@
   (throw (ex-info "Game over" {:reason :expected}))
   game)
 
-(defn play-game []
+(defn play-game [ai-strategy ai-depth]
   (platform/clear-console)
   (util/hide-cursor)
   (view/show-welcome)
   (platform/readln)
   (try
-    (loop [game (state/start-game)]
+    (loop [game (-> (state/start-game)
+                    (assoc-in [:strategy :name] ai-strategy)
+                    (assoc-in [:strategy :params :depth] ai-depth))]
       (platform/clear-console)
       (view/show-state game)
       (platform/sleep short-wait)
@@ -77,5 +80,5 @@
       (util/show-cursor))))
 
 (defn -main []
-  (play-game)
-  (view/show-goodbye))
+  (play-game :minimax 10))
+(view/show-goodbye)
