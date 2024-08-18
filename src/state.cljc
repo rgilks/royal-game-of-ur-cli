@@ -1,5 +1,6 @@
 (ns state
-  (:require [config]
+  (:require [clojure.pprint :as pprint]
+            [config]
             [malli.core :as m]
             [malli.error :as me]
             [schema]))
@@ -13,7 +14,12 @@
 
 (defn validate-game-state [state]
   (if-let [error (m/explain schema/game-state state)]
-    (throw (ex-info "Invalid game state structure" (me/humanize error)))
+    (do
+      (println "Invalid game state:")
+      (pprint/pprint state)
+      (println "Validation error:")
+      (pprint/pprint error)
+      (throw (ex-info "Invalid game state structure" (me/humanize error))))
     (if-not (validate-total-pieces state)
       (throw (ex-info "Invalid total pieces"
                       {:error "Total pieces for each player must be exactly 7"}))
