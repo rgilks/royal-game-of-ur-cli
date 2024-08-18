@@ -61,7 +61,7 @@ pom.xml.asc
 project.clj
 META-INF/
 .cpcache/
-.clj-kondo/.cache
+.clj-kondo/
 .nbb
 
 _compiled.*

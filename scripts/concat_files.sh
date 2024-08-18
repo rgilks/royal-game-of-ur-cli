@@ -5,7 +5,7 @@ set -euo pipefail
 # Check if at least two arguments are provided (root folder and at least one file extension or specific file)
 if [ $# -lt 2 ]; then
     echo "Usage: $0 <root_folder> <file_extension1|specific_file1> [file_extension2|specific_file2] ... [-- <excluded_file1> <excluded_file2> ...]"
-    echo "Example: $0 . justfile .cljc .cljs .clj .md .dot .edn .json -- reflect-config.json resource-config.json build.clj"
+    echo "Example: $0 . justfile .cljc .cljs .clj .md .dot .edn .json -- reflect-config.json resource-config.json build.clj ./test/"
     exit 1
 fi
 
@@ -39,7 +39,7 @@ done
 echo "Root folder: $root_folder"
 echo "Specific files to include: ${specific_files[*]}"
 echo "File extensions: ${file_extensions[*]}"
-echo "Files to exclude: ${excluded_files[*]}"
+echo "Files and folders to exclude: ${excluded_files[*]}"
 
 # Output file name
 output_file="_compiled.txt"
@@ -63,10 +63,18 @@ should_ignore() {
     local file="$1"
     local relative_path="${file#$root_folder/}"
     
-    # Check if the file is in the excluded_files list
+    # Check if the file is in an excluded folder or matches an excluded file
     for excluded in "${excluded_files[@]}"; do
-        if [[ "$relative_path" == "$excluded" ]]; then
-            # echo "Ignoring $file (in excluded list)"
+        # Remove leading ./ if present
+        excluded="${excluded#./}"
+        if [[ "$excluded" == */ ]]; then
+            # It's a folder, check if the file is inside this folder
+            if [[ "$relative_path" == "$excluded"* || "$relative_path" == *"/$excluded"* ]]; then
+                # echo "Ignoring (excluded folder): $file"
+                return 0  # Should ignore
+            fi
+        elif [[ "$relative_path" == "$excluded" || "$relative_path" == *"/$excluded" ]]; then
+            # echo "Ignoring (excluded file): $file"
             return 0  # Should ignore
         fi
     done
@@ -84,7 +92,7 @@ should_ignore() {
             grep_pattern=$(echo "$pattern" | sed -e 's/\./\\./g' -e 's/\*/.*/g' -e 's/^/^/' -e 's/$/($|\/)/g')
             
             if echo "$relative_path" | grep -Eq "$grep_pattern"; then
-                # echo "Ignoring $file (matched .gitignore pattern: $pattern)"
+                # echo "Ignoring (gitignore pattern): $file"
                 return 0  # Should ignore
             fi
         done < "$root_folder/.gitignore"
@@ -103,27 +111,17 @@ add_file() {
     echo "Added: $file"
 }
 
-# Add Justfile first
-justfile_path="$root_folder/justfile"
-if [ -f "$justfile_path" ]; then
-    add_file "$justfile_path"
-else
-    echo "Warning: Justfile not found: $justfile_path"
-fi
-
-# Add other specific files
+# Add specific files first
 for file in "${specific_files[@]}"; do
-    if [ "$file" != "justfile" ]; then  # Skip Justfile as it's already handled
-        full_path="$root_folder/$file"
-        if [ -f "$full_path" ] && ! should_ignore "$full_path"; then
-            add_file "$full_path"
-        else
-            echo "Warning: Specific file not found or ignored: $full_path"
-        fi
+    full_path="$root_folder/$file"
+    if [ -f "$full_path" ] && ! should_ignore "$full_path"; then
+        add_file "$full_path"
+    else
+        echo "Warning: Specific file not found or ignored: $full_path"
     fi
 done
 
-# Find all files with the specified extensions recursively in the specified root folder, excluding the output file and .gitignore files, then sort them
+# Find all files with the specified extensions recursively in the specified root folder
 if [ ${#file_extensions[@]} -gt 0 ]; then
     echo "Searching for files with extensions: ${file_extensions[*]}"
     find_command="find \"$root_folder\" -type f \( $(printf -- "-name '*.%s' -o " "${file_extensions[@]}") -false \) -print0"

@@ -74,6 +74,10 @@ state-diagram:
 concat:
     ./scripts/concat_files.sh . justfile .cljc .cljs .clj .md .dot .edn .json -- reflect-config.json resource-config.json build.clj .cljfmt.edn
 
+# Concatenate just the program files (for an LLM to read)
+cc:
+    ./scripts/concat_files.sh . README.md .cljc .cljs .clj -- build.clj ./test/
+
 # ==================
 # Update and Upgrade
 # ==================
