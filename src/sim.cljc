@@ -13,7 +13,9 @@
   (atom {:debug? false
          :show? false
          :delay 50
-         :num-games 2
+         :num-games 5000
+         :parallel 8 ;; Adjust this value to match the number of performance 
+                     ;; cores on your machine
          :strategy-a :first-in-list
          :strategy-b :strategic}))
 
@@ -94,26 +96,44 @@
                                      (:strategy-a @config-atom)
                                      (:strategy-b @config-atom)))))))))
 
+(defn run-single-chunk [chunk]
+  (reduce (fn [wins _]
+            (let [game-result (play-game)
+                  winner (:current-player game-result)]
+              (update wins winner (fnil inc 0))))
+          {:A 0 :B 0}
+          chunk))
+
 (defn run-simulation []
   #?(:clj
      (let [num-games (:num-games @config-atom)
-           core-count (platform/get-core-count)
-           chunk-size (max 1 (quot num-games core-count))
-           chunks (partition-all chunk-size (range num-games))]
-       (let [results (async/merge
-                      (map (fn [chunk]
-                             (async/thread
-                               (reduce (fn [wins _]
-                                         (let [game-result (play-game)
-                                               winner (:current-player game-result)]
-                                           (update wins winner inc)))
-                                       {:A 0 :B 0}
-                                       chunk)))
-                           chunks))]
-         (reduce (fn [total-wins chunk-wins]
-                   (merge-with + total-wins chunk-wins))
-                 {:A 0 :B 0}
-                 (async/<!! (async/into [] results))))))
+           parallel (:parallel @config-atom)
+           chunk-size (max 1 (quot num-games parallel))
+           chunks (partition-all chunk-size (range num-games))
+           results-chan (async/chan)]
+
+       (doseq [chunk chunks]
+         (async/go
+           (let [chunk-result (run-single-chunk chunk)]
+             (async/>! results-chan chunk-result))))
+
+       (loop [results []
+              chunks-completed 0]
+         (if (= chunks-completed (count chunks))
+           (do
+             (async/close! results-chan)
+             (reduce (fn [total-wins chunk-wins]
+                       (merge-with + total-wins chunk-wins))
+                     {:A 0 :B 0}
+                     results))
+           (if-let [chunk-result (async/<!! results-chan)]
+             (recur (conj results chunk-result) (inc chunks-completed))
+             (do
+               (println "Warning: Received nil result, stopping early.")
+               (reduce (fn [total-wins chunk-wins]
+                         (merge-with + total-wins chunk-wins))
+                       {:A 0 :B 0}
+                       results)))))))
   #?(:cljs
      (loop [games-left (:num-games @config-atom)
             wins {:A 0 :B 0}]
@@ -147,7 +167,7 @@
     (println "Debug mode:" debug?)
     (println "Show mode:" show?)
     (println "Delay:" delay)
-    (println "Number of cores:" (platform/get-core-count))
-    (let [results (run-simulation)]
-      (print-simulation-results results))))
+    (println "Parallel:" (:parallel @config-atom))
+    (time (let [results (run-simulation)]
+            (print-simulation-results results)))))
 
