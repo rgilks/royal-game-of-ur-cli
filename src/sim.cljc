@@ -13,11 +13,11 @@
   (atom {:debug? false
          :show? false
          :delay 50
-         :num-games 5000
+         :num-games 100
          :parallel 8 ;; Adjust this value to match the number of performance 
                      ;; cores on your machine
-         :strategy-a :first-in-list
-         :strategy-b :strategic}))
+         :strategy-a :random
+         :strategy-b :first-in-list}))
 
 (defn debug [& args]
   (when (:debug? @config-atom)

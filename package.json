@@ -1,7 +1,6 @@
 {
   "scripts": {
     "update": "ncu -u && rm -rf node_modules && rm yarn.lock && yarn",
-    "start": "nbb src/parser.cljs",
     "test": "nbb -cp src:test -m test-runner",
     "test:watch": "nodemon --watch src --watch test --ext cljs,cljc --exec 'clear && echo \"Running tests...\" && yarn test || true'",
     "cli": "nbb -cp src -m cli",
