@@ -16,6 +16,23 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 - Colorized output for enhanced user experience
 - Simulation mode for running multiple games with different strategies
 
+## Technologies Used
+
+This project utilizes a variety of technologies and tools:
+
+1. [Clojure](https://clojure.org/): A dynamic, functional programming language for the JVM, used as the primary language for the project.
+2. [ClojureScript](https://clojurescript.org/): A compiler for Clojure that targets JavaScript, allowing the game to run in browser environments.
+3. [nbb](https://github.com/babashka/nbb): A scripting environment for ClojureScript, used for running ClojureScript without compilation.
+4. [Malli](https://github.com/metosin/malli): A data-driven schema library for Clojure(Script), used for data validation and schema definitions.
+5. [core.async](https://github.com/clojure/core.async): A Clojure(Script) library for asynchronous programming, used for running simulations concurrently.
+6. [JLine](https://github.com/jline/jline3): A Java library for handling console input, used for improved terminal interactions in the Clojure version.
+7. [readline-sync](https://github.com/anseki/readline-sync): A npm package for synchronous readline in Node.js, used for console input in the ClojureScript version.
+8. [just](https://github.com/casey/just): A command runner used for various development tasks and running the game.
+9. [asdf](https://asdf-vm.com/): A version manager for multiple runtime versions, used to manage Clojure, Node.js, and other tool versions.
+10. [yarn](https://yarnpkg.com/): A package manager for JavaScript, used to manage Node.js dependencies.
+11. [GraalVM](https://www.graalvm.org/): A high-performance JDK distribution, used for creating native executables of the game.
+12. [Graphviz](https://graphviz.org/): An open-source graph visualization software, used for generating state diagrams.
+
 ## Getting Started
 
 ### Prerequisites
@@ -131,7 +148,15 @@ just sim 1000 strategic random true false 0
 7. Pieces must leave the board on an exact roll.
 8. The first player to move all seven pieces off the board wins.
 
+### Board Layout
+
+The positions on the board are referenced in the program as shown below. The stars show the rosette squares:
+
 ![Royal Game of Ur Board](./docs/board.png)
+
+### State Machine
+The game is managed by a state machine that transitions between different states based on the player's actions and the game rules. The state machine diagram is shown below:
+
 ![Royal Game of Ur State Machine](./docs/rgou-fsm.png)
 
 ## Project Structure
@@ -183,7 +208,10 @@ If problems persist, please open an issue on the GitHub repository.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+This just a personal project for learning and fun, if you want to submit a pull
+request maybe I'll look at it someday :-)
+
+Feel free to fork the repository or steal any ideas from it.
 
 ## License
 
