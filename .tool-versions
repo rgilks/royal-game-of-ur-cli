@@ -1,5 +1,4 @@
 clojure 1.11.4.1474
-java temurin-22.0.2+9
 just 1.34.0
 nodejs 22.6.0
 yarn 1.22.22
