@@ -3,6 +3,9 @@
   (:require [config]
             [platform]
             [state]
+            [strategy.first-in-list]
+            [strategy.random]
+            [strategy.strategic]
             [util]
             [view]))
 
@@ -35,7 +38,7 @@
   (cond
     (empty? possible-moves) nil
     (= player :A) (get-user-move possible-moves)
-    :else (state/select-move :strategic possible-moves game)))
+    :else (state/select-move :first-in-list possible-moves game)))
 
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)

@@ -3,6 +3,9 @@
             [config]
             [platform]
             [state]
+            [strategy.first-in-list]
+            [strategy.random]
+            [strategy.strategic]
             [util :refer [enable-print-line! disable-print-line!]]
             [view]))
 
@@ -10,9 +13,9 @@
   (atom {:debug? false
          :show? false
          :delay 50
-         :num-games 50
-         :strategy-a :strategic
-         :strategy-b :random}))
+         :num-games 2
+         :strategy-a :first-in-list
+         :strategy-b :strategic}))
 
 (defn debug [& args]
   (when (:debug? @config-atom)
