@@ -1,5 +1,6 @@
 (ns sim
-  (:require [config]
+  (:require #?(:clj [clojure.core.async :as async])
+            [config]
             [platform]
             [state]
             [util :refer [enable-print-line! disable-print-line!]]
@@ -7,7 +8,7 @@
 
 (def config-atom
   (atom {:debug? false
-         :show? true
+         :show? false
          :delay 50
          :num-games 10
          :strategy-a :random
@@ -16,6 +17,18 @@
 (defn debug [& args]
   (when (:debug? @config-atom)
     (apply println args)))
+
+(defn print-simulation-results [results]
+  (println "\nSimulation Results:")
+  (println "Total games:" (:num-games @config-atom))
+  (println "Strategy A (Player A):"  (:strategy-a @config-atom))
+  (println "Strategy B (Player B):"  (:strategy-b @config-atom))
+  (println "Player A wins:" (:A results))
+  (println "Player B wins:" (:B results))
+  (let [win-percentage-a (double (* (/ (:A results)
+                                       (:num-games @config-atom)) 100))
+        rounded-percentage (Math/round win-percentage-a)]
+    (println "Player A win percentage:" (str rounded-percentage "%"))))
 
 (defn handle-choose-action [game possible-moves strategy]
   (if-let [move (state/select-move strategy possible-moves game)]
@@ -79,29 +92,37 @@
                                      (:strategy-b @config-atom)))))))))
 
 (defn run-simulation []
-  (loop [games-left (:num-games @config-atom)
-         wins {:A 0 :B 0}]
-    (if (zero? games-left)
-      wins
-      (let [game (state/initialize-game)
-            game-result (play-game game)
-            winner (:current-player game-result)]
-        (when (:show? @config-atom)
-          (platform/sleep 1000))
-        (recur (dec games-left)
-               (update wins winner inc))))))
-
-(defn print-simulation-results [results]
-  (println "\nSimulation Results:")
-  (println "Total games:" (:num-games @config-atom))
-  (println "Strategy A (Player A):"  (:strategy-a @config-atom))
-  (println "Strategy B (Player B):"  (:strategy-b @config-atom))
-  (println "Player A wins:" (:A results))
-  (println "Player B wins:" (:B results))
-  (let [win-percentage-a (double (* (/ (:A results)
-                                       (:num-games @config-atom)) 100))
-        rounded-percentage (Math/round win-percentage-a)]
-    (println "Player A win percentage:" (str rounded-percentage "%"))))
+  #?(:clj
+     (let [num-games (:num-games @config-atom)
+           core-count (platform/get-core-count)
+           chunk-size (max 1 (quot num-games core-count))
+           chunks (partition-all chunk-size (range num-games))]
+       (let [results (async/merge
+                      (map (fn [chunk]
+                             (async/thread
+                               (reduce (fn [wins _]
+                                         (let [game-result (play-game)
+                                               winner (:current-player game-result)]
+                                           (update wins winner inc)))
+                                       {:A 0 :B 0}
+                                       chunk)))
+                           chunks))]
+         (reduce (fn [total-wins chunk-wins]
+                   (merge-with + total-wins chunk-wins))
+                 {:A 0 :B 0}
+                 (async/<!! (async/into [] results))))))
+  #?(:cljs
+     (loop [games-left (:num-games @config-atom)
+            wins {:A 0 :B 0}]
+       (if (zero? games-left)
+         wins
+         (let [game (state/initialize-game)
+               game-result (play-game game)
+               winner (:current-player game-result)]
+           (when (:show? @config-atom)
+             (platform/sleep 1000))
+           (recur (dec games-left)
+                  (update wins winner inc)))))))
 
 (defn -main [& args]
   (let [num-games (or (some-> args first parse-long) (:num-games @config-atom))
@@ -123,5 +144,7 @@
     (println "Debug mode:" debug?)
     (println "Show mode:" show?)
     (println "Delay:" delay)
+    (println "Number of cores:" (platform/get-core-count))
     (let [results (run-simulation)]
       (print-simulation-results results))))
+

@@ -4,6 +4,10 @@
             ["fs" :as fs]
             ["readline-sync" :as readline-sync])))
 
+(defn get-core-count []
+  #?(:clj (.availableProcessors (Runtime/getRuntime))
+     :cljs (count (.cpus (js/require "os")))))
+
 (defn parse-int [s]
   (if (and s (re-matches #"\d+" (str s)))
     #?(:clj (Integer/parseInt s)
