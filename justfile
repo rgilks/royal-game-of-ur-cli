@@ -145,3 +145,19 @@ repl:
 clean:
     rm -rf target
     rm -rf .cpcache
+
+# =================
+# Docker Commands
+# =================
+
+# Build Docker image
+docker-build:
+    docker build -t royal-game-of-ur .
+
+# Run the application in a Docker container
+docker-run:
+    docker run -it --rm royal-game-of-ur
+
+# Build and run in Docker
+docker-build-run: docker-build docker-run
+
