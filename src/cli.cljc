@@ -1,8 +1,8 @@
 (ns cli
   (:gen-class)
   (:require [config]
+            [game]
             [platform]
-            [state]
             [strategy.first-in-list]
             [strategy.minimax]
             [strategy.random]
@@ -33,27 +33,27 @@
 (defmulti handle :state)
 
 (defmethod handle :roll-dice [game]
-  (state/dice-roll game))
+  (game/roll game))
 
 (defn get-move [player possible-moves game]
   (cond
     (empty? possible-moves) nil
     (= player :A) (get-user-move possible-moves)
-    :else (state/select-move (get-in game [:strategy :name]) game)))
+    :else (game/select-move (get-in game [:strategy :name]) game)))
 
 (defmethod handle :choose-action [game]
-  (let [possible-moves (state/get-moves game)
+  (let [possible-moves (game/get-moves game)
         player (:current-player game)]
     (if-let [move (get-move player possible-moves game)]
       (do
         (when (= player :B)
           (view/show-ai-move move)
           (platform/sleep long-wait))
-        (state/choose-action game move))
+        (game/choose-action game move))
       (do
         (view/show-no-moves)
         (platform/sleep long-wait)
-        (state/choose-action game nil)))))
+        (game/choose-action game nil)))))
 
 (defmethod handle :end-game [game]
   (view/show-winner (:current-player game))
@@ -66,7 +66,7 @@
   (view/show-welcome)
   (platform/readln)
   (try
-    (loop [game (-> (state/start-game)
+    (loop [game (-> (game/start-game)
                     (assoc-in [:strategy :name] ai-strategy)
                     (assoc-in [:strategy :params :depth] ai-depth))]
       (platform/clear-console)

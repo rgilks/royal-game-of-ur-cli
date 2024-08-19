@@ -1,8 +1,8 @@
 (ns sim
   (:require #?(:clj [clojure.core.async :as async])
             [config]
+            [game]
             [platform]
-            [state]
             [strategy.first-in-list]
             [strategy.mcts]
             [strategy.minimax]
@@ -43,13 +43,13 @@
     (println "Player A win percentage:" (str rounded-percentage "%"))))
 
 (defn handle-choose-action [game strategy]
-  (if-let [move (state/select-move strategy game)]
+  (if-let [move (game/select-move strategy game)]
     (do
       (debug "Player" (:current-player game) "chose move:" (pr-str move))
-      (state/choose-action game move))
+      (game/choose-action game move))
     (do
       (debug "Player" (:current-player game) "has no valid moves")
-      (state/choose-action game nil))))
+      (game/choose-action game nil))))
 
 (defmulti handle :state)
 
@@ -58,12 +58,12 @@
   (assoc game :state :roll-dice))
 
 (defmethod handle :roll-dice [game]
-  (let [rolled-game (state/dice-roll game)]
+  (let [rolled-game (game/roll game)]
     (debug "Player" (:current-player rolled-game) "rolled" (:roll rolled-game))
     rolled-game))
 
 (defmethod handle :choose-action [game]
-  (let [possible-moves (state/get-moves game)]
+  (let [possible-moves (game/get-moves game)]
     (debug "Possible moves for" (:current-player game) ":" (pr-str possible-moves))
     (handle-choose-action game (get-in game [:strategy :name]))))
 
@@ -86,7 +86,7 @@
 
 (defn play-game
   ([]
-   (play-game (state/initialize-game)))
+   (play-game (game/init)))
   ([initial-state]
    (if (:show? @config-atom)
      (enable-print-line!)
@@ -142,7 +142,7 @@
             wins {:A 0 :B 0}]
        (if (zero? games-left)
          wins
-         (let [game (state/initialize-game)
+         (let [game (game/init)
                game-result (play-game game)
                winner (:current-player game-result)]
            (when (:show? @config-atom)

@@ -1,6 +1,6 @@
 (ns strategy.mcts
   (:require [config]
-            [state :as state]))
+            [game :as state]))
 
 (defn debug [& args]
   (binding [*out* *err*]
@@ -8,19 +8,19 @@
 
 (defn- score-player [game player]
   (+ (* 10 (get-in game [:players player :off-board]))
-     (count (state/get-piece-positions (:board game) player))))
+     (count (game/get-piece-positions (:board game) player))))
 
 (defn- get-next-state [game move]
   (debug "Getting next state for move:" move)
   (-> game
-      (state/choose-action move)
+      (game/choose-action move)
       (assoc :state :roll-dice)
       (assoc :roll nil)
       (assoc :selected-move nil)))
 
 (defn- get-legal-moves [game]
   (let [moves (if (= (:state game) :choose-action)
-                (state/get-moves game)
+                (game/get-moves game)
                 [])]
     (debug "Legal moves:" moves)
     moves))
@@ -79,7 +79,7 @@
         :end-game (do (debug "Reached end game state")
                       (if (= :A (:current-player state)) 1 0))
         :roll-dice (do (debug "Rolling dice")
-                       (recur (state/dice-roll state) (inc steps)))
+                       (recur (game/roll state) (inc steps)))
         :choose-action (let [moves (get-legal-moves state)]
                          (if (seq moves)
                            (let [chosen-move (rand-nth moves)]
@@ -122,5 +122,5 @@
       (debug "Selected move:" (:move best-child))
       (:move best-child))))
 
-(defmethod state/select-move :mcts [_ game]
-  (select-move (state/get-possible-moves game) game))
+(defmethod game/select-move :mcts [_ game]
+  (select-move (game/get-possible-moves game) game))

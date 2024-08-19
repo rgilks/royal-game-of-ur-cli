@@ -1,4 +1,4 @@
-(ns state
+(ns game
   (:require [config]
             [schema]
             [validate]))
@@ -82,7 +82,7 @@
                              (inc (apply max (map #(find-index path %) path))))))
                all-moves))))
 
-(defn game-over? [game]
+(defn over? [game]
   (let [off-board-pieces
         (get-in game [:players (:current-player game) :off-board])]
     (>= off-board-pieces 7)))
@@ -146,7 +146,7 @@
   [(assoc game :state :switch-turns) rolls])
 
 (defmethod transition :switch-turns [game rolls _inputs]
-  (if (game-over? game)
+  (if (over? game)
     [(assoc game :state :end-game) rolls]
     (let [new-player (other-player (:current-player game))]
       [(-> game
@@ -162,8 +162,8 @@
 (defn random-first-player []
   (if (zero? (rand-int 2)) :A :B))
 
-(defn initialize-game
-  ([] (initialize-game nil))
+(defn init
+  ([] (init nil))
   ([starting-player]
    {:board (vec (repeat (:size config/board) nil))
     :players {:A {:in-hand 7 :off-board 0}
@@ -185,12 +185,12 @@
 (defn start-game
   ([] (start-game nil))
   ([starting-player]
-   (first (play (initialize-game starting-player) [] {}))))
+   (first (play (init starting-player) [] {}))))
 
-(defn dice-roll [game]
+(defn roll [game]
   (if (= (:state game) :roll-dice)
-    (let [roll (reduce + (repeatedly 4 #(rand-int 2)))]
-      (first (play game [roll] {})))
+    (let [result (reduce + (repeatedly 4 #(rand-int 2)))]
+      (first (play game [result] {})))
     (throw (ex-info "Invalid game state for rolling dice" {:state (:state game)}))))
 
 (defn get-moves [game]

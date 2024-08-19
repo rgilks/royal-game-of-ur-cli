@@ -56,11 +56,11 @@ Let's break down the implementation:
 ```clojure
 (defn- score-player [game player]
   (+ (* 10 (get-in game [:players player :off-board]))
-     (count (state/get-piece-positions (:board game) player))))
+     (count (game/get-piece-positions (:board game) player))))
 
 (defn- evaluate-state [game]
   (let [current-player (:current-player game)
-        opponent (state/other-player current-player)]
+        opponent (game/other-player current-player)]
     (- (score-player game current-player)
        (score-player game opponent))))
 ```

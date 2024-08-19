@@ -1,7 +1,7 @@
 (ns sim-test
   (:require [clojure.test :refer [are deftest is testing]]
+            [game :as state]
             [sim :as sim]
-            [state :as state]
             [view :as view]))
 
 (deftest test-debug
@@ -22,9 +22,9 @@
                 :selected-move nil}
           possible-moves [{:type :move, :from 1, :to 2}]
           strategy :first-in-list]
-      (with-redefs [state/select-move (constantly (first possible-moves))
+      (with-redefs [game/select-move (constantly (first possible-moves))
                     view/show-ai-move (constantly nil)
-                    state/choose-action (fn [g m] (assoc g :selected-move m))]
+                    game/choose-action (fn [g m] (assoc g :selected-move m))]
         (is (= (assoc game :selected-move (first possible-moves))
                (sim/handle-choose-action game possible-moves strategy)))))))
 
@@ -35,7 +35,7 @@
                      :current-player :A
                      :roll 0
                      :selected-move nil}]
-      (with-redefs [state/dice-roll (fn [g] (assoc g :roll 7))]
+      (with-redefs [game/roll (fn [g] (assoc g :roll 7))]
         (are [input expected] (= expected (sim/handle input))
           (assoc base-game :state :start-game)
           (assoc base-game :state :roll-dice)
@@ -68,11 +68,11 @@
                              :selected-move nil}))))))
 #_(deftest test-play-game
     (testing "play-game function"
-      (with-redefs [state/initialize-game (constantly {:current-player :A
-                                                       :board [0 0 0 0 0 0]
-                                                       :players {:A {:position 0} :B {:position 0}}
-                                                       :roll 0
-                                                       :selected-move nil})
+      (with-redefs [game/initialize-game (constantly {:current-player :A
+                                                      :board [0 0 0 0 0 0]
+                                                      :players {:A {:position 0} :B {:position 0}}
+                                                      :roll 0
+                                                      :selected-move nil})
                     sim/play-turn (fn [game] (assoc game :game-over true))
                     sim/config-atom (atom {:show? false})]
         (is (= {:current-player :A
@@ -86,11 +86,11 @@
 
 (deftest test-run-simulation
   (testing "run-simulation function"
-    (with-redefs [state/initialize-game (constantly {:current-player :A
-                                                     :board [0 0 0 0 0 0]
-                                                     :players {:A {:position 0} :B {:position 0}}
-                                                     :roll 0
-                                                     :selected-move nil})
+    (with-redefs [game/init (constantly {:current-player :A
+                                         :board [0 0 0 0 0 0]
+                                         :players {:A {:position 0} :B {:position 0}}
+                                         :roll 0
+                                         :selected-move nil})
                   sim/play-game (constantly {:current-player :A})
                   sim/config-atom (atom {:num-games 10})]
       (is (= {:A 10, :B 0}

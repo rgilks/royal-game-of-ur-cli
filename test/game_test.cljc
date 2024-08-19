@@ -1,6 +1,6 @@
-(ns state-test
+(ns game-test
   (:require [clojure.test :refer [are deftest is testing]]
-            [state]
+            [game]
             [test-utils :refer [thrown-with-msg?]]))
 
 (def test-board
@@ -18,19 +18,19 @@
 
 (deftest test-other-player
   (testing "other-player returns the correct opponent"
-    (are [player expected] (= expected (state/other-player player))
+    (are [player expected] (= expected (game/other-player player))
       :A :B
       :B :A)))
 
 (deftest test-get-piece-positions
   (testing "get-piece-positions returns correct positions"
-    (are [player expected] (= expected (state/get-piece-positions test-board player))
+    (are [player expected] (= expected (game/get-piece-positions test-board player))
       :A [0 3 7 16 22]
       :B [2 6 9 17 23])))
 
 (deftest test-move-piece
   (testing "move-piece calculates correct moves"
-    (are [player from roll expected] (= expected (state/move-piece test-board player from roll))
+    (are [player from roll expected] (= expected (game/move-piece test-board player from roll))
       :A 3 5 [9 :B]
       :B 9 2 [11 nil]
       :A 15 4 [:off-board nil]
@@ -40,7 +40,7 @@
 
 (deftest test-update-board
   (testing "update-board correctly updates the game board"
-    (are [player from to expected] (= expected (state/update-board test-board player from to))
+    (are [player from to expected] (= expected (game/update-board test-board player from to))
       :A 3 8 [:A nil :B nil nil nil :B :A :A :B nil nil nil
               nil nil nil :A :B nil nil nil nil :A :B]
 
@@ -54,15 +54,15 @@
             {:from 7 :to :off-board :captured nil}
             {:from 16 :to 2 :captured :B}
             {:from 22 :to 2 :captured :B}]
-           (state/get-possible-moves test-game))))
+           (game/get-possible-moves test-game))))
 
   (testing "get-possible-moves with no valid moves"
     (let [no-move-state (assoc test-game :roll 0)]
-      (is (empty? (state/get-possible-moves no-move-state))))))
+      (is (empty? (game/get-possible-moves no-move-state))))))
 
 (deftest test-game-over?
   (testing "game-over? correctly identifies end game state"
-    (are [state expected] (= expected (state/game-over? state))
+    (are [state expected] (= expected (game/over? state))
       {:players {:A {:off-board 6}} :current-player :A} false
       {:players {:A {:off-board 7}} :current-player :A} true
       {:players {:B {:off-board 7}} :current-player :B} true
@@ -71,7 +71,7 @@
 (deftest test-transitions
   (testing "transitions between game states"
     (are [initial-state rolls inputs expected-state]
-         (let [[new-state _] (state/transition initial-state rolls inputs)]
+         (let [[new-state _] (game/transition initial-state rolls inputs)]
            (contains? expected-state (:state new-state)))
 
       {:state :start-game} [3] {} #{:roll-dice}
@@ -124,7 +124,7 @@
 
 (deftest test-initialize-game
   (testing "initialize-game creates correct initial state"
-    (let [initial-state (state/initialize-game :A)]  ; Specify :A as the starting player for deterministic tests
+    (let [initial-state (game/init :A)]  ; Specify :A as the starting player for deterministic tests
       (is (= 24 (count (:board initial-state))))
       (is (every? nil? (:board initial-state)))
       (is (= 7 (get-in initial-state [:players :A :in-hand])))
@@ -138,7 +138,7 @@
 
 (deftest test-start-game
   (testing "start-game initializes game correctly"
-    (let [game (state/start-game)]
+    (let [game (game/start-game)]
       (is (= :roll-dice (:state game)))
       (is (contains? #{:A :B} (:current-player game)))
       (is (every? nil? (:board game)))
@@ -147,7 +147,7 @@
 
 (deftest test-start-game-with-specified-player
   (testing "start-game initializes game correctly with specified player"
-    (let [game (state/start-game :A)]
+    (let [game (game/start-game :A)]
       (is (= :roll-dice (:state game)))
       (is (= :A (:current-player game)))
       (is (every? nil? (:board game)))
@@ -157,19 +157,19 @@
 (deftest test-dice-roll
   (testing "dice-roll advances game state correctly"
     (let [initial-state (assoc test-game :state :roll-dice :roll nil)
-          rolled-state (state/dice-roll initial-state)]
+          rolled-state (game/roll initial-state)]
       (is (= :choose-action (:state rolled-state)))
       (is (<= 0 (:roll rolled-state) 4))))
 
   (testing "dice-roll throws on invalid state"
     (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
                           #"Invalid game state for rolling dice"
-                          (state/dice-roll test-game)))))
+                          (game/roll test-game)))))
 
 (deftest test-choose-action
   (testing "choose-action advances game state correctly"
     (let [move {:from 0 :to 2 :captured :B}
-          new-state (state/choose-action test-game move)]
+          new-state (game/choose-action test-game move)]
       (is (contains? #{:roll-dice :move-piece :enter-piece :switch-turns} (:state new-state))
           (str "Expected :roll-dice, :move-piece, :enter-piece, or :switch-turns, but got " (:state new-state)))
       (is (nil? (:selected-move new-state))

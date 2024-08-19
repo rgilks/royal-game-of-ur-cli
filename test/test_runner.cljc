@@ -4,8 +4,8 @@
             [cljs.test :as test :refer-macros [run-tests] :refer [report]]
             [clojure.data :as data]
             [clojure.string :as str]
+            [game-test]
             [sim-test]
-            [state-test]
             [util :refer [enable-print-line! disable-print-line!]]
             [util-test]
             [validate-test]
@@ -75,7 +75,7 @@
    'sim-test
    'view-test
    'validate-test
-   'state-test)
+   'game-test)
   ;; Enable logging after tests if needed
   (enable-print-line!))
 
