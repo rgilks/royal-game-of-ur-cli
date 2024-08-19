@@ -2,23 +2,44 @@
   (:require [clojure.math :as math]
             [config]
             [game :as game]
-            [platform]))
+            [platform])
+  #?(:clj (:import [java.util.concurrent Executors Future])))
 
-(defrecord Node [game move parent children visits value])
+(defrecord Node [game move parent children visits value rave-value])
+
+(def transposition-table (atom {}))
+
+(defn- get-cached-evaluation [game]
+  (get @transposition-table (hash game)))
+
+(defn- cache-evaluation [game value]
+  (swap! transposition-table assoc (hash game) value))
 
 (defn- score-player [game player]
-  (+ (* 10 (get-in game [:players player :off-board]))
-     (count (game/get-piece-positions (:board game) player))))
+  (let [off-board (get-in game [:players player :off-board])
+        on-board-pieces (game/get-piece-positions (:board game) player)
+        on-board-count (count on-board-pieces)
+        rosette-count (count (filter #(contains? (get-in config/board [:rosettes]) %) on-board-pieces))
+        last-square (last (get-in config/board [:paths player]))
+        pieces-ready-to-exit (count (filter #(= % last-square) on-board-pieces))]
+    (+ (* 100 off-board)
+       (* 10 on-board-count)
+       (* 5 rosette-count)
+       (* 50 pieces-ready-to-exit))))
 
 (defn- evaluate-state [game]
-  (let [current-player (:current-player game)
-        opponent (game/other-player current-player)]
-    (- (score-player game current-player)
-       (score-player game opponent))))
+  (if-let [cached-value (get-cached-evaluation game)]
+    cached-value
+    (let [current-player (:current-player game)
+          opponent (game/other-player current-player)
+          value (- (score-player game current-player)
+                   (score-player game opponent))]
+      (cache-evaluation game value)
+      value)))
 
 (defn- get-next-state [game move]
   (if (= :end-game (:state game))
-    game  ; If the game has ended, don't try to make more moves
+    game
     (-> game
         (game/choose-action move)
         (as-> g
@@ -29,7 +50,7 @@
 
 (defn- expand [node]
   (if (= :end-game (:state (:game node)))
-    node  ; Don't expand end game states
+    node
     (let [moves (game/get-possible-moves (:game node))
           new-children (mapv (fn [move]
                                (->Node (get-next-state (:game node) move)
@@ -37,49 +58,66 @@
                                        node
                                        []
                                        0
+                                       0.0
                                        0.0))
                              moves)]
       (assoc node :children new-children))))
 
-(defn- select-best-child [node exploration-param]
+(defn- select-best-child [node exploration-param rave-param]
   (when (and (seq (:children node)) (not= :end-game (:state (:game node))))
     (let [parent-visits (max 1 (:visits node))]
       (apply max-key
              (fn [child]
                (if (zero? (:visits child))
                  platform/infinity
-                 (+ (/ (:value child) (:visits child))
-                    (* exploration-param
-                       (math/sqrt (/ (math/log parent-visits)
-                                     (:visits child)))))))
+                 (let [uct-score (+ (/ (:value child) (:visits child))
+                                    (* exploration-param
+                                       (math/sqrt (/ (math/log parent-visits)
+                                                     (:visits child)))))
+                       rave-score (/ (:rave-value child) (max 1 (:visits child)))
+                       beta (/ (:visits child) (+ (:visits child) (* rave-param (:visits node))))
+                       move-score (if (= (:to (:move child)) :off-board) 1000 0)]
+                   (+ (* (- 1 beta) uct-score)
+                      (* beta rave-score)
+                      move-score))))
              (:children node)))))
 
-(defn- backpropagate [node outcome]
-  (loop [current node]
+(defn- backpropagate [node outcome moves]
+  (loop [current node
+         move-index 0]
     (when current
       (let [updated (-> current
                         (update :visits inc)
                         (update :value + outcome))]
+        (when (< move-index (count moves))
+          (let [move (nth moves move-index)]
+            (if-let [child (first (filter #(= (:move %) move) (:children current)))]
+              (-> child
+                  (update :rave-value + outcome)
+                  (update :visits inc)))))
         (if-let [parent (:parent current)]
           (recur (update parent :children
                          (fn [children]
-                           (mapv #(if (= (:move %) (:move current)) updated %) children))))
+                           (mapv #(if (= (:move %) (:move current)) updated %) children)))
+                 (inc move-index))
           updated)))))
 
 (defn- simulate [game]
   (loop [state game
-         steps 0]
+         steps 0
+         moves []]
     (if (or (> steps 100) (= :end-game (:state state)))
-      (evaluate-state state)
+      [(evaluate-state state) moves]
       (case (:state state)
-        :roll-dice (recur (game/roll state) (inc steps))
-        :choose-action (let [moves (game/get-possible-moves state)]
-                         (if (seq moves)
-                           (recur (get-next-state state (rand-nth moves)) (inc steps))
-                           (recur (assoc state :state :roll-dice :selected-move nil) (inc steps))))
-        (recur (assoc state :state :roll-dice :selected-move nil) (inc steps))))))
+        :roll-dice (recur (game/roll state) (inc steps) moves)
+        :choose-action (let [possible-moves (game/get-possible-moves state)]
+                         (if (seq possible-moves)
+                           (let [move (rand-nth possible-moves)]
+                             (recur (get-next-state state move) (inc steps) (conj moves move)))
+                           (recur (assoc state :state :roll-dice :selected-move nil) (inc steps) moves)))
+        (recur (assoc state :state :roll-dice :selected-move nil) (inc steps) moves)))))
 
-(defn- tree-policy [node exploration-param]
+(defn- tree-policy [node exploration-param rave-param]
   (loop [current node]
     (if (= :end-game (:state (:game current)))
       current
@@ -88,30 +126,64 @@
           (if (seq (:children expanded))
             (rand-nth (:children expanded))
             expanded))
-        (if-let [best-child (select-best-child current exploration-param)]
+        (if-let [best-child (select-best-child current exploration-param rave-param)]
           (if (zero? (:visits best-child))
             best-child
             (recur best-child))
           current)))))
 
-(defn- mcts-search [root iterations exploration-param]
-  (loop [current-root root
-         iter iterations]
-    (if (zero? iter)
-      current-root
-      (let [node (tree-policy current-root exploration-param)
-            simulation-result (simulate (:game node))
-            updated-root (backpropagate node simulation-result)]
-        (recur updated-root (dec iter))))))
+#?(:clj
+   (defn- parallel-mcts-search [root iterations exploration-param rave-param]
+     (let [num-threads (.. Runtime getRuntime availableProcessors)
+           iterations-per-thread (quot iterations num-threads)
+           executor (Executors/newFixedThreadPool num-threads)
+           tasks (repeatedly num-threads
+                             #(fn []
+                                (loop [current-root root
+                                       iter iterations-per-thread]
+                                  (if (zero? iter)
+                                    current-root
+                                    (let [node (tree-policy current-root exploration-param rave-param)
+                                          [simulation-result moves] (simulate (:game node))
+                                          updated-root (backpropagate node simulation-result moves)]
+                                      (recur updated-root (dec iter)))))))]
+       (try
+         (let [futures (.invokeAll executor tasks)
+               results (map #(.get ^Future %) futures)]
+           (reduce (fn [acc result]
+                     (update acc :children
+                             (fn [children]
+                               (mapv (fn [child result-child]
+                                       (assoc child
+                                              :visits (+ (:visits child) (:visits result-child))
+                                              :value (+ (:value child) (:value result-child))
+                                              :rave-value (+ (:rave-value child) (:rave-value result-child))))
+                                     children (:children result)))))
+                   root
+                   results))
+         (finally
+           (.shutdown executor)))))
+
+   :cljs
+   (defn- parallel-mcts-search [root iterations exploration-param rave-param]
+     (loop [current-root root
+            iter iterations]
+       (if (zero? iter)
+         current-root
+         (let [node (tree-policy current-root exploration-param rave-param)
+               [simulation-result moves] (simulate (:game node))
+               updated-root (backpropagate node simulation-result moves)]
+           (recur updated-root (dec iter)))))))
 
 (defn select-move [game]
   (let [possible-moves (game/get-possible-moves game)]
     (when (seq possible-moves)
-      (let [iterations (get-in game [:strategy :params :iterations] 1000)
+      (let [iterations (get-in game [:strategy :params :iterations] 10000)
             exploration-param (get-in game [:strategy :params :exploration] 1.41)
-            root (->Node game nil nil [] 0 0.0)
+            rave-param (get-in game [:strategy :params :rave] 300)
+            root (->Node game nil nil [] 0 0.0 0.0)
             expanded-root (expand root)
-            best-node (mcts-search expanded-root iterations exploration-param)]
+            best-node (parallel-mcts-search expanded-root iterations exploration-param rave-param)]
         (if-let [best-child (when (seq (:children best-node))
                               (apply max-key :visits (:children best-node)))]
           (:move best-child)

@@ -1,73 +1,112 @@
 # AI Strategies in the Royal Game of Ur
 
-This document provides an overview of the AI strategies implemented in our Royal Game of Ur project.
+## Introduction
 
-## 1. Minimax Algorithm
+The Royal Game of Ur implementation features several AI strategies, each with its own strengths and characteristics. This document provides an overview of these strategies, their basic principles, and when they might be most effective.
 
-The Minimax algorithm is a decision-making algorithm used in two-player turn-based games. It works by simulating all possible moves and their outcomes, assuming that both players play optimally.
+## Available Strategies
 
-### How it works:
+### 1. Minimax
 
-1. The algorithm explores the game tree to a certain depth.
-2. It alternates between maximizing the AI's score and minimizing the opponent's score.
-3. At the maximum depth, it evaluates the game state using a heuristic function.
-4. The best move is chosen based on these evaluations.
+**Description**: Minimax is a decision-making algorithm used in two-player turn-based games. It works by simulating all possible moves to a certain depth, alternating between maximizing the AI's score and minimizing the opponent's score.
 
-Our implementation includes alpha-beta pruning for improved efficiency.
+**Key Features**:
+- Looks ahead several moves
+- Considers both its own opportunities and the opponent's potential responses
+- Uses alpha-beta pruning for improved efficiency
 
-For more details, see our [Minimax Algorithm Documentation](./minimax.md).
+**Best Used When**: The game state is not too complex, and you want an AI that can plan ahead and play defensively.
 
-## 2. Monte Carlo Tree Search (MCTS)
+**Customizable Parameters**:
+- `depth`: The number of moves to look ahead. Higher values result in stronger play but require more computation time.
 
-Monte Carlo Tree Search is a probabilistic search algorithm that balances exploration and exploitation to find optimal moves.
+For more details, see the [Minimax Algorithm Documentation](./minimax.md).
 
-### How it works:
+### 2. Monte Carlo Tree Search (MCTS)
 
-1. Selection: Starting from the root, select successive child nodes down to a leaf node.
-2. Expansion: If the leaf node is not a terminal state, create one or more child nodes.
-3. Simulation: Perform a random playout from the new node(s).
-4. Backpropagation: Use the result of the playout to update information in the nodes on the path from the new node(s) to the root.
+**Description**: MCTS is a probabilistic search algorithm that balances exploration and exploitation to find optimal moves. It builds a search tree gradually by simulating random games from the current position.
 
-Our implementation uses the UCT (Upper Confidence Bound for Trees) formula for node selection.
+**Key Features**:
+- Adapts well to different game situations
+- Does not require an extensive evaluation function
+- Can handle games with high branching factors
+- Parallelizes well for improved performance
 
-For more details, see our [MCTS Documentation](./mcts.md).
+**Best Used When**: The game has a large number of possible moves, or when you want an AI that can adapt to unusual game states.
 
-## 3. Random Strategy
+**Customizable Parameters**:
+- `iterations`: The number of simulations to run. More iterations generally lead to better performance but require more computation time.
+- `exploration`: Controls the balance between exploration and exploitation in the search.
+- `rave`: Affects how quickly the algorithm shifts from using RAVE (Rapid Action Value Estimation) values to using UCT values.
 
-The Random strategy simply chooses a move at random from all available legal moves. While not a strong player, it serves as a baseline for comparing other strategies and can sometimes produce unexpected results.
+For more details, see the [Monte Carlo Tree Search (MCTS) Documentation](./mcts.md).
 
-## 4. First-in-list Strategy
+### 3. Random
 
-This strategy always chooses the first available move from the list of legal moves. It's a deterministic strategy that doesn't consider the game state beyond the immediate legal moves.
+**Description**: The Random strategy simply chooses a move at random from all available legal moves.
 
-## 5. Strategic Strategy
+**Key Features**:
+- Very fast
+- Unpredictable
+- Serves as a baseline for comparing other strategies
 
-The Strategic strategy uses a simple heuristic to prioritize moves. The priorities are:
+**Best Used When**: You want a quick game or are testing the basic functionality of the game engine.
 
+### 4. First-in-list
+
+**Description**: This strategy always chooses the first available move from the list of legal moves.
+
+**Key Features**:
+- Deterministic (always makes the same choice in the same situation)
+- Very fast
+- Serves as a simple baseline strategy
+
+**Best Used When**: You want a consistent, predictable opponent for testing or learning the game basics.
+
+### 5. Strategic
+
+**Description**: The Strategic strategy uses a simple heuristic to prioritize moves based on basic game principles.
+
+**Key Features**:
+- Faster than Minimax or MCTS
+- Makes "sensible" moves without deep calculation
+- Prioritizes key strategic elements of the game
+
+**Priorities (in order)**:
 1. Move a piece off the board if possible
 2. Move to the last square on the path
 3. Capture an opponent's piece
 4. Move to a rosette
 5. Move the piece furthest back
 
-This strategy provides a balance between simplicity and some basic game understanding.
+**Best Used When**: You want an AI that plays a decent game without the computational overhead of more complex strategies.
 
 ## Comparing Strategies
 
-We use our simulation mode to compare the performance of different strategies. You can run your own comparisons using the `just sim` command. For example:
+The effectiveness of each strategy can vary depending on the specific game situation and the parameters used. In general:
+
+- Minimax and MCTS tend to be the strongest strategies, especially with higher depth/iteration settings.
+- The Strategic strategy provides a good balance of reasonable play and quick decision-making.
+- Random and First-in-list strategies are primarily useful for testing and providing a baseline for comparison.
+
+You can use the simulation mode to compare the performance of different strategies. For example:
 
 ```
 just sim 1000 minimax mcts true false 0
 ```
 
-This will run 1000 games pitting the Minimax strategy against the MCTS strategy, with debug output enabled.
+This will run 1000 games pitting the Minimax strategy against the MCTS strategy.
 
 ## Implementing New Strategies
 
-To implement a new strategy:
+If you're interested in implementing a new strategy:
 
 1. Create a new file in the `src/strategy` directory (e.g., `my_strategy.cljc`).
 2. Implement the `select-move` multimethod for your strategy.
 3. Add your strategy to the options in the simulation configuration.
 
-We welcome contributions of new strategies!
+Remember to consider both the effectiveness and the computational efficiency of your strategy.
+
+## Conclusion
+
+The variety of AI strategies available in the Royal Game of Ur provides a range of opponents to play against and learn from. Whether you're looking for a quick game, a strong challenge, or something in between, there's a strategy to suit your needs. Experiment with different strategies and parameters to find the most enjoyable and educational experience for you!

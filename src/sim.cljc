@@ -14,17 +14,22 @@
 (def config-atom
   (atom {:debug? false
          :show? false
-         :delay 20
-         :num-games 2
+         :delay 0
+         :num-games 10
          :parallel 8
         ;;  :strategies
         ;;  {:A {:name :minimax :params {:depth 10}}
         ;;   :B {:name :minimax :params {:depth 10}}}}))
          :strategies {:A {:name :mcts
-                          :params {:iterations 5000
-                                   :exploration 1.5}}
-                      :B {:name :minimax
-                          :params {:depth 10}}}}))
+                          :params {:iterations 100
+                                   :exploration 1.41}}
+                      :B {:name :first-in-list}
+                      ;; :B {:name :mcts
+                      ;;     :params {:iterations 10
+                      ;;              :exploration 1.41}}
+                      ;; :B {:name :minimax
+                      ;;     :params {:depth 10}}
+                      }}))
 
 (defn debug [& args]
   (when (:debug? @config-atom)

@@ -21,13 +21,21 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 
 This project implements several AI strategies for playing the Royal Game of Ur:
 
-1. **Minimax**: A powerful algorithm that looks ahead several moves, considering both its own opportunities and the opponent's potential responses. It's currently the best-performing strategy in our simulations.
+1. **Minimax**: A powerful algorithm that looks ahead several moves, considering both its own opportunities and the opponent's potential responses.
 2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves.
 3. **Random**: Chooses moves randomly.
 4. **First-in-list**: Always chooses the first available move.
 5. **Strategic**: Uses a simple heuristic to prioritize moves.
 
-You can find detailed explanations of how these algorithms work in our [AI Strategy Documentation](./docs/ai_strategies.md). For a deep dive into the Minimax algorithm, see our [Minimax Algorithm Documentation](./docs/minimax.md).
+For detailed explanations of how these algorithms work, please refer to our documentation:
+
+- [AI Strategy Overview](./docs/strategies.md)
+- [Minimax Algorithm](./docs/minimax.md)
+- [Monte Carlo Tree Search (MCTS)](./docs/mcts.md)
+
+## Game Rules
+
+For a comprehensive explanation of the game rules, please see our [Game Rules Documentation](./docs/rules.md).
 
 ## Technologies Used
 
