@@ -72,7 +72,7 @@ state-diagram:
 
 # Concatenate all relevant files (for an LLM to read)
 concat:
-    ./scripts/concat_files.sh . justfile .cljc .cljs .clj .md .dot .edn .json -- reflect-config.json resource-config.json build.clj .cljfmt.edn
+    ./scripts/concat_files.sh . justfile .cljc .cljs .clj .md .dot .edn .json -- node_modules/ .clj-kondo/ reflect-config.json resource-config.json build.clj .cljfmt.edn
 
 # Concatenate just the program files (for an LLM to read)
 cc:
