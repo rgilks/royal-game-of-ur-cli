@@ -1,35 +1,29 @@
 (ns strategy.mcts
-  (:require [config]
-            [game :as state]))
+  (:require [clojure.math :as math]
+            [config]
+            [game :as game]
+            [platform]))
 
-(defn debug [& args]
-  (binding [*out* *err*]
-    (apply println args)))
+(defrecord Node [game move parent children visits value])
 
 (defn- score-player [game player]
   (+ (* 10 (get-in game [:players player :off-board]))
      (count (game/get-piece-positions (:board game) player))))
 
+(defn- evaluate-state [game]
+  (let [current-player (:current-player game)
+        opponent (game/other-player current-player)]
+    (- (score-player game current-player)
+       (score-player game opponent))))
+
 (defn- get-next-state [game move]
-  (debug "Getting next state for move:" move)
   (-> game
       (game/choose-action move)
-      (assoc :state :roll-dice)
-      (assoc :roll nil)
+      (game/roll)
       (assoc :selected-move nil)))
 
-(defn- get-legal-moves [game]
-  (let [moves (if (= (:state game) :choose-action)
-                (game/get-moves game)
-                [])]
-    (debug "Legal moves:" moves)
-    moves))
-
-(defrecord Node [game move parent children visits value])
-
-(defn- expand [node]
-  (debug "Expanding node")
-  (let [moves (get-legal-moves (:game node))
+(defn expand [node]
+  (let [moves (game/get-possible-moves (:game node))
         new-children (mapv (fn [move]
                              (->Node (get-next-state (:game node) move)
                                      move
@@ -38,24 +32,21 @@
                                      0
                                      0.0))
                            moves)]
-    (debug "Created" (count new-children) "child nodes")
     (assoc node :children new-children)))
 
 (defn- select-best-child [node exploration-param]
-  (debug "Selecting best child with exploration param:" exploration-param)
-  (let [parent-visits (max 1 (:visits node))
-        best-child (apply max-key
-                          (fn [child]
-                            (+ (/ (:value child) (max 1 (:visits child)))
-                               (* exploration-param
-                                  (Math/sqrt (/ (Math/log parent-visits)
-                                                (max 1 (:visits child)))))))
-                          (:children node))]
-    (debug "Selected child with move:" (:move best-child))
-    best-child))
+  (let [parent-visits (max 1 (:visits node))]
+    (apply max-key
+           (fn [child]
+             (if (zero? (:visits child))
+               platform/infinity
+               (+ (/ (:value child) (:visits child))
+                  (* exploration-param
+                     (math/sqrt (/ (math/log parent-visits)
+                                   (:visits child)))))))
+           (:children node))))
 
 (defn- backpropagate [node outcome]
-  (debug "Backpropagating outcome:" outcome)
   (loop [current node]
     (when current
       (let [updated (-> current
@@ -69,58 +60,50 @@
           updated)))))
 
 (defn- simulate [game]
-  (debug "Starting simulation")
   (loop [state game
          steps 0]
-    (if (> steps 1000)  ; Prevent infinite loops
-      (do (debug "Simulation exceeded 1000 steps, terminating")
-          0)
+    (if (or (> steps 100) (= :end-game (:state state)))
+      (if (= :A (:current-player state)) 1 0)
       (case (:state state)
-        :end-game (do (debug "Reached end game state")
-                      (if (= :A (:current-player state)) 1 0))
-        :roll-dice (do (debug "Rolling dice")
-                       (recur (game/roll state) (inc steps)))
-        :choose-action (let [moves (get-legal-moves state)]
+        :roll-dice (recur (game/roll state) (inc steps))
+        :choose-action (let [moves (game/get-possible-moves state)]
                          (if (seq moves)
-                           (let [chosen-move (rand-nth moves)]
-                             (debug "Choosing random move:" chosen-move)
-                             (recur (get-next-state state chosen-move) (inc steps)))
-                           (do (debug "No moves available, switching to roll dice")
-                               (recur (assoc state :state :roll-dice :selected-move nil) (inc steps)))))
-        (do (debug "Unknown state, switching to roll dice")
-            (recur (assoc state :state :roll-dice :selected-move nil) (inc steps)))))))
+                           (recur (get-next-state state (rand-nth moves)) (inc steps))
+                           (recur (assoc state :state :roll-dice :selected-move nil) (inc steps))))
+        (recur (assoc state :state :roll-dice :selected-move nil) (inc steps))))))
+
+(defn- tree-policy [node exploration-param]
+  (loop [current node]
+    (if (empty? (:children current))
+      (let [expanded (expand current)]
+        (if (seq (:children expanded))
+          (rand-nth (:children expanded))
+          current))
+      (let [best-child (select-best-child current exploration-param)]
+        (if (zero? (:visits best-child))
+          best-child
+          (recur best-child))))))
 
 (defn- mcts-search [root iterations exploration-param]
-  (debug "Starting MCTS search with" iterations "iterations")
   (loop [current-root root
          iter iterations]
     (if (zero? iter)
-      (do (debug "MCTS search completed")
-          current-root)
-      (let [node (loop [node current-root]
-                   (if (seq (:children node))
-                     (if (every? #(pos? (:visits %)) (:children node))
-                       (recur (select-best-child node exploration-param))
-                       node)
-                     node))
-            expanded-node (if (zero? (:visits node)) node (expand node))
-            simulation-result (simulate (:game expanded-node))
-            updated-root (backpropagate expanded-node simulation-result)]
-        (when (zero? (mod iter 100))
-          (debug iter "iterations remaining"))
+      current-root
+      (let [node (tree-policy current-root exploration-param)
+            simulation-result (simulate (:game node))
+            updated-root (backpropagate node simulation-result)]
         (recur updated-root (dec iter))))))
 
-(defn select-move [possible-moves game]
-  (debug "Selecting move from" (count possible-moves) "possible moves")
-  (when (seq possible-moves)
-    (let [iterations (get-in game [:strategy :params :iterations] 1000)
-          exploration-param (get-in game [:strategy :params :exploration] 1.41)
-          root (->Node (assoc game :selected-move nil) nil nil [] 0 0.0)
-          expanded-root (expand root)
-          best-node (mcts-search expanded-root iterations exploration-param)
-          best-child (apply max-key :visits (:children best-node))]
-      (debug "Selected move:" (:move best-child))
-      (:move best-child))))
+(defn select-move [game]
+  (let [possible-moves (game/get-possible-moves game)]
+    (when (seq possible-moves)
+      (let [iterations (get-in game [:strategy :params :iterations] 1000)
+            exploration-param (get-in game [:strategy :params :exploration] 1.41)
+            root (->Node game nil nil [] 0 0.0)
+            expanded-root (expand root)
+            best-node (mcts-search expanded-root iterations exploration-param)
+            best-child (apply max-key :visits (:children best-node))]
+        (:move best-child)))))
 
 (defmethod game/select-move :mcts [_ game]
-  (select-move (game/get-possible-moves game) game))
+  (select-move game))

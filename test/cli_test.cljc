@@ -100,7 +100,7 @@
                   platform/sleep (constantly nil)
                   cli/handle (fn [game] (throw (ex-info "Game over" {:reason :expected})))
                   util/show-cursor (constantly nil)]
-      (is (nil? (cli/play-game)))))
+      (is (nil? (cli/play-game nil nil)))))
 
   (testing "Play game with unexpected error"
     (with-redefs [platform/clear-console (constantly nil)
@@ -113,7 +113,7 @@
                   cli/handle (fn [game] (throw (ex-info "Unexpected error" {:reason :unexpected})))
                   util/show-cursor (constantly nil)]
       (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
-                            #"Unexpected error" (cli/play-game))))))
+                            #"Unexpected error" (cli/play-game nil nil))))))
 
 (deftest test-main-function
   (testing "Main function execution"

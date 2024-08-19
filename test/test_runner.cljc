@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [game-test]
             [sim-test]
+            [strategy.mcts-test]
             [strategy.minimax-test]
             [util :refer [enable-print-line! disable-print-line!]]
             [util-test]
@@ -77,6 +78,7 @@
    'view-test
    'validate-test
    'strategy.minimax-test
+   'strategy.mcts-test
    'game-test)
   ;; Enable logging after tests if needed
   (enable-print-line!))

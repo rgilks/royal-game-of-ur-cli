@@ -26,7 +26,7 @@
                     view/show-ai-move (constantly nil)
                     game/choose-action (fn [g m] (assoc g :selected-move m))]
         (is (= (assoc game :selected-move (first possible-moves))
-               (sim/handle-choose-action game possible-moves strategy)))))))
+               (sim/handle-choose-action game strategy)))))))
 
 (deftest test-handle-multimethod
   (testing "handle multimethod for different states"

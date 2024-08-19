@@ -19,16 +19,15 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 
 ## AI Strategies
 
-This project implements several AI strategies for playing the Royal Game of Ur. Currently, the most effective strategy is the **Minimax algorithm**. You can find a detailed explanation of how the Minimax algorithm works in our [Minimax Algorithm Documentation](./docs/minimax.md).
+This project implements several AI strategies for playing the Royal Game of Ur:
 
-The Minimax algorithm provides a strong AI opponent by looking ahead several moves and choosing the best possible move, considering both its own opportunities and the opponent's potential responses. It's currently the best-performing strategy in our simulations.
+1. **Minimax**: A powerful algorithm that looks ahead several moves, considering both its own opportunities and the opponent's potential responses. It's currently the best-performing strategy in our simulations.
+2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves.
+3. **Random**: Chooses moves randomly.
+4. **First-in-list**: Always chooses the first available move.
+5. **Strategic**: Uses a simple heuristic to prioritize moves.
 
-Other implemented strategies include:
-- Random: Chooses moves randomly
-- First-in-list: Always chooses the first available move
-- Strategic: Uses a simple heuristic to prioritize moves
-
-You can experiment with different strategies and depths for the Minimax algorithm using the command-line interface or the simulation mode.
+You can find detailed explanations of how these algorithms work in our [AI Strategy Documentation](./docs/ai_strategies.md). For a deep dive into the Minimax algorithm, see our [Minimax Algorithm Documentation](./docs/minimax.md).
 
 ## Technologies Used
 
@@ -141,36 +140,22 @@ just sim [num_games] [strategy_a] [strategy_b] [debug] [show] [delay]
 
 For example:
 ```
-just sim 1000 strategic random true false 0
+just sim 1000 minimax random true false 0
 ```
 
 ## Game Rules
 
-1. The game is played on a board with 20 squares arranged in three rows.
-2. Each player has 7 pieces that they need to move from their starting position, across the board, and off the other side.
-3. Players roll four tetrahedral dice to determine their move (simulated in this digital version).
-4. Players can choose to either bring a new piece onto the board or move an existing piece.
-5. If a player lands on an opponent's piece, that piece is captured and must start over.
-6. Landing on a rosette square grants an extra turn.
-7. Pieces must leave the board on an exact roll.
-8. The first player to move all seven pieces off the board wins.
-
-### Board Layout
-
-The positions on the board are referenced in the program as shown below. The stars show the rosette squares:
-
-![Royal Game of Ur Board](./docs/board.png)
-
-### State Machine
-The game is managed by a state machine that transitions between different states based on the player's actions and the game rules. The state machine diagram is shown below:
-
-![Royal Game of Ur State Machine](./docs/rgou-fsm.png)
+For detailed game rules, please refer to our [Game Rules Documentation](./docs/game_rules.md).
 
 ## Project Structure
 
 - `src/`: Source code files
 - `test/`: Test files
-- `docs/`: Documentation files, including game board and state machine diagrams
+- `docs/`: Documentation files, including:
+  - `ai_strategies.md`: Detailed explanation of AI strategies
+  - `game_rules.md`: Comprehensive game rules
+  - `minimax.md`: In-depth look at the Minimax algorithm
+  - Game board and state machine diagrams
 - `scripts/`: Utility scripts for development
 - `justfile`: Command runner file with various development tasks
 - `.tool-versions`: Specifies the versions of tools used in the project
@@ -215,10 +200,7 @@ If problems persist, please open an issue on the GitHub repository.
 
 ## Contributing
 
-This just a personal project for learning and fun, if you want to submit a pull
-request maybe I'll look at it someday :-)
-
-Feel free to fork the repository or steal any ideas from it.
+This is just a personal project for learning and fun. If you want to submit a pull request, I'll consider looking at it someday. Feel free to fork the repository or use any ideas from it in your own projects.
 
 ## License
 
