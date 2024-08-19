@@ -98,12 +98,17 @@
                 ["Press Enter to begin!"]]
                @calls))))))
 
-(deftest test-simple-messages
-  (testing "simple message functions"
+(deftest test-show-no-moves
+  (testing "show-no-moves function"
     (with-redefs [util/show (fn [& args] args)]
-      (are [func expected] (= expected (func))
-        view/show-no-moves ["  No moves"]
-        view/show-goodbye ["Thanks for playing! Goodbye.\n"]))))
+      (is (= ["  No moves"]
+             (view/show-no-moves))))))
+
+(deftest test-show-goodbye
+  (testing "show-goodbye function"
+    (with-redefs [util/show (fn [& args] args)]
+      (is (= ["Thanks for playing! Goodbye.\n"]
+             (view/show-goodbye))))))
 
 (deftest test-show-invalid-choice
   (testing "show-invalid-choice function"

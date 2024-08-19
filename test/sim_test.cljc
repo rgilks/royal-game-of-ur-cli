@@ -4,7 +4,7 @@
             [sim :as sim]
             [view :as view]))
 
-(deftest test-debug
+(deftest test-debug-function
   (testing "debug function"
     (with-redefs [sim/config-atom (atom {:debug? true})]
       (is (= "Debug message\n"
@@ -66,23 +66,29 @@
                              :current-player :A
                              :roll 0
                              :selected-move nil}))))))
-#_(deftest test-play-game
-    (testing "play-game function"
-      (with-redefs [game/initialize-game (constantly {:current-player :A
-                                                      :board [0 0 0 0 0 0]
-                                                      :players {:A {:position 0} :B {:position 0}}
-                                                      :roll 0
-                                                      :selected-move nil})
-                    sim/play-turn (fn [game] (assoc game :game-over true))
-                    sim/config-atom (atom {:show? false})]
-        (is (= {:current-player :A
-                :board [0 0 0 0 0 0]
-                :players {:A {:position 0} :B {:position 0}}
-                :roll 0
-                :selected-move nil
-                :game-over true
-                :strategy :strategy-a}
-               (sim/play-game))))))
+
+(deftest test-play-game
+  (testing "play-game function"
+    (with-redefs [game/init (constantly {:current-player :A
+                                         :board (vec (repeat 24 nil))
+                                         :players {:A {:in-hand 7 :off-board 0}
+                                                   :B {:in-hand 7 :off-board 0}}
+                                         :roll nil
+                                         :state :start-game
+                                         :selected-move nil})
+                  sim/play-turn (fn [game] (assoc game :game-over true))
+                  sim/config-atom (atom {:show? false
+                                         :strategies {:A {:name :minimax :params {:depth 3}}}})]
+      (is (= {:current-player :A
+              :board (vec (repeat 24 nil))
+              :players {:A {:in-hand 7 :off-board 0}
+                        :B {:in-hand 7 :off-board 0}}
+              :roll nil
+              :state :start-game
+              :selected-move nil
+              :game-over true
+              :strategy {:name :minimax :params {:depth 3}}}
+             (sim/play-game))))))
 
 (deftest test-run-simulation
   (testing "run-simulation function"

@@ -15,16 +15,17 @@
   (atom {:debug? false
          :show? false
          :delay 20
-         :num-games 4
+         :num-games 20
          :parallel 8
          :strategies
          {:A {:name :minimax :params {:depth 10}}
           :B {:name :minimax :params {:depth 10}}}}))
-        ;;  :strategies {:A {:name :mcts
-        ;;                   :params {:iterations 5000
-        ;;                            :exploration 1.5}}
-        ;;               :B {:name :minimax
-        ;;                   :params {:depth 10}}}}))
+        ;; Example of using MCTS strategy:
+        ;; :strategies {:A {:name :mcts
+        ;;                  :params {:iterations 5000
+        ;;                           :exploration 1.5}}
+        ;;              :B {:name :minimax
+        ;;                  :params {:depth 10}}}
 
 (defn debug [& args]
   (when (:debug? @config-atom)

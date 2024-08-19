@@ -115,7 +115,7 @@
       (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
                             #"Unexpected error" (cli/play-game))))))
 
-(deftest test-main
+(deftest test-main-function
   (testing "Main function execution"
     (with-redefs [cli/play-game (constantly nil)
                   view/show-goodbye (constantly nil)]

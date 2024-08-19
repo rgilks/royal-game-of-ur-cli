@@ -154,14 +154,14 @@
       (is (= 7 (get-in game [:players :A :in-hand])))
       (is (= 7 (get-in game [:players :B :in-hand]))))))
 
-(deftest test-dice-roll
-  (testing "dice-roll advances game state correctly"
+(deftest test-roll
+  (testing "roll advances game state correctly"
     (let [initial-state (assoc test-game :state :roll-dice :roll nil)
           rolled-state (game/roll initial-state)]
       (is (= :choose-action (:state rolled-state)))
       (is (<= 0 (:roll rolled-state) 4))))
 
-  (testing "dice-roll throws on invalid state"
+  (testing "roll throws on invalid state"
     (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
                           #"Invalid game state for rolling dice"
                           (game/roll test-game)))))

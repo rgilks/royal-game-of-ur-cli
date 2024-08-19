@@ -31,10 +31,10 @@
       (assoc test-game :roll 5)  ; Invalid roll
       (assoc test-game :state :invalid-state))))  ; Invalid state
 
-(deftest test-validate-total-pieces
-  (testing "validate/total-pieces accepts valid piece counts"
-    (is (validate/total-pieces test-game)))
-
-  (testing "validate/total-pieces fails on invalid piece counts"
+(deftest test-total-pieces
+  (testing "total-pieces function"
+    (is (validate/total-pieces test-game))
     (is (not (validate/total-pieces
-              (assoc-in test-game [:players :A :in-hand] 4))))))
+              (assoc-in test-game [:players :A :in-hand] 8))))
+    (is (not (validate/total-pieces
+              (assoc-in test-game [:players :B :off-board] 8))))))
