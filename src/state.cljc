@@ -99,7 +99,7 @@
        (assoc :state :choose-action))
    remaining-rolls])
 
-(defmulti select-move (fn [strategy _ _] strategy))
+(defmulti select-move (fn [strategy _] strategy))
 
 (defmethod transition :choose-action
   [game rolls inputs]
@@ -108,7 +108,7 @@
     (if (empty? possible-moves)
       [(assoc game :state :switch-turns) rolls]
       (let [selected-move (or (some-> (:selected-move inputs))
-                              (select-move strategy possible-moves game))]
+                              (select-move strategy game))]
         [(-> game
              (assoc :selected-move selected-move)
              (assoc :state (if (= (:from selected-move) :entry)

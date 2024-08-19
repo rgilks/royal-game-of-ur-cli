@@ -122,5 +122,5 @@
       (debug "Selected move:" (:move best-child))
       (:move best-child))))
 
-(defmethod state/select-move :mcts [_ possible-moves game]
-  (select-move possible-moves game))
+(defmethod state/select-move :mcts [_ game]
+  (select-move (state/get-possible-moves game) game))

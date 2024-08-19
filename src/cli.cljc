@@ -39,7 +39,7 @@
   (cond
     (empty? possible-moves) nil
     (= player :A) (get-user-move possible-moves)
-    :else (state/select-move (get-in game [:strategy :name]) possible-moves game)))
+    :else (state/select-move (get-in game [:strategy :name]) game)))
 
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)

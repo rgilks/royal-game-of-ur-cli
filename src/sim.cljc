@@ -15,7 +15,7 @@
   (atom {:debug? false
          :show? false
          :delay 20
-         :num-games 2
+         :num-games 4
          :parallel 8
          :strategies
          {:A {:name :minimax :params {:depth 10}}
@@ -42,8 +42,8 @@
         rounded-percentage (Math/round win-percentage-a)]
     (println "Player A win percentage:" (str rounded-percentage "%"))))
 
-(defn handle-choose-action [game possible-moves strategy]
-  (if-let [move (state/select-move strategy possible-moves game)]
+(defn handle-choose-action [game strategy]
+  (if-let [move (state/select-move strategy game)]
     (do
       (debug "Player" (:current-player game) "chose move:" (pr-str move))
       (state/choose-action game move))
@@ -65,7 +65,7 @@
 (defmethod handle :choose-action [game]
   (let [possible-moves (state/get-moves game)]
     (debug "Possible moves for" (:current-player game) ":" (pr-str possible-moves))
-    (handle-choose-action game possible-moves (get-in game [:strategy :name]))))
+    (handle-choose-action game (get-in game [:strategy :name]))))
 
 (defmethod handle :end-game [game]
   (view/show-winner (:current-player game))

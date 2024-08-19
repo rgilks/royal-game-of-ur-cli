@@ -1,9 +1,9 @@
 (ns validate
-  (:require [clojure.pprint :as pprint]
-            [config]
+  (:require [config]
             [malli.core :as m]
             [malli.error :as me]
-            [schema]))
+            [schema]
+            [util :refer [print-line]]))
 
 (defn total-pieces [state]
   (every? (fn [[player-key player-data]]
@@ -15,10 +15,10 @@
 (defn game [state]
   (if-let [error (m/explain schema/game state)]
     (do
-      (println "Invalid game state:")
-      (pprint/pprint state)
-      (println "Validation error:")
-      (pprint/pprint error)
+      (print-line "Invalid game state:")
+      (print-line state)
+      (print-line "Validation error:")
+      (print-line error)
       (throw (ex-info "Invalid game state structure" (me/humanize error))))
     (if-not (total-pieces state)
       (throw (ex-info "Invalid total pieces"

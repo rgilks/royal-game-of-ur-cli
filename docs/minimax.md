@@ -180,8 +180,8 @@ graph TD
 ### Move Selection
 
 ```clojure
-(defn select-move [possible-moves game]
-  (when (seq possible-moves)
+(defn select-move [game]
+  (when (seq (get-possible-moves game))
     (second (minimax game max-depth true (- platform/infinity) platform/infinity))))
 ```
 
