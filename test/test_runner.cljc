@@ -8,6 +8,7 @@
             [state-test]
             [util :refer [enable-print-line! disable-print-line!]]
             [util-test]
+            [validate-test]
             [view-test]))
 
 (def ^:dynamic *test-results* (atom {:pass 0 :fail 0 :error 0}))
@@ -73,6 +74,7 @@
    'cli-test
    'sim-test
    'view-test
+   'validate-test
    'state-test)
   ;; Enable logging after tests if needed
   (enable-print-line!))

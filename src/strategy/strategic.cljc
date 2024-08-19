@@ -2,8 +2,8 @@
   (:require [config]
             [state :refer [select-move]]))
 
-(defmethod select-move :strategic [_ possible-moves game-state]
-  (let [player (:current-player game-state)
+(defmethod select-move :strategic [_ possible-moves game]
+  (let [player (:current-player game)
         path (get-in config/board [:paths player])
         last-square (last path)]
     (or

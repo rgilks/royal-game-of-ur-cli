@@ -18,7 +18,7 @@
 
 (def board-position [:int {:min 0 :max 23}])
 
-(def game-state
+(def game
   [:map
    [:board [:vector {:min 24 :max 24} [:maybe [:enum :A :B]]]]
    [:players [:map-of [:enum :A :B] player]]

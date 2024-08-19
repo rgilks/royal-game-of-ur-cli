@@ -54,15 +54,15 @@ Let's break down the implementation:
 ### Evaluation Function
 
 ```clojure
-(defn- score-player [game-state player]
-  (+ (* 10 (get-in game-state [:players player :off-board]))
-     (count (state/get-piece-positions (:board game-state) player))))
+(defn- score-player [game player]
+  (+ (* 10 (get-in game [:players player :off-board]))
+     (count (state/get-piece-positions (:board game) player))))
 
-(defn- evaluate-state [game-state]
-  (let [current-player (:current-player game-state)
+(defn- evaluate-state [game]
+  (let [current-player (:current-player game)
         opponent (state/other-player current-player)]
-    (- (score-player game-state current-player)
-       (score-player game-state opponent))))
+    (- (score-player game current-player)
+       (score-player game opponent))))
 ```
 
 This function evaluates the game state by considering:
@@ -95,10 +95,10 @@ graph LR
 ### The Minimax Function
 
 ```clojure
-(defn- minimax [game-state depth maximizing? alpha beta]
-  (if (or (zero? depth) (= :end-game (:state game-state)))
-    [(evaluate-state game-state) nil]
-    (let [moves (safe-get-moves game-state)
+(defn- minimax [game depth maximizing? alpha beta]
+  (if (or (zero? depth) (= :end-game (:state game)))
+    [(evaluate-state game) nil]
+    (let [moves (safe-get-moves game)
           init-score (if maximizing? (- platform/infinity) platform/infinity)
           comparator (if maximizing? > <)]
       ; ... (rest of the function)
@@ -180,9 +180,9 @@ graph TD
 ### Move Selection
 
 ```clojure
-(defn select-move [possible-moves game-state]
+(defn select-move [possible-moves game]
   (when (seq possible-moves)
-    (second (minimax game-state max-depth true (- platform/infinity) platform/infinity))))
+    (second (minimax game max-depth true (- platform/infinity) platform/infinity))))
 ```
 
 This function initiates the minimax algorithm and returns the best move found.

@@ -1,29 +1,7 @@
 (ns state
-  (:require [clojure.pprint :as pprint]
-            [config]
-            [malli.core :as m]
-            [malli.error :as me]
-            [schema]))
-
-(defn validate-total-pieces [state]
-  (every? (fn [[player-key player-data]]
-            (let [{:keys [in-hand off-board]} player-data
-                  on-board (count (filter #{player-key} (:board state)))]
-              (= 7 (+ in-hand off-board on-board))))
-          (:players state)))
-
-(defn validate-game-state [state]
-  (if-let [error (m/explain schema/game-state state)]
-    (do
-      (println "Invalid game state:")
-      (pprint/pprint state)
-      (println "Validation error:")
-      (pprint/pprint error)
-      (throw (ex-info "Invalid game state structure" (me/humanize error))))
-    (if-not (validate-total-pieces state)
-      (throw (ex-info "Invalid total pieces"
-                      {:error "Total pieces for each player must be exactly 7"}))
-      state)))
+  (:require [config]
+            [schema]
+            [validate]))
 
 ;; Helper functions
 (defn other-player [player]
@@ -104,19 +82,19 @@
                              (inc (apply max (map #(find-index path %) path))))))
                all-moves))))
 
-(defn game-over? [game-state]
+(defn game-over? [game]
   (let [off-board-pieces
-        (get-in game-state [:players (:current-player game-state) :off-board])]
+        (get-in game [:players (:current-player game) :off-board])]
     (>= off-board-pieces 7)))
 
-(defmulti transition (fn [game-state _rolls _inputs] (:state game-state)))
+(defmulti transition (fn [game _rolls _inputs] (:state game)))
 
-(defmethod transition :start-game [game-state rolls _inputs]
-  [(assoc game-state :state :roll-dice) rolls])
+(defmethod transition :start-game [game rolls _inputs]
+  [(assoc game :state :roll-dice) rolls])
 
 (defmethod transition :roll-dice
-  [game-state [current-roll & remaining-rolls] _inputs]
-  [(-> game-state
+  [game [current-roll & remaining-rolls] _inputs]
+  [(-> game
        (assoc :roll current-roll)
        (assoc :state :choose-action))
    remaining-rolls])
@@ -124,34 +102,34 @@
 (defmulti select-move (fn [strategy _ _] strategy))
 
 (defmethod transition :choose-action
-  [game-state rolls inputs]
-  (let [possible-moves (get-possible-moves game-state)
+  [game rolls inputs]
+  (let [possible-moves (get-possible-moves game)
         strategy (get inputs :move-strategy :random)]
     (if (empty? possible-moves)
-      [(assoc game-state :state :switch-turns) rolls]
+      [(assoc game :state :switch-turns) rolls]
       (let [selected-move (or (some-> (:selected-move inputs))
-                              (select-move strategy possible-moves game-state))]
-        [(-> game-state
+                              (select-move strategy possible-moves game))]
+        [(-> game
              (assoc :selected-move selected-move)
              (assoc :state (if (= (:from selected-move) :entry)
                              :enter-piece
                              :move-piece)))
          rolls]))))
 
-(defmethod transition :enter-piece [game-state rolls _inputs]
-  (let [{:keys [current-player selected-move]} game-state
+(defmethod transition :enter-piece [game rolls _inputs]
+  (let [{:keys [current-player selected-move]} game
         {:keys [to]} selected-move]
-    [(-> game-state
+    [(-> game
          (update :board update-board current-player :entry to)
          (update-in [:players current-player :in-hand] dec)
          (assoc :state :switch-turns))
      rolls]))
 
-(defmethod transition :move-piece [game-state rolls _inputs]
-  (let [{:keys [current-player selected-move]} game-state
+(defmethod transition :move-piece [game rolls _inputs]
+  (let [{:keys [current-player selected-move]} game
         {:keys [from to captured]} selected-move
-        opponent (other-player (:current-player game-state))]
-    [(cond-> game-state
+        opponent (other-player (:current-player game))]
+    [(cond-> game
        true (update :board update-board current-player from to)
        (= to :off-board) (-> (update-in [:players current-player :off-board] inc)
                              (assoc :state :move-piece-off-board))
@@ -161,25 +139,25 @@
        (and (not= to :off-board) (not (contains? (:rosettes config/board) to)) (not captured)) (assoc :state :switch-turns))
      rolls]))
 
-(defmethod transition :land-on-rosette [game-state rolls _inputs]
-  [(assoc game-state :state :roll-dice) rolls])
+(defmethod transition :land-on-rosette [game rolls _inputs]
+  [(assoc game :state :roll-dice) rolls])
 
-(defmethod transition :move-piece-off-board [game-state rolls _inputs]
-  [(assoc game-state :state :switch-turns) rolls])
+(defmethod transition :move-piece-off-board [game rolls _inputs]
+  [(assoc game :state :switch-turns) rolls])
 
-(defmethod transition :switch-turns [game-state rolls _inputs]
-  (if (game-over? game-state)
-    [(assoc game-state :state :end-game) rolls]
-    (let [new-player (other-player (:current-player game-state))]
-      [(-> game-state
+(defmethod transition :switch-turns [game rolls _inputs]
+  (if (game-over? game)
+    [(assoc game :state :end-game) rolls]
+    (let [new-player (other-player (:current-player game))]
+      [(-> game
            (assoc :current-player new-player)
            (assoc :roll nil)
            (assoc :selected-move nil)
            (assoc :state :roll-dice))
        rolls])))
 
-(defmethod transition :end-game [game-state rolls _inputs]
-  [game-state rolls]) ; No transition, game is over
+(defmethod transition :end-game [game rolls _inputs]
+  [game rolls]) ; No transition, game is over
 
 (defn random-first-player []
   (if (zero? (rand-int 2)) :A :B))
@@ -195,13 +173,13 @@
     :state :start-game
     :selected-move nil}))
 
-(defn play [game-state rolls inputs]
-  (loop [state (validate-game-state game-state)
+(defn play [game rolls inputs]
+  (loop [state (validate/game game)
          remaining-rolls rolls]
     (let [[new-state new-rolls] (transition state remaining-rolls inputs)]
       (if (contains? #{:choose-action :roll-dice :end-game} (:state new-state))
-        [(validate-game-state new-state) new-rolls]
-        (recur (validate-game-state new-state) new-rolls)))))
+        [(validate/game new-state) new-rolls]
+        (recur (validate/game new-state) new-rolls)))))
 
 ;; Public API
 (defn start-game
@@ -209,27 +187,27 @@
   ([starting-player]
    (first (play (initialize-game starting-player) [] {}))))
 
-(defn dice-roll [game-state]
-  (if (= (:state game-state) :roll-dice)
+(defn dice-roll [game]
+  (if (= (:state game) :roll-dice)
     (let [roll (reduce + (repeatedly 4 #(rand-int 2)))]
-      (first (play game-state [roll] {})))
-    (throw (ex-info "Invalid game state for rolling dice" {:state (:state game-state)}))))
+      (first (play game [roll] {})))
+    (throw (ex-info "Invalid game state for rolling dice" {:state (:state game)}))))
 
-(defn get-moves [game-state]
-  (if (= (:state game-state) :choose-action)
-    (get-possible-moves game-state)
-    (throw (ex-info "Invalid game state for getting possible moves" {:state (:state game-state)}))))
+(defn get-moves [game]
+  (if (= (:state game) :choose-action)
+    (get-possible-moves game)
+    (throw (ex-info "Invalid game state for getting possible moves" {:state (:state game)}))))
 
-(defn choose-action [game-state selected-move]
-  (if (= (:state game-state) :choose-action)
-    (let [possible-moves (get-possible-moves game-state)]
+(defn choose-action [game selected-move]
+  (if (= (:state game) :choose-action)
+    (let [possible-moves (get-possible-moves game)]
       (if (empty? possible-moves)
-        (first (play game-state [] {:move-strategy :random}))
-        (let [new-state (-> game-state
-                            (assoc :selected-move selected-move)
-                            (assoc :state (if (= (:from selected-move) :entry)
-                                            :enter-piece
-                                            :move-piece)))]
-          (first (play new-state [] {})))))
+        (first (play game [] {:move-strategy :random}))
+        (let [new-game (-> game
+                           (assoc :selected-move selected-move)
+                           (assoc :state (if (= (:from selected-move) :entry)
+                                           :enter-piece
+                                           :move-piece)))]
+          (first (play new-game [] {})))))
     (throw (ex-info "Invalid game state for choosing action"
-                    {:state (:state game-state)}))))
+                    {:state (:state game)}))))

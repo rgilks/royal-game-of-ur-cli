@@ -6,32 +6,32 @@
   (binding [*out* *err*]
     (apply println args)))
 
-(defn- score-player [game-state player]
-  (+ (* 10 (get-in game-state [:players player :off-board]))
-     (count (state/get-piece-positions (:board game-state) player))))
+(defn- score-player [game player]
+  (+ (* 10 (get-in game [:players player :off-board]))
+     (count (state/get-piece-positions (:board game) player))))
 
-(defn- get-next-state [game-state move]
+(defn- get-next-state [game move]
   (debug "Getting next state for move:" move)
-  (-> game-state
+  (-> game
       (state/choose-action move)
       (assoc :state :roll-dice)
       (assoc :roll nil)
       (assoc :selected-move nil)))
 
-(defn- get-legal-moves [game-state]
-  (let [moves (if (= (:state game-state) :choose-action)
-                (state/get-moves game-state)
+(defn- get-legal-moves [game]
+  (let [moves (if (= (:state game) :choose-action)
+                (state/get-moves game)
                 [])]
     (debug "Legal moves:" moves)
     moves))
 
-(defrecord Node [game-state move parent children visits value])
+(defrecord Node [game move parent children visits value])
 
 (defn- expand [node]
   (debug "Expanding node")
-  (let [moves (get-legal-moves (:game-state node))
+  (let [moves (get-legal-moves (:game node))
         new-children (mapv (fn [move]
-                             (->Node (get-next-state (:game-state node) move)
+                             (->Node (get-next-state (:game node) move)
                                      move
                                      node
                                      []
@@ -68,9 +68,9 @@
                               (:children parent))))
           updated)))))
 
-(defn- simulate [game-state]
+(defn- simulate [game]
   (debug "Starting simulation")
-  (loop [state game-state
+  (loop [state game
          steps 0]
     (if (> steps 1000)  ; Prevent infinite loops
       (do (debug "Simulation exceeded 1000 steps, terminating")
@@ -104,23 +104,23 @@
                        node)
                      node))
             expanded-node (if (zero? (:visits node)) node (expand node))
-            simulation-result (simulate (:game-state expanded-node))
+            simulation-result (simulate (:game expanded-node))
             updated-root (backpropagate expanded-node simulation-result)]
         (when (zero? (mod iter 100))
           (debug iter "iterations remaining"))
         (recur updated-root (dec iter))))))
 
-(defn select-move [possible-moves game-state]
+(defn select-move [possible-moves game]
   (debug "Selecting move from" (count possible-moves) "possible moves")
   (when (seq possible-moves)
-    (let [iterations (get-in game-state [:strategy :params :iterations] 1000)
-          exploration-param (get-in game-state [:strategy :params :exploration] 1.41)
-          root (->Node (assoc game-state :selected-move nil) nil nil [] 0 0.0)
+    (let [iterations (get-in game [:strategy :params :iterations] 1000)
+          exploration-param (get-in game [:strategy :params :exploration] 1.41)
+          root (->Node (assoc game :selected-move nil) nil nil [] 0 0.0)
           expanded-root (expand root)
           best-node (mcts-search expanded-root iterations exploration-param)
           best-child (apply max-key :visits (:children best-node))]
       (debug "Selected move:" (:move best-child))
       (:move best-child))))
 
-(defmethod state/select-move :mcts [_ possible-moves game-state]
-  (select-move possible-moves game-state))
+(defmethod state/select-move :mcts [_ possible-moves game]
+  (select-move possible-moves game))
