@@ -168,17 +168,45 @@ Available parameters:
 - `show`: Show game state
 - `delay`: Delay between moves in milliseconds
 - `parallel`: Number of parallel threads to use
+- `validate`: Enable validation
 
 Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name.
 
 Example:
 ```
-just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6
+just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6 validate=false
 ```
 
 This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 4 parallel threads.
 
 For more detailed information about available strategies and their parameters, please refer to the [Strategies Documentation](./docs/strategies.md).
+
+### Running Simulations from Command Line
+
+You can now run simulations directly from the command line using the built executable:
+
+```
+./royal-game-of-ur simulate [parameters]
+```
+
+Available parameters:
+- `num-games`: Number of games to simulate
+- `strategy-A`: Strategy for Player A
+- `strategy-B`: Strategy for Player B
+- `debug`: Enable debug mode (true/false)
+- `show`: Show game state (true/false)
+- `delay`: Delay between moves in milliseconds
+- `parallel`: Number of parallel threads to use
+- `validate`: Enable validation (true/false)
+
+Example:
+
+```
+./royal-game-of-ur simulate num-games=1000 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6 validate=false
+```
+
+This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 6 parallel threads and with validation turned off for improved performance.
+
 
 ## Project Structure
 

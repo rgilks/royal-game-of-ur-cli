@@ -90,7 +90,7 @@ The effectiveness of each strategy can vary depending on the specific game situa
 You can use the simulation mode to compare the performance of different strategies. For example:
 
 ```
-just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6
+just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6 validate=false
 ```
 
 This will run 1000 games pitting the Minimax strategy (with depth 3) against the 'first in list' strategy.
@@ -111,6 +111,7 @@ Available parameters:
 - `show`: Show game state
 - `delay`: Delay between moves in milliseconds
 - `parallel`: Number of parallel threads to use
+- `validate`: Enable validation
 
 Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name. For example:
 

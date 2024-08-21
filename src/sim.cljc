@@ -10,6 +10,7 @@
             [strategy.random]
             [strategy.strategic]
             [util :refer [disable-print-line! enable-print-line!]]
+            [validate]
             [view]))
 
 (def config-atom
@@ -18,6 +19,7 @@
          :delay 0
          :num-games 10
          :parallel 8
+         :validate? false  ; New key for validation flag
         ;;  :strategies
         ;;  {:A {:name :minimax :params {:depth 10}}
         ;;   :B {:name :minimax :params {:depth 10}}}}))
@@ -85,15 +87,18 @@
    (if (:show? @config-atom)
      (enable-print-line!)
      (disable-print-line!))
-   (loop [game (assoc initial-state
-                      :strategy (get-in @config-atom [:strategies (:current-player initial-state)]))
-          move-count 0]
-     (if (:game-over game)
-       (assoc game :move-count move-count)
-       (recur (-> game
-                  play-turn
-                  (assoc :strategy (get-in @config-atom [:strategies (:current-player game)])))
-              (inc move-count))))))
+   (let [validate-fn (if (:validate? @config-atom) validate/game identity)]  ; Use identity function when validation is off
+     (loop [game (validate-fn
+                  (assoc initial-state
+                         :strategy (get-in @config-atom [:strategies (:current-player initial-state)])))
+            move-count 0]
+       (if (:game-over game)
+         (assoc game :move-count move-count)
+         (recur (validate-fn
+                 (-> game
+                     play-turn
+                     (assoc :strategy (get-in @config-atom [:strategies (:current-player game)]))))
+                (inc move-count)))))))
 
 (defn run-single-chunk [chunk]
   (reduce (fn [acc _]
@@ -181,6 +186,7 @@
             :show? (platform/parse-bool (get arg-map "show" "false"))
             :delay (or (platform/parse-int (get arg-map "delay")) (:delay @config-atom))
             :parallel (or (platform/parse-int (get arg-map "parallel")) (:parallel @config-atom))
+            :validate? (platform/parse-bool (get arg-map "validate" "true"))  ; New line for validate flag
             :strategies (merge-with merge
                                     (:strategies @config-atom)
                                     {:A (merge (:A strategies)
@@ -239,7 +245,8 @@
   (println "Debug mode:" (:debug? @config-atom))
   (println "Show mode:" (:show? @config-atom))
   (println "Delay:" (:delay @config-atom))
-  (println "Parallel:" (:parallel @config-atom)))
+  (println "Parallel:" (:parallel @config-atom))
+  (println "Validation:" (:validate? @config-atom)))
 
 (defn -main [& args]
   (parse-args args)

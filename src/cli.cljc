@@ -3,6 +3,7 @@
   (:require [config]
             [game]
             [platform]
+            [sim :as sim]
             [strategy.first-in-list]
             [strategy.minimax]
             [strategy.random]
@@ -79,6 +80,14 @@
     (finally
       (util/show-cursor))))
 
-(defn -main []
-  (play-game :minimax 10)
-  (view/show-goodbye))
+(defn run-simulation [args]
+  (sim/parse-args args)
+  (sim/print-config)
+  (sim/run-simulation-and-report))
+
+(defn -main [& args]
+  (if (= (first args) "simulate")
+    (run-simulation (rest args))
+    (do
+      (play-game :minimax 10)
+      (view/show-goodbye))))
