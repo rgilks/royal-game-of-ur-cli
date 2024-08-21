@@ -131,8 +131,8 @@ Key commands include:
 - `just test-clj`: Run unit tests (using Clojure)
 - `just watch`: Run unit tests and watch for changes (using nbb)
 - `just fmt`: Format Clojure files
-- `just sim`: Run a simulation with custom parameters (using nbb)
-- `just sim-clj`: Run a simulation with custom parameters (using Clojure)
+- `just sim-nbb`: Run a simulation with custom parameters (using nbb, no parallelism)
+- `just sim`: Run a simulation with custom parameters (using Clojure)
 - `just repl`: Start a Clojure REPL
 - `just build`: Build the project (creates uberjar and native image)
 
@@ -173,7 +173,7 @@ Strategy-specific parameters can be set using the format `strategy-X-param=value
 
 Example:
 ```
-just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=4
+just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6
 ```
 
 This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 4 parallel threads.

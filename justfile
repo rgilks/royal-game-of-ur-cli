@@ -126,13 +126,13 @@ run-clj:
     clojure -M:run
 
 # Run a simulation with custom parameters (nbb)
-# Usage: just sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> delay=<num> parallel=<num>
-sim *args:
+# Usage: just sim-nbb num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> delay=<num> parallel=<num>
+sim-nbb *args:
     yarn sim {{args}}
 
 # Run a simulation with custom parameters (Clojure)
-# Usage: just sim-clj num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> delay=<num> parallel=<num>
-sim-clj *args:
+# Usage: just sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> delay=<num> parallel=<num>
+sim *args:
     clojure -M:sim {{args}}
 
 # =================
