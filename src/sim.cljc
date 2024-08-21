@@ -87,18 +87,18 @@
    (if (:show? @config-atom)
      (enable-print-line!)
      (disable-print-line!))
-   (let [validate-fn (if (:validate? @config-atom) validate/game identity)]  ; Use identity function when validation is off
-     (loop [game (validate-fn
-                  (assoc initial-state
-                         :strategy (get-in @config-atom [:strategies (:current-player initial-state)])))
-            move-count 0]
-       (if (:game-over game)
-         (assoc game :move-count move-count)
-         (recur (validate-fn
-                 (-> game
-                     play-turn
-                     (assoc :strategy (get-in @config-atom [:strategies (:current-player game)]))))
-                (inc move-count)))))))
+   (loop [game (assoc
+                initial-state
+                :strategy (get-in @config-atom
+                                  [:strategies (:current-player initial-state)]))
+          move-count 0]
+     (if (:game-over game)
+       (assoc game :move-count move-count)
+       (recur
+        (-> game
+            (play-turn)
+            (assoc :strategy (get-in @config-atom [:strategies (:current-player game)])))
+        (inc move-count))))))
 
 (defn run-single-chunk [chunk]
   (reduce (fn [acc _]

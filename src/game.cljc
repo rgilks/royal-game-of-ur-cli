@@ -174,18 +174,19 @@
     :selected-move nil}))
 
 (defn play [game rolls inputs]
-  (loop [state (validate/game game)
-         remaining-rolls rolls]
-    (let [[new-state new-rolls] (transition state remaining-rolls inputs)]
-      (if (contains? #{:choose-action :roll-dice :end-game} (:state new-state))
-        [(validate/game new-state) new-rolls]
-        (recur (validate/game new-state) new-rolls)))))
+  (let [validate? (:validate? inputs false)]
+    (loop [state (if validate? (validate/game game) game)
+           remaining-rolls rolls]
+      (let [[new-state new-rolls] (transition state remaining-rolls inputs)]
+        (if (contains? #{:choose-action :roll-dice :end-game} (:state new-state))
+          [(if validate? (validate/game new-state) new-state) new-rolls]
+          (recur (if validate? (validate/game new-state) new-state) new-rolls))))))
 
 ;; Public API
 (defn start-game
   ([] (start-game nil))
   ([starting-player]
-   (first (play (init starting-player) [] {}))))
+   (first (play (init starting-player) [] {:validate? true}))))
 
 (defn roll [game]
   (if (= (:state game) :roll-dice)
