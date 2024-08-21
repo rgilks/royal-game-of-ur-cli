@@ -1,4 +1,4 @@
-# AI Strategies in the Royal Game of Ur
+# AI Strategies 
 
 ## Introduction
 
@@ -48,18 +48,17 @@ For more details, see the [Monte Carlo Tree Search (MCTS) Documentation](./mcts.
 **Key Features**:
 - Very fast
 - Unpredictable
-- Serves as a baseline for comparing other strategies
-
-**Best Used When**: You want a quick game or are testing the basic functionality of the game engine.
+- Serves as a baseline for comparing other strategies.
 
 ### 4. First-in-list
 
-**Description**: This strategy always chooses the first available move from the list of legal moves.
+**Description**: This strategy always chooses the first available move from the list of legal moves. With the pieces ordered with those at the start of the path first.
 
 **Key Features**:
 - Deterministic (always makes the same choice in the same situation)
 - Very fast
 - Serves as a simple baseline strategy
+- Very effective against other simple strategies 
 
 **Best Used When**: You want a consistent, predictable opponent for testing or learning the game basics.
 
@@ -79,7 +78,7 @@ For more details, see the [Monte Carlo Tree Search (MCTS) Documentation](./mcts.
 4. Move to a rosette
 5. Move the piece furthest back
 
-**Best Used When**: You want an AI that plays a decent game without the computational overhead of more complex strategies.
+**Best Used When**: You want an AI that plays a decent game without the computational overhead of more complex strategies. First in list is better however.
 
 ## Comparing Strategies
 
@@ -95,6 +94,8 @@ You can use the simulation mode to compare the performance of different strategi
 just sim 1000 minimax mcts true false 0
 ```
 
+TODO: reimplement arg passing
+
 This will run 1000 games pitting the Minimax strategy against the MCTS strategy.
 
 ## Implementing New Strategies
@@ -105,8 +106,3 @@ If you're interested in implementing a new strategy:
 2. Implement the `select-move` multimethod for your strategy.
 3. Add your strategy to the options in the simulation configuration.
 
-Remember to consider both the effectiveness and the computational efficiency of your strategy.
-
-## Conclusion
-
-The variety of AI strategies available in the Royal Game of Ur provides a range of opponents to play against and learn from. Whether you're looking for a quick game, a strong challenge, or something in between, there's a strategy to suit your needs. Experiment with different strategies and parameters to find the most enjoyable and educational experience for you!
