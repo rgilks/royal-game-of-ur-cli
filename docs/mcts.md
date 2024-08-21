@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Monte Carlo Tree Search (MCTS) is a heuristic search algorithm for some kinds of decision processes, particularly games. MCTS has been particularly successful in games with high branching factors where alpha-beta pruning is less effective. In our implementation of the Royal Game of Ur, MCTS provides a strong and flexible opponent that can adapt to different game situations without requiring extensive domain-specific knowledge.
+Monte Carlo Tree Search (MCTS) is a heuristic search algorithm for some kinds of decision processes, particularly games. MCTS has been particularly successful in games with high branching factors where alpha-beta pruning is less effective. In this implementation of the Royal Game of Ur, MCTS provides a strong and flexible opponent that can adapt to different game situations without requiring extensive domain-specific knowledge.
 
 ## How MCTS Works
 
@@ -222,10 +222,6 @@ The performance of MCTS can be tuned by adjusting several parameters:
 1. Number of iterations: More iterations generally lead to better performance but require more computation time.
 2. Exploration parameter: Higher values encourage more exploration, while lower values favor exploitation.
 3. RAVE parameter: Affects how quickly the algorithm shifts from using RAVE values to using UCT values.
-
-## Conclusion
-
-MCTS provides a powerful and flexible approach to game AI in the Royal Game of Ur. Its ability to adapt to different game situations without extensive domain knowledge makes it a strong opponent. The implementation includes several optimizations such as RAVE, transposition tables, and parallelization, which enhance its performance.
 
 ## References
 
