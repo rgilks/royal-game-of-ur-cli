@@ -252,3 +252,27 @@
   (parse-args args)
   (print-config)
   (run-simulation-and-report))
+
+(comment
+  (swap! config-atom merge
+         {:debug? false
+          :show? false
+          :delay 0
+          :num-games 10000
+          :parallel 6
+          :validate? false
+          :strategies
+          {:A {:name :minimax :params {:depth 4}}
+           :B {:name :minimax :params {:depth 4}}}})
+          ;; :strategies {:A {:name :mcts
+          ;;                  :params {:iterations 100
+          ;;                           :exploration 1.41}}
+          ;;              :B {:name :first-in-list}
+          ;;           ;; :B {:name :mcts
+          ;;           ;;     :params {:iterations 10
+          ;;           ;;              :exploration 1.41}}
+          ;;           ;; :B {:name :minimax
+          ;;           ;;     :params {:depth 4}}
+          ;;              }})
+  (print-config)
+  (run-simulation-and-report))
