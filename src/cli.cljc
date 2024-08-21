@@ -80,5 +80,5 @@
       (util/show-cursor))))
 
 (defn -main []
-  (play-game :minimax 10))
-(view/show-goodbye)
+  (play-game :minimax 10)
+  (view/show-goodbye))
