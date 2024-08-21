@@ -154,12 +154,19 @@ clean:
 
 # Build Docker image
 docker-build:
-    docker build -t royal-game-of-ur .
+    docker build --platform linux/arm64 -t royal-game-of-ur .
 
-# Run the application in a Docker container
-docker-run:
-    docker run -it --rm royal-game-of-ur
+# Run the application in a Docker container with passed arguments
+docker-run *args:
+    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}}
 
-# Build and run in Docker
-docker-build-run: docker-build docker-run
+# Build and run in Docker with passed arguments
+docker-build-run *args:
+    just docker-build
+    just docker-run {{args}}
+
+# Run a simulation with custom parameters in Docker
+# Usage: just sim-docker num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> delay=<num> parallel=<num> validate=<bool>
+sim-docker *args:
+    just docker-run {{args}}
 

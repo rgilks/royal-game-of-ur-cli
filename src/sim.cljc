@@ -21,8 +21,8 @@
          :parallel 8
          :validate? false  ; New key for validation flag
         ;;  :strategies
-        ;;  {:A {:name :minimax :params {:depth 10}}
-        ;;   :B {:name :minimax :params {:depth 10}}}}))
+        ;;  {:A {:name :minimax :params {:depth 4}}
+        ;;   :B {:name :minimax :params {:depth 4}}}}))
          :strategies {:A {:name :mcts
                           :params {:iterations 100
                                    :exploration 1.41}}
@@ -31,7 +31,7 @@
                       ;;     :params {:iterations 10
                       ;;              :exploration 1.41}}
                       ;; :B {:name :minimax
-                      ;;     :params {:depth 10}}
+                      ;;     :params {:depth 4}}
                       }}))
 
 (defn debug [& args]
