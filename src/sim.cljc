@@ -36,18 +36,6 @@
   (when (:debug? @config-atom)
     (apply println args)))
 
-(defn print-simulation-results [results]
-  (println "\nSimulation Results:")
-  (println "Total games:" (:num-games @config-atom))
-  (println "Strategy A (Player A):"  (get-in @config-atom [:strategies :A :name]))
-  (println "Strategy B (Player B):"  (get-in @config-atom [:strategies :B :name]))
-  (println "Player A wins:" (:A results))
-  (println "Player B wins:" (:B results))
-  (let [win-percentage-a (double (* (/ (:A results)
-                                       (:num-games @config-atom)) 100))
-        rounded-percentage (Math/round win-percentage-a)]
-    (println "Player A win percentage:" (str rounded-percentage "%"))))
-
 (defn handle-choose-action [game strategy]
   (if-let [move (game/select-move strategy game)]
     (do
@@ -98,19 +86,24 @@
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc initial-state
-                      :strategy (get-in @config-atom [:strategies (:current-player initial-state)]))]
+                      :strategy (get-in @config-atom [:strategies (:current-player initial-state)]))
+          move-count 0]
      (if (:game-over game)
-       game
+       (assoc game :move-count move-count)
        (recur (-> game
                   play-turn
-                  (assoc :strategy (get-in @config-atom [:strategies (:current-player game)]))))))))
+                  (assoc :strategy (get-in @config-atom [:strategies (:current-player game)])))
+              (inc move-count))))))
 
 (defn run-single-chunk [chunk]
-  (reduce (fn [wins _]
+  (reduce (fn [acc _]
             (let [game-result (play-game)
-                  winner (:current-player game-result)]
-              (update wins winner (fnil inc 0))))
-          {:A 0 :B 0}
+                  winner (:current-player game-result)
+                  moves (:move-count game-result 0)]
+              (-> acc
+                  (update-in [:wins winner] (fnil inc 0))
+                  (update :total-moves + moves))))
+          {:wins {} :total-moves 0}
           chunk))
 
 (defn run-simulation []
@@ -122,46 +115,57 @@
            results-chan (async/chan)]
 
        (doseq [chunk chunks]
-         (async/go
+         (async/thread
            (let [chunk-result (run-single-chunk chunk)]
-             (async/>! results-chan chunk-result))))
+             (async/>!! results-chan chunk-result))))
 
        (loop [results []
               chunks-completed 0]
          (if (= chunks-completed (count chunks))
            (do
              (async/close! results-chan)
-             (reduce (fn [total-wins chunk-wins]
-                       (merge-with + total-wins chunk-wins))
-                     {:A 0 :B 0}
-                     results))
+             (let [combined-results (reduce (fn [total-results chunk-results]
+                                              (-> total-results
+                                                  (update-in [:wins :A] (fnil + 0) (get-in chunk-results [:wins :A] 0))
+                                                  (update-in [:wins :B] (fnil + 0) (get-in chunk-results [:wins :B] 0))
+                                                  (update :total-moves + (:total-moves chunk-results))))
+                                            {:wins {} :total-moves 0}
+                                            results)]
+               (assoc combined-results :num-games num-games)))
            (if-let [chunk-result (async/<!! results-chan)]
              (recur (conj results chunk-result) (inc chunks-completed))
              (do
                (println "Warning: Received nil result, stopping early.")
-               (reduce (fn [total-wins chunk-wins]
-                         (merge-with + total-wins chunk-wins))
-                       {:A 0 :B 0}
-                       results)))))))
-  #?(:cljs
-     (loop [games-left (:num-games @config-atom)
-            wins {:A 0 :B 0}]
-       (if (zero? games-left)
-         wins
-         (let [game (game/init)
-               game-result (play-game game)
-               winner (:current-player game-result)]
-           (when (:show? @config-atom)
-             (platform/sleep 1000))
-           (recur (dec games-left)
-                  (update wins winner inc)))))))
+               (reduce (fn [total-results chunk-results]
+                         (merge-with + total-results chunk-results))
+                       {:wins {} :total-moves 0 :num-games (reduce + (map count results))}
+                       results))))))
+     :cljs
+     (let [num-games (:num-games @config-atom)]
+       (loop [games-left num-games
+              wins {:A 0 :B 0}
+              total-moves 0]
+         (if (zero? games-left)
+           {:wins wins :total-moves total-moves :num-games num-games}
+           (let [game-result (play-game)
+                 winner (:current-player game-result)
+                 moves (:move-count game-result 0)]
+             (recur (dec games-left)
+                    (update wins winner (fnil inc 0))
+                    (+ total-moves moves))))))))
 
 (defn parse-value [v]
   (cond
-    (re-matches #"\d+" v) (platform/parse-int v)
-    (re-matches #"\d+\.\d+" v) (platform/parse-float v)
-    (contains? #{"true" "false"} v) (platform/parse-bool v)
-    :else (keyword v)))
+    (number? v) v
+    (string? v)
+    (cond
+      (re-matches #"^\d+(\.\d+)?$" v)
+      (if (re-matches #"\." v)
+        (platform/parse-float v)
+        (platform/parse-int v))
+      (re-matches #"(?i)true|false" v) (platform/parse-bool v)
+      :else (keyword v))
+    :else v))
 
 (defn parse-args [args]
   (let [arg-map (into {} (map #(let [[k v] (str/split % #"=")] [k (parse-value v)]) args))
@@ -172,8 +176,12 @@
                            {}
                            arg-map)]
     (swap! config-atom merge
-           (select-keys arg-map ["num-games" "debug?" "show?" "delay" "parallel"])
-           {:strategies (merge-with merge
+           {:num-games (or (platform/parse-int (get arg-map "num-games")) (:num-games @config-atom))
+            :debug? (platform/parse-bool (get arg-map "debug" "false"))
+            :show? (platform/parse-bool (get arg-map "show" "false"))
+            :delay (or (platform/parse-int (get arg-map "delay")) (:delay @config-atom))
+            :parallel (or (platform/parse-int (get arg-map "parallel")) (:parallel @config-atom))
+            :strategies (merge-with merge
                                     (:strategies @config-atom)
                                     {:A (merge (:A strategies)
                                                {:name (keyword (get arg-map "strategy-A"))})
@@ -188,14 +196,52 @@
           (when (seq params)
             (str " " params))))))
 
-(defn -main [& args]
-  (parse-args args)
+(defn format-number [n decimals]
+  (let [factor (Math/pow 10 decimals)
+        rounded (/ (Math/round (* n factor)) factor)
+        [whole frac] (str/split (str rounded) #"\.")
+        frac (or frac "")
+        frac-formatted (apply str (take decimals (concat frac (repeat "0"))))]
+    (if (pos? decimals)
+      (str whole "." frac-formatted)
+      whole)))
+
+(defn print-simulation-results [results elapsed-time]
+  (let [{:keys [wins total-moves num-games]} results
+        a-wins (:A wins 0)
+        b-wins (:B wins 0)
+        win-percentage-a (* (/ a-wins num-games) 100)
+        avg-moves-per-game (/ total-moves num-games)
+        print-metric (fn [label value decimals]
+                       (println (str label ": " (format-number value decimals))))]
+    (println "\nSimulation Results:")
+    (println "Total games:" num-games)
+    (println "Strategy A (Player A):" (get-in @config-atom [:strategies :A :name]))
+    (println "Strategy B (Player B):" (get-in @config-atom [:strategies :B :name]))
+    (println "Player A wins:" a-wins)
+    (println "Player B wins:" b-wins)
+    (print-metric "Player A win percentage" win-percentage-a 2)
+    (print-metric "Average moves per game" avg-moves-per-game 0)
+    (print-metric "Elapsed time" elapsed-time 2)))
+
+(defn run-simulation-and-report []
+  (let [start-time #?(:clj (System/nanoTime) :cljs (js/Date.now))
+        results (run-simulation)
+        end-time #?(:clj (System/nanoTime) :cljs (js/Date.now))
+        elapsed-time #?(:clj (/ (- end-time start-time) 1e9)
+                        :cljs (/ (- end-time start-time) 1000))]
+    (print-simulation-results results elapsed-time)))
+
+(defn print-config []
   (println "Running" (:num-games @config-atom) "games...")
   (print-strategy-info :A)
   (print-strategy-info :B)
   (println "Debug mode:" (:debug? @config-atom))
   (println "Show mode:" (:show? @config-atom))
   (println "Delay:" (:delay @config-atom))
-  (println "Parallel:" (:parallel @config-atom))
-  (time (let [results (run-simulation)]
-          (print-simulation-results results))))
+  (println "Parallel:" (:parallel @config-atom)))
+
+(defn -main [& args]
+  (parse-args args)
+  (print-config)
+  (run-simulation-and-report))

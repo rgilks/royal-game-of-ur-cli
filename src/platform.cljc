@@ -1,27 +1,34 @@
 (ns platform
-  #?(:clj (:import
-           [org.jline.terminal TerminalBuilder]))
+  #?(:clj (:import [org.jline.terminal TerminalBuilder]))
+  #?(:clj (:require [clojure.string :as str]))
   #?(:cljs (:require
-
+            [clojure.string :as str]
             ["readline-sync" :as readline-sync])))
 
 (def infinity #?(:clj Double/POSITIVE_INFINITY
                  :cljs js/Number.POSITIVE_INFINITY))
 
 (defn parse-int [s]
-  (if (and s (re-matches #"\d+" (str s)))
+  (cond
+    (integer? s) s
+    (and (string? s) (re-matches #"\d+" s))
     #?(:clj (Integer/parseInt s)
        :cljs (js/parseInt s))
-    0))
+    :else 0))
 
 (defn parse-float [s]
-  (if (and s (re-matches #"\d+(\.\d+)?" (str s)))
+  (cond
+    (number? s) (double s)
+    (and (string? s) (re-matches #"\d+(\.\d+)?" s))
     #?(:clj (Double/parseDouble s)
        :cljs (js/parseFloat s))
-    0.0))
+    :else 0.0))
 
 (defn parse-bool [s]
-  (= s "true"))
+  (cond
+    (boolean? s) s
+    (string? s) (= (clojure.string/lower-case s) "true")
+    :else (boolean s)))
 
 (defn readln []
   #?(:clj  (read-line)
