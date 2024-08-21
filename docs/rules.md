@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Royal Game of Ur, also known as the Game of Twenty Squares, is an ancient board game that originated in Mesopotamia over 4,500 years ago. This document outlines the rules as implemented in our digital version.
+The Royal Game of Ur, also known as the Game of Twenty Squares, is an ancient board game that originated in Mesopotamia over 4,500 years ago. This document outlines the rules as implemented in this software.
 
 ## The Board
 
@@ -81,4 +81,4 @@ While our implementation aims to be faithful to the ancient game, there may be s
 2. Some variations of the historical game may have had different rules for safe squares or capturing.
 3. The scoring system and win conditions might have varied in different regions or time periods.
 
-Our version aims to provide a balanced and enjoyable game experience while staying as close as possible to what is known about the historical game.
+This version aims to provide a balanced and enjoyable game experience while staying as close as possible to what is known about the historical game.
