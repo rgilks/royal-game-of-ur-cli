@@ -37,7 +37,6 @@ For more details, see the [Minimax Algorithm Documentation](./minimax.md).
 **Customizable Parameters**:
 - `iterations`: The number of simulations to run. More iterations generally lead to better performance but require more computation time.
 - `exploration`: Controls the balance between exploration and exploitation in the search.
-- `rave`: Affects how quickly the algorithm shifts from using RAVE (Rapid Action Value Estimation) values to using UCT values.
 
 For more details, see the [Monte Carlo Tree Search (MCTS) Documentation](./mcts.md).
 
@@ -91,12 +90,32 @@ The effectiveness of each strategy can vary depending on the specific game situa
 You can use the simulation mode to compare the performance of different strategies. For example:
 
 ```
-just sim 1000 minimax mcts true false 0
+just sim num-games=1000 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=4
 ```
 
-TODO: reimplement arg passing
+This will run 1000 games pitting the Minimax strategy (with depth 3) against the 'first in list' strategy.
 
-This will run 1000 games pitting the Minimax strategy against the MCTS strategy.
+## Running Simulations
+
+To run a simulation, use the following command format:
+
+```
+just sim [parameters]
+```
+
+Available parameters:
+- `num-games`: Number of games to simulate
+- `strategy-A`: Strategy for Player A
+- `strategy-B`: Strategy for Player B 
+- `debug`: Enable debug mode
+- `show`: Show game state
+- `delay`: Delay between moves in milliseconds
+- `parallel`: Number of parallel threads to use
+
+Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name. For example:
+
+- `strategy-A-depth=3` sets the depth parameter for Player A's minimax strategy
+- `strategy-B-iterations=1000` sets the iterations parameter for Player B's MCTS strategy
 
 ## Implementing New Strategies
 
@@ -105,4 +124,3 @@ If you're interested in implementing a new strategy:
 1. Create a new file in the `src/strategy` directory (e.g., `my_strategy.cljc`).
 2. Implement the `select-move` multimethod for your strategy.
 3. Add your strategy to the options in the simulation configuration.
-

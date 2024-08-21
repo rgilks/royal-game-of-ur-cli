@@ -17,6 +17,18 @@ The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the ol
 - Simulation mode for running multiple games with different strategies
 - Cross-platform compatibility (Clojure and ClojureScript)
 
+## Board Layout
+
+The game board consists of 20 squares arranged in a specific pattern. The following image shows the board layout and how the squares are numbered:
+
+![Board Layout](./docs/board.png)
+
+## Game State Machine
+
+The game logic follows a finite state machine design. The following diagram illustrates the different states and transitions in the game:
+
+![Game State Machine](./docs/rgou-fsm.png)
+
 ## AI Strategies
 
 This project implements several AI strategies for playing the Royal Game of Ur:
@@ -27,7 +39,7 @@ This project implements several AI strategies for playing the Royal Game of Ur:
 4. **First-in-list**: Always chooses the first available move.
 5. **Strategic**: Uses a simple heuristic to prioritize moves.
 
-For detailed explanations of how these algorithms work, please refer to our documentation:
+For detailed explanations of how these algorithms work, please refer to the documentation:
 
 - [AI Strategy Overview](./docs/strategies.md)
 - [Minimax Algorithm](./docs/minimax.md)
@@ -35,7 +47,7 @@ For detailed explanations of how these algorithms work, please refer to our docu
 
 ## Game Rules
 
-For a comprehensive explanation of the game rules, please see our [Game Rules Documentation](./docs/rules.md).
+For a comprehensive explanation of the game rules, please see the [Game Rules Documentation](./docs/rules.md).
 
 ## Technologies Used
 
@@ -140,29 +152,43 @@ just run
 
 This will launch the game in your terminal. Follow the on-screen instructions to play.
 
+### Running Simulations
+
 To run a simulation of multiple games with different strategies:
 
 ```
-just sim [num_games] [strategy_a] [strategy_b] [debug] [show] [delay]
+just sim [parameters]
 ```
 
-For example:
+Available parameters:
+- `num-games`: Number of games to simulate
+- `strategy-A`: Strategy for Player A
+- `strategy-B`: Strategy for Player B
+- `debug`: Enable debug mode
+- `show`: Show game state
+- `delay`: Delay between moves in milliseconds
+- `parallel`: Number of parallel threads to use
+
+Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name.
+
+Example:
 ```
-just sim 1000 minimax random true false 0
+just sim num-games=1000 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=4
 ```
 
-## Game Rules
+This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 4 parallel threads.
 
-For detailed game rules, please refer to our [Game Rules Documentation](./docs/game_rules.md).
+For more detailed information about available strategies and their parameters, please refer to the [Strategies Documentation](./docs/strategies.md).
 
 ## Project Structure
 
 - `src/`: Source code files
 - `test/`: Test files
 - `docs/`: Documentation files, including:
-  - `ai_strategies.md`: Detailed explanation of AI strategies
-  - `game_rules.md`: Comprehensive game rules
+  - `strategies.md`: Detailed explanation of AI strategies
+  - `rules.md`: Comprehensive game rules
   - `minimax.md`: In-depth look at the Minimax algorithm
+  - `mcts.md`: Detailed explanation of the Monte Carlo Tree Search algorithm
   - Game board and state machine diagrams
 - `scripts/`: Utility scripts for development
 - `justfile`: Command runner file with various development tasks

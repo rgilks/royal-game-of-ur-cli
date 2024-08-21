@@ -1,5 +1,6 @@
 (ns sim
   (:require #?(:clj [clojure.core.async :as async])
+            [clojure.string :as str]
             [config]
             [game]
             [platform]
@@ -8,7 +9,7 @@
             [strategy.minimax]
             [strategy.random]
             [strategy.strategic]
-            [util :refer [enable-print-line! disable-print-line!]]
+            [util :refer [disable-print-line! enable-print-line!]]
             [view]))
 
 (def config-atom
@@ -155,14 +156,45 @@
            (recur (dec games-left)
                   (update wins winner inc)))))))
 
-(defn -main []
+(defn parse-value [v]
+  (cond
+    (re-matches #"\d+" v) (platform/parse-int v)
+    (re-matches #"\d+\.\d+" v) (platform/parse-float v)
+    (contains? #{"true" "false"} v) (platform/parse-bool v)
+    :else (keyword v)))
+
+(defn parse-args [args]
+  (let [arg-map (into {} (map #(let [[k v] (str/split % #"=")] [k (parse-value v)]) args))
+        strategies (reduce (fn [acc [k v]]
+                             (if-let [[_ player param] (re-matches #"strategy-(A|B)-(.*)" k)]
+                               (assoc-in acc [(keyword player) :params (keyword param)] v)
+                               acc))
+                           {}
+                           arg-map)]
+    (swap! config-atom merge
+           (select-keys arg-map ["num-games" "debug?" "show?" "delay" "parallel"])
+           {:strategies (merge-with merge
+                                    (:strategies @config-atom)
+                                    {:A (merge (:A strategies)
+                                               {:name (keyword (get arg-map "strategy-A"))})
+                                     :B (merge (:B strategies)
+                                               {:name (keyword (get arg-map "strategy-B"))})})})))
+
+(defn print-strategy-info [player]
+  (let [{:keys [name params]} (get-in @config-atom [:strategies player])]
+    (println
+     (str "Player " (clojure.core/name player)
+          " strategy: " (clojure.core/name name)
+          (when (seq params)
+            (str " " params))))))
+
+(defn -main [& args]
+  (parse-args args)
   (println "Running" (:num-games @config-atom) "games...")
-  (println "Player A strategy:" (get-in @config-atom [:strategies :A :name])
-           (get-in @config-atom [:strategies :A :params]))
-  (println "Player B strategy:" (get-in @config-atom [:strategies :B :name])
-           (get-in @config-atom [:strategies :B :params]))
-  (println "Debug mode:" (str (:debug? @config-atom)))
-  (println "Show mode:" (str (:show? @config-atom)))
+  (print-strategy-info :A)
+  (print-strategy-info :B)
+  (println "Debug mode:" (:debug? @config-atom))
+  (println "Show mode:" (:show? @config-atom))
   (println "Delay:" (:delay @config-atom))
   (println "Parallel:" (:parallel @config-atom))
   (time (let [results (run-simulation)]

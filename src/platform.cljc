@@ -14,6 +14,12 @@
        :cljs (js/parseInt s))
     0))
 
+(defn parse-float [s]
+  (if (and s (re-matches #"\d+(\.\d+)?" (str s)))
+    #?(:clj (Double/parseDouble s)
+       :cljs (js/parseFloat s))
+    0.0))
+
 (defn parse-bool [s]
   (= s "true"))
 
