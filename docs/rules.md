@@ -2,26 +2,26 @@
 
 ## Introduction
 
-The Royal Game of Ur, also known as the Game of Twenty Squares, is an ancient board game that originated in Mesopotamia over 4,500 years ago. This document outlines the rules as implemented in this software.
+The Royal Game of Ur is an ancient board game that originated in Mesopotamia over 4,500 years ago. This document outlines the rules as implemented in this software.
 
 ## The Board
 
 The game is played on a board with 20 squares arranged in three rows:
 
 ```
-    1 2 3 4 5 6 7 8
+      1 2 3 4 5 6 7 8
   ┌──────────────────┐
-A │✧ · · · ✧ · · ✧│
-B │· · · · ✧ · · ·│
-C │✧ · · · ✧ · · ✧│
+  │A  ✧ · · ·     ✧ ·│
+  │B  · · · ✧ · · · ·│
+  │C  ✧ · · ·     ✧ ·│
   └──────────────────┘
 ```
 
 - The ✧ symbols represent "rosette" squares, which grant special privileges.
 - Each player has their own path through the board, sharing the middle row.
 - The path for each player is:
-  - Player A: A1 → A8 → B1 → B8 → C8 → C1
-  - Player B: C1 → C8 → B1 → B8 → A8 → A1
+  - Player A: A4 → A1 → B1 → B8 → A8 → A7
+  - Player B: C4 → C1 → B1 → B8 → C8 → C7
 
 ## Setup
 
@@ -45,7 +45,7 @@ C │✧ · · · ✧ · · ✧│
    - If a player lands on a rosette, they get an extra turn.
    - If a player lands on a square occupied by an opponent's piece, the opponent's piece is captured and must start over.
    - Players cannot land on squares occupied by their own pieces.
-   - The middle rosette (B5) is safe - players cannot capture pieces on this square.
+   - The middle rosette (B4) is safe - players cannot capture pieces on this square.
 
 4. **Leaving the Board**: 
    - Pieces must leave the board on an exact roll.
@@ -61,7 +61,7 @@ The first player to move all seven of their pieces off the board wins the game.
 
 2. **Blocking**: Use your pieces to block your opponent's pieces, especially near the end of their path.
 
-3. **Safe Zones**: The middle rosette (B5) is a safe spot. Use it strategically to protect your pieces.
+3. **Safe Zones**: The middle rosette (B4) is a safe spot. Use it strategically to protect your pieces.
 
 4. **Timing**: Sometimes it's better not to move a piece if it would put it in danger of being captured.
 
