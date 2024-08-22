@@ -4,16 +4,14 @@
 
 ## Introduction
 
-The Royal Game of Ur, also known as the Game of Twenty Squares, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of this ancient game, complete with a command-line interface, robust state machine design, and AI opponents with configurable strategies.
+The Royal Game of Ur, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of the game.
 
 ## Features
 
-- Faithful implementation of the Royal Game of Ur rules
-- Command-line interface for easy gameplay
-- Robust state machine design for game logic
-- Multiple AI opponents with configurable strategies
-- Comprehensive test suite
-- Colorized output for enhanced user experience
+- Implements the [Irving Finkel ruleset](./docs/rules.md)
+- Command-line interface
+- State machine design for game logic
+- Configurable AI strategies
 - Simulation mode for running multiple games with different strategies
 - Cross-platform compatibility (Clojure and ClojureScript)
 
@@ -33,8 +31,8 @@ The game logic follows a finite state machine design. The following diagram illu
 
 This project implements several AI strategies for playing the Royal Game of Ur:
 
-1. **Minimax**: A powerful algorithm that looks ahead several moves, considering both its own opportunities and the opponent's potential responses.
-2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves.
+1. **Minimax**: Looks ahead several moves, considering both its own opportunities and the opponent's potential responses.
+2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves. (in development)
 3. **Random**: Chooses moves randomly.
 4. **First-in-list**: Always chooses the first available move.
 5. **Strategic**: Uses a simple heuristic to prioritize moves.
@@ -45,10 +43,6 @@ For detailed explanations of how these algorithms work, please refer to the docu
 - [Minimax Algorithm](./docs/minimax.md)
 - [Monte Carlo Tree Search (MCTS)](./docs/mcts.md)
 
-## Game Rules
-
-For a comprehensive explanation of the game rules, please see the [Game Rules Documentation](./docs/rules.md).
-
 ## Technologies Used
 
 This project utilizes a variety of technologies and tools:
@@ -58,8 +52,6 @@ This project utilizes a variety of technologies and tools:
 3. [nbb](https://github.com/babashka/nbb): A scripting environment for ClojureScript
 4. [Malli](https://github.com/metosin/malli): A data-driven schema library for Clojure(Script)
 5. [core.async](https://github.com/clojure/core.async): A Clojure(Script) library for asynchronous programming
-6. [JLine](https://github.com/jline/jline3): A Java library for handling console input
-7. [readline-sync](https://github.com/anseki/readline-sync): A npm package for synchronous readline in Node.js
 8. [just](https://github.com/casey/just): A command runner for various development tasks
 9. [asdf](https://asdf-vm.com/): A version manager for multiple runtime versions
 10. [yarn](https://yarnpkg.com/): A package manager for JavaScript
@@ -71,6 +63,8 @@ This project utilizes a variety of technologies and tools:
 ### Prerequisites
 
 This project was developed on a Mac (M1). Users on different operating systems may need to adapt these instructions to their environment.
+
+At present the native build targets ARM64 only.
 
 Before you begin, make sure you have the following installed:
 
@@ -168,7 +162,7 @@ Available parameters:
 - `show`: Show game state
 - `delay`: Delay between moves in milliseconds
 - `parallel`: Number of parallel threads to use
-- `validate`: Enable validation
+- `validate`: Enable validation of the board after each move
 
 Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name.
 
@@ -183,7 +177,7 @@ For more detailed information about available strategies and their parameters, p
 
 ### Running Simulations from Command Line
 
-You can now run simulations directly from the command line using the built executable:
+You can also run simulations directly from the command line using the built executable, this has better performance:
 
 ```
 ./royal-game-of-ur simulate [parameters]
@@ -207,21 +201,6 @@ Example:
 
 This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 6 parallel threads and with validation turned off for improved performance.
 
-
-## Project Structure
-
-- `src/`: Source code files
-- `test/`: Test files
-- `docs/`: Documentation files, including:
-  - `strategies.md`: Detailed explanation of AI strategies
-  - `rules.md`: Comprehensive game rules
-  - `minimax.md`: In-depth look at the Minimax algorithm
-  - `mcts.md`: Detailed explanation of the Monte Carlo Tree Search algorithm
-  - Game board and state machine diagrams
-- `scripts/`: Utility scripts for development
-- `justfile`: Command runner file with various development tasks
-- `.tool-versions`: Specifies the versions of tools used in the project
-
 ## Testing
 
 To run the test suite:
@@ -238,7 +217,7 @@ just watch
 
 ## Building
 
-Build the project (create uberjar and native image):
+Build the project (create uberjar and native ARM64 image):
 
 ```
 just build
@@ -250,19 +229,9 @@ Run the built game:
 ./royal-game-of-ur
 ```
 
-## Troubleshooting
-
-If you encounter any issues during setup or running the game, please check the following:
-
-1. Ensure all prerequisites are correctly installed in the order specified.
-2. Make sure your `PATH` includes the necessary directories for the installed tools.
-3. If you're using a non-Mac system, you may need to adapt some of the commands or find alternative ways to install the required tools.
-
-If problems persist, please open an issue on the GitHub repository.
-
 ## Contributing
 
-This is just a personal project for learning and fun. If you want to submit a pull request, I'll consider looking at it someday. Feel free to fork the repository or use any ideas from it in your own projects.
+This is just a personal project for learning and fun. If you want to submit a pull request, I might look at it someday. Feel free to fork the repository or use any ideas from it in your own projects.
 
 ## License
 
