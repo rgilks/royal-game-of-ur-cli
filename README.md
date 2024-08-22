@@ -160,7 +160,6 @@ Available parameters:
 - `strategy-B`: Strategy for Player B
 - `debug`: Enable debug mode
 - `show`: Show game state
-- `delay`: Delay between moves in milliseconds
 - `parallel`: Number of parallel threads to use
 - `validate`: Enable validation of the board after each move
 
@@ -168,7 +167,7 @@ Strategy-specific parameters can be set using the format `strategy-X-param=value
 
 Example:
 ```
-just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6 validate=false
+just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false parallel=6 validate=false
 ```
 
 This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 4 parallel threads.
@@ -189,14 +188,13 @@ Available parameters:
 - `strategy-B`: Strategy for Player B
 - `debug`: Enable debug mode (true/false)
 - `show`: Show game state (true/false)
-- `delay`: Delay between moves in milliseconds
 - `parallel`: Number of parallel threads to use
 - `validate`: Enable validation (true/false)
 
 Example:
 
 ```
-./royal-game-of-ur simulate num-games=1000 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false delay=0 parallel=6 validate=false
+./royal-game-of-ur simulate num-games=1000 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false parallel=6 validate=false
 ```
 
 This will run 1000 games with the minimax strategy (depth 3) for Player A against the 'first in list' strategy for Player B, using 6 parallel threads and with validation turned off for improved performance.

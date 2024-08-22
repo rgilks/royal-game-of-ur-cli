@@ -1,5 +1,6 @@
 (ns platform
-  #?(:clj (:import [org.jline.terminal TerminalBuilder]))
+  #?(:clj (:import [org.jline.terminal TerminalBuilder]
+                   [java.lang Thread]))
   #?(:clj (:require [clojure.string :as str]))
   #?(:cljs (:require
             [clojure.string :as str]

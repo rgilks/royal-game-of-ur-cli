@@ -47,7 +47,7 @@
                "-H:+ReportExceptionStackTraces"
                "--no-fallback"
                "--verbose"
-               "-O1"
+               "-O3"
                "-H:Name=royal-game-of-ur"
                "-H:ResourceConfigurationFiles=resource-config.json"
                "-H:ReflectionConfigurationFiles=reflect-config.json"]}}}

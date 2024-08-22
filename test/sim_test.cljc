@@ -55,7 +55,7 @@
                                  :roll-dice (assoc game :state :choose-action)
                                  :choose-action (assoc game :state :roll-dice)))
                   view/show-state identity
-                  sim/config-atom (atom {:show? false :delay 0})]
+                  sim/config-atom (atom {:show? false})]
       (is (= {:state :roll-dice
               :board [0 0 0 0 0 0]
               :players {:A {:position 0} :B {:position 0}}
@@ -131,17 +131,15 @@
     (with-redefs [sim/config-atom (atom {:num-games 10
                                          :debug? false
                                          :show? false
-                                         :delay 0
                                          :parallel 8
                                          :validate? true
                                          :strategies {:A {:name :minimax :params {:depth 4}}
                                                       :B {:name :minimax :params {:depth 4}}}})]
-      (sim/parse-args ["num-games=20" "debug=true" "show=true" "delay=100" "parallel=4" "validate=false"
+      (sim/parse-args ["num-games=20" "debug=true" "show=true" "parallel=4" "validate=false"
                        "strategy-A=mcts" "strategy-A-iterations=200" "strategy-B=first-in-list"])
       (is (= {:num-games 20
               :debug? true
               :show? true
-              :delay 100
               :parallel 4
               :validate? false
               :strategies {:A {:name :mcts :params {:iterations 200}}

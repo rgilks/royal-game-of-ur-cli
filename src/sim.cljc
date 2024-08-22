@@ -13,10 +13,11 @@
             [validate]
             [view]))
 
+(def delay-time 30)
+
 (def config-atom
   (atom {:debug? false
          :show? false
-         :delay 0
          :num-games 10
          :parallel 8
          :validate? false  ; New key for validation flag
@@ -69,16 +70,17 @@
   (assoc game :game-over true))
 
 (defn play-turn [game]
-  (loop [current-game game]
-    (let [updated-game (handle current-game)]
-      (when (:show? @config-atom)
-        (platform/clear-console))
-      (view/show-state updated-game)
-      (when (:show? @config-atom)
-        (platform/sleep (:delay @config-atom)))
-      (if (or (:game-over updated-game) (= (:state updated-game) :roll-dice))
-        updated-game
-        (recur updated-game)))))
+  (let [show (:show? @config-atom)]
+    (loop [current-game game]
+      (let [updated-game (handle current-game)]
+        (when show
+          (platform/clear-console))
+        (view/show-state updated-game)
+        (when show
+          (platform/sleep delay-time))
+        (if (or (:game-over updated-game) (= (:state updated-game) :roll-dice))
+          updated-game
+          (recur updated-game))))))
 
 (defn play-game
   ([]
@@ -184,7 +186,6 @@
            {:num-games (or (platform/parse-int (get arg-map "num-games")) (:num-games @config-atom))
             :debug? (platform/parse-bool (get arg-map "debug" "false"))
             :show? (platform/parse-bool (get arg-map "show" "false"))
-            :delay (or (platform/parse-int (get arg-map "delay")) (:delay @config-atom))
             :parallel (or (platform/parse-int (get arg-map "parallel")) (:parallel @config-atom))
             :validate? (platform/parse-bool (get arg-map "validate" "true"))  ; New line for validate flag
             :strategies (merge-with merge
@@ -244,7 +245,6 @@
   (print-strategy-info :B)
   (println "Debug mode:" (:debug? @config-atom))
   (println "Show mode:" (:show? @config-atom))
-  (println "Delay:" (:delay @config-atom))
   (println "Parallel:" (:parallel @config-atom))
   (println "Validation:" (:validate? @config-atom)))
 
@@ -257,7 +257,6 @@
   (swap! config-atom merge
          {:debug? false
           :show? false
-          :delay 0
           :num-games 10000
           :parallel 6
           :validate? false
