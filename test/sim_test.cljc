@@ -1,6 +1,6 @@
 (ns sim-test
   (:require [clojure.test :refer [are deftest is testing]]
-            [game :as game]
+            [engine :as game]
             [sim :as sim]
             [validate]
             [view :as view]))
@@ -23,8 +23,8 @@
                 :selected-move nil
                 :strategy {:name :first-in-list}}
           possible-moves [{:type :move, :from 1, :to 2}]]
-      (with-redefs [game/select-move (constantly (first possible-moves))
-                    game/choose-action (fn [g m] (assoc g :selected-move m))]
+      (with-redefs [engine/select-move (constantly (first possible-moves))
+                    engine/choose-action (fn [g m] (assoc g :selected-move m))]
         (is (= (assoc game :selected-move (first possible-moves))
                (sim/handle-choose-action game (:name (:strategy game)))))))))
 
@@ -36,7 +36,7 @@
                      :roll 0
                      :selected-move nil
                      :strategy {:name :first-in-list}}]
-      (with-redefs [game/roll (fn [g] (assoc g :roll 7))
+      (with-redefs [engine/roll (fn [g] (assoc g :roll 7))
                     view/show-winner (constantly nil)]
         (are [input expected] (= expected (sim/handle input))
           (assoc base-game :state :start-game)
@@ -71,13 +71,13 @@
 
 (deftest test-play-game
   (testing "play-game function"
-    (with-redefs [game/init (constantly {:current-player :A
-                                         :board (vec (repeat 24 nil))
-                                         :players {:A {:in-hand 7 :off-board 0}
-                                                   :B {:in-hand 7 :off-board 0}}
-                                         :roll nil
-                                         :state :start-game
-                                         :selected-move nil})
+    (with-redefs [engine/init (constantly {:current-player :A
+                                           :board (vec (repeat 24 nil))
+                                           :players {:A {:in-hand 7 :off-board 0}
+                                                     :B {:in-hand 7 :off-board 0}}
+                                           :roll nil
+                                           :state :start-game
+                                           :selected-move nil})
                   sim/play-turn (fn [game] (assoc game :game-over true))
                   sim/config-atom (atom {:show? false
                                          :validate? false
@@ -104,7 +104,7 @@
 ;;   (testing "run-simulation function"
 ;;     (with-redefs [sim/run-single-chunk (constantly {:wins {:A 5 :B 5} :total-moves 50})
 ;;                   sim/config-atom (atom {:num-games 10 :parallel 2})
-;;                   game/select-move (fn [_ _] nil)] ; Add this line to prevent the multimethod error
+;;                   engine/select-move (fn [_ _] nil)] ; Add this line to prevent the multimethod error
 ;;       (is (= {:wins {:A 10 :B 10} :total-moves 100 :num-games 10}
 ;;              (sim/run-simulation))))))
 

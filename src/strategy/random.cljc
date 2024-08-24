@@ -1,6 +1,6 @@
 (ns strategy.random
-  (:require [game :refer [select-move]]))
+  (:require [engine :refer [select-move]]))
 
 (defmethod select-move :random [_ game]
-  (when-let [possible-moves (game/get-possible-moves game)]
+  (when-let [possible-moves (engine/get-possible-moves game)]
     (rand-nth possible-moves)))

@@ -1,7 +1,7 @@
 (ns strategy.mcts
   (:require [clojure.math :as math]
             [config]
-            [game :as game]
+            [engine :as game]
             [platform])
   #?(:clj (:import [java.util.concurrent Executors Future])))
 
@@ -17,7 +17,7 @@
 
 (defn- score-player [game player]
   (let [off-board (get-in game [:players player :off-board])
-        on-board-pieces (game/get-piece-positions (:board game) player)
+        on-board-pieces (engine/get-piece-positions (:board game) player)
         on-board-count (count on-board-pieces)
         rosette-count (count (filter #(contains? (get-in config/board [:rosettes]) %) on-board-pieces))
         last-square (last (get-in config/board [:paths player]))
@@ -31,7 +31,7 @@
   (if-let [cached-value (get-cached-evaluation game)]
     cached-value
     (let [current-player (:current-player game)
-          opponent (game/other-player current-player)
+          opponent (engine/other-player current-player)
           value (- (score-player game current-player)
                    (score-player game opponent))]
       (cache-evaluation game value)
@@ -41,17 +41,17 @@
   (if (= :end-game (:state game))
     game
     (-> game
-        (game/choose-action move)
+        (engine/choose-action move)
         (as-> g
               (if (= :roll-dice (:state g))
-                (game/roll g)
+                (engine/roll g)
                 g))
         (assoc :selected-move nil))))
 
 (defn- expand [node]
   (if (= :end-game (:state (:game node)))
     node
-    (let [moves (game/get-possible-moves (:game node))
+    (let [moves (engine/get-possible-moves (:game node))
           new-children (mapv (fn [move]
                                (->Node (get-next-state (:game node) move)
                                        move
@@ -109,8 +109,8 @@
     (if (or (> steps 100) (= :end-game (:state state)))
       [(evaluate-state state) moves]
       (case (:state state)
-        :roll-dice (recur (game/roll state) (inc steps) moves)
-        :choose-action (let [possible-moves (game/get-possible-moves state)]
+        :roll-dice (recur (engine/roll state) (inc steps) moves)
+        :choose-action (let [possible-moves (engine/get-possible-moves state)]
                          (if (seq possible-moves)
                            (let [move (rand-nth possible-moves)]
                              (recur (get-next-state state move) (inc steps) (conj moves move)))
@@ -176,7 +176,7 @@
            (recur updated-root (dec iter)))))))
 
 (defn select-move [game]
-  (let [possible-moves (game/get-possible-moves game)]
+  (let [possible-moves (engine/get-possible-moves game)]
     (when (seq possible-moves)
       (let [iterations (get-in game [:strategy :params :iterations] 10000)
             exploration-param (get-in game [:strategy :params :exploration] 1.41)
@@ -189,5 +189,5 @@
           (:move best-child)
           (rand-nth possible-moves))))))
 
-(defmethod game/select-move :mcts [_ game]
+(defmethod engine/select-move :mcts [_ game]
   (select-move game))

@@ -1,7 +1,7 @@
 (ns cli-test
   (:require [cli]
             [clojure.test :refer [are deftest is testing]]
-            [game]
+            [engine]
             [platform]
             [test-utils :refer [thrown-with-msg?]]
             [util]
@@ -49,7 +49,7 @@
       (is (= {:from :entry :to 4} (cli/get-move :A [{:from :entry :to 4}] nil)))))
 
   (testing "Get move for player B (AI)"
-    (with-redefs [game/select-move (constantly {:from 0 :to 4})]
+    (with-redefs [engine/select-move (constantly {:from 0 :to 4})]
       (is (= {:from 0 :to 4} (cli/get-move :B [{:from 0 :to 4}] nil)))))
 
   (testing "No moves available"
@@ -57,28 +57,28 @@
 
 (deftest test-handle
   (testing "Handle roll dice state"
-    (with-redefs [game/roll (constantly :rolled-game)]
+    (with-redefs [engine/roll (constantly :rolled-game)]
       (is (= :rolled-game (cli/handle {:state :roll-dice})))))
 
   (testing "Handle choose action with no moves"
-    (with-redefs [game/get-moves (constantly [])
+    (with-redefs [engine/get-moves (constantly [])
                   view/show-no-moves (constantly nil)
                   platform/sleep (constantly nil)
-                  game/choose-action (constantly :next-game)]
+                  engine/choose-action (constantly :next-game)]
       (is (= :next-game (cli/handle {:state :choose-action, :current-player :A})))))
 
   (testing "Handle choose action for player A"
     (let [move {:from :entry :to 4}]
-      (with-redefs [game/get-moves (constantly [move])
+      (with-redefs [engine/get-moves (constantly [move])
                     cli/get-move (constantly move)
-                    game/choose-action (constantly :next-game)]
+                    engine/choose-action (constantly :next-game)]
         (is (= :next-game (cli/handle {:state :choose-action, :current-player :A}))))))
 
   (testing "Handle choose action for player B (AI)"
     (let [move {:from :entry :to 4}]
-      (with-redefs [game/get-moves (constantly [move])
+      (with-redefs [engine/get-moves (constantly [move])
                     cli/get-move (constantly move)
-                    game/choose-action (constantly :next-game)
+                    engine/choose-action (constantly :next-game)
                     view/show-ai-move (constantly nil)
                     platform/sleep (constantly nil)]
         (is (= :next-game (cli/handle {:state :choose-action, :current-player :B}))))))
@@ -95,7 +95,7 @@
                   util/hide-cursor (constantly nil)
                   view/show-welcome (constantly nil)
                   platform/readln (constantly nil)
-                  game/start-game (constantly {:state :end-game, :current-player :A})
+                  engine/start-game (constantly {:state :end-game, :current-player :A})
                   view/show-state (constantly nil)
                   platform/sleep (constantly nil)
                   cli/handle (fn [game] (throw (ex-info "Game over" {:reason :expected})))
@@ -107,7 +107,7 @@
                   util/hide-cursor (constantly nil)
                   view/show-welcome (constantly nil)
                   platform/readln (constantly nil)
-                  game/start-game (constantly {:state :roll-dice})
+                  engine/start-game (constantly {:state :roll-dice})
                   view/show-state (constantly nil)
                   platform/sleep (constantly nil)
                   cli/handle (fn [game] (throw (ex-info "Unexpected error" {:reason :unexpected})))

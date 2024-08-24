@@ -36,7 +36,7 @@ This structure represents a node in the MCTS tree, containing:
 ```clojure
 (defn- score-player [game player]
   (let [off-board (get-in game [:players player :off-board])
-        on-board-pieces (game/get-piece-positions (:board game) player)
+        on-board-pieces (engine/get-piece-positions (:board game) player)
         on-board-count (count on-board-pieces)
         rosette-count (count (filter #(contains? (get-in config/board [:rosettes]) %) on-board-pieces))
         last-square (last (get-in config/board [:paths player]))
@@ -50,7 +50,7 @@ This structure represents a node in the MCTS tree, containing:
   (if-let [cached-value (get-cached-evaluation game)]
     cached-value
     (let [current-player (:current-player game)
-          opponent (game/other-player current-player)
+          opponent (engine/other-player current-player)
           value (- (score-player game current-player)
                    (score-player game opponent))]
       (cache-evaluation game value)
@@ -105,8 +105,8 @@ The exploration parameter and RAVE parameter can be tuned to adjust the balance 
     (if (or (> steps 100) (= :end-game (:state state)))
       [(evaluate-state state) moves]
       (case (:state state)
-        :roll-dice (recur (game/roll state) (inc steps) moves)
-        :choose-action (let [possible-moves (game/get-possible-moves state)]
+        :roll-dice (recur (engine/roll state) (inc steps) moves)
+        :choose-action (let [possible-moves (engine/get-possible-moves state)]
                          (if (seq possible-moves)
                            (let [move (rand-nth possible-moves)]
                              (recur (get-next-state state move) (inc steps) (conj moves move)))
@@ -185,7 +185,7 @@ The main MCTS algorithm is implemented in the `select-move` function:
 
 ```clojure
 (defn select-move [game]
-  (let [possible-moves (game/get-possible-moves game)]
+  (let [possible-moves (engine/get-possible-moves game)]
     (when (seq possible-moves)
       (let [iterations (get-in game [:strategy :params :iterations] 10000)
             exploration-param (get-in game [:strategy :params :exploration] 1.41)

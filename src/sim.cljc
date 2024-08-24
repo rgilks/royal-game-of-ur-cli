@@ -2,7 +2,7 @@
   (:require #?(:clj [clojure.core.async :as async])
             [clojure.string :as str]
             [config]
-            [game]
+            [engine]
             [platform]
             [strategy.first-in-list]
             [strategy.mcts]
@@ -40,13 +40,13 @@
     (apply println args)))
 
 (defn handle-choose-action [game strategy]
-  (if-let [move (game/select-move strategy game)]
+  (if-let [move (engine/select-move strategy game)]
     (do
       (debug "Player" (:current-player game) "chose move:" (pr-str move))
-      (game/choose-action game move))
+      (engine/choose-action game move))
     (do
       (debug "Player" (:current-player game) "has no valid moves")
-      (game/choose-action game nil))))
+      (engine/choose-action game nil))))
 
 (defmulti handle :state)
 
@@ -55,12 +55,12 @@
   (assoc game :state :roll-dice))
 
 (defmethod handle :roll-dice [game]
-  (let [rolled-game (game/roll game)]
+  (let [rolled-game (engine/roll game)]
     (debug "Player" (:current-player rolled-game) "rolled" (:roll rolled-game))
     rolled-game))
 
 (defmethod handle :choose-action [game]
-  (let [possible-moves (game/get-moves game)]
+  (let [possible-moves (engine/get-moves game)]
     (debug "Possible moves for" (:current-player game) ":" (pr-str possible-moves))
     (handle-choose-action game (get-in game [:strategy :name]))))
 
@@ -84,7 +84,7 @@
 
 (defn play-game
   ([]
-   (play-game (game/init)))
+   (play-game (engine/init)))
   ([initial-state]
    (if (:show? @config-atom)
      (enable-print-line!)

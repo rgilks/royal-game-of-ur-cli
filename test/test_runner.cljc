@@ -4,7 +4,7 @@
             [cljs.test :as test :refer-macros [run-tests] :refer [report]]
             [clojure.data :as data]
             [clojure.string :as str]
-            [game-test]
+            [engine-test]
             [sim-test]
             [strategy.mcts-test]
             [strategy.minimax-test]
@@ -79,7 +79,7 @@
    'validate-test
    'strategy.minimax-test
    'strategy.mcts-test
-   'game-test)
+   'engine-test)
   ;; Enable logging after tests if needed
   (enable-print-line!))
 

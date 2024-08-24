@@ -1,6 +1,6 @@
 (ns strategy.minimax-test
   (:require [clojure.test :refer [deftest is testing]]
-            [game]
+            [engine]
             [strategy.minimax :as minimax]))
 
 (deftest test-select-move

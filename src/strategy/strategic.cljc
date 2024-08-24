@@ -1,9 +1,9 @@
 (ns strategy.strategic
   (:require [config]
-            [game :refer [select-move]]))
+            [engine :refer [select-move]]))
 
 (defmethod select-move :strategic [_ game]
-  (let [possible-moves (game/get-possible-moves game)
+  (let [possible-moves (engine/get-possible-moves game)
         player (:current-player game)
         path (get-in config/board [:paths player])
         last-square (last path)]
