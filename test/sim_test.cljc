@@ -8,11 +8,11 @@
 
 (deftest test-debug-function
   (testing "debug function"
-    (with-redefs [config/game (atom {:debug? true})]
+    (with-redefs [config/game (atom {:debug true})]
       (is (= "Debug message\n"
              (with-out-str (sim/debug "Debug message")))))
 
-    (with-redefs [config/game (atom {:debug? false})]
+    (with-redefs [config/game (atom {:debug false})]
       (is (= "" (with-out-str (sim/debug "Debug message")))))))
 
 (deftest test-handle-choose-action
@@ -56,7 +56,7 @@
                                  :roll-dice (assoc game :state :choose-action)
                                  :choose-action (assoc game :state :roll-dice)))
                   view/show-state identity
-                  config/game (atom {:show? false})]
+                  config/game (atom {:show false})]
       (is (= {:state :roll-dice
               :board [0 0 0 0 0 0]
               :players {:A {:position 0} :B {:position 0}}
@@ -80,8 +80,8 @@
                                            :state :start-game
                                            :selected-move nil})
                   sim/play-turn (fn [game] (assoc game :game-over true))
-                  config/game (atom {:show? false
-                                     :validate? false
+                  config/game (atom {:show false
+                                     :validate false
                                      :strategies {:A {:name :minimax :params {:depth 3}}}})]
       (is (= {:current-player :A
               :board (vec (repeat 24 nil))

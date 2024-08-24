@@ -32,4 +32,18 @@
       [:to [:or board-position [:enum :off-board]]]
       [:captured [:maybe [:enum :A :B]]]]]]])
 
-;; TODO: Add strategy to player
+(def config
+  [:map
+   [:debug boolean?]
+   [:show boolean?]
+   [:num-games pos-int?]
+   [:delay-time pos-int?]
+   [:long-wait pos-int?]
+   [:short-wait pos-int?]
+   [:parallel pos-int?]
+   [:validate boolean?]
+   [:strategies
+    [:map-of keyword?
+     [:map
+      [:name keyword?]
+      [:params {:optional true} [:map-of keyword? any?]]]]]])

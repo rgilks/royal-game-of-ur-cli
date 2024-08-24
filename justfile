@@ -118,12 +118,12 @@ build:
     ./scripts/build_project.sh
 
 # Run a simulation with custom parameters (nbb)
-# Usage: just nbb sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
+# Usage: just nbb sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 nbb *args:
     yarn cli {{args}}
 
 # Run a simulation with custom parameters (Clojure)
-# Usage: just clj sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
+# Usage: just clj sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 clj *args:
     clojure -M:clj {{args}}
 

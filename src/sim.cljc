@@ -14,7 +14,7 @@
             [view]))
 
 (defn debug [& args]
-  (when (:debug? @config/game)
+  (when (:debug @config/game)
     (apply println args)))
 
 (defn handle-choose-action [game strategy]
@@ -48,7 +48,7 @@
   (assoc game :game-over true))
 
 (defn play-turn [game]
-  (let [show (:show? @config/game)]
+  (let [show (:show @config/game)]
     (loop [current-game game]
       (let [updated-game (handle current-game)]
         (when show
@@ -64,7 +64,7 @@
   ([]
    (play-game (engine/init)))
   ([initial-state]
-   (if (:show? @config/game)
+   (if (:show @config/game)
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc
@@ -177,11 +177,11 @@
 
 (comment
   (swap! config/game merge
-         {:debug? false
-          :show? false
+         {:debug false
+          :show false
           :num-games 10000
           :parallel 6
-          :validate? false
+          :validate false
           :strategies
           {:A {:name :minimax :params {:depth 4}}
            :B {:name :minimax :params {:depth 4}}}})

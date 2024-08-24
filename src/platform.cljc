@@ -31,6 +31,19 @@
     (string? s) (= (clojure.string/lower-case s) "true")
     :else (boolean s)))
 
+(defn parse-value [v]
+  (cond
+    (number? v) v
+    (string? v)
+    (cond
+      (re-matches #"^\d+(\.\d+)?$" v)
+      (if (re-matches #"\." v)
+        (parse-float v)
+        (parse-int v))
+      (re-matches #"(?i)true|false" v) (parse-bool v)
+      :else (keyword v))
+    :else v))
+
 (defn readln []
   #?(:clj  (read-line)
      :cljs (.question readline-sync "")))
