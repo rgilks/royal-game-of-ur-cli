@@ -13,30 +13,8 @@
             [validate]
             [view]))
 
-(def delay-time 30)
-
-(def config-atom
-  (atom {:debug? false
-         :show? false
-         :num-games 10
-         :parallel 8
-         :validate? false  ; New key for validation flag
-        ;;  :strategies
-        ;;  {:A {:name :minimax :params {:depth 4}}
-        ;;   :B {:name :minimax :params {:depth 4}}}}))
-         :strategies {:A {:name :mcts
-                          :params {:iterations 100
-                                   :exploration 1.41}}
-                      :B {:name :first-in-list}
-                      ;; :B {:name :mcts
-                      ;;     :params {:iterations 10
-                      ;;              :exploration 1.41}}
-                      ;; :B {:name :minimax
-                      ;;     :params {:depth 4}}
-                      }}))
-
 (defn debug [& args]
-  (when (:debug? @config-atom)
+  (when (:debug? @config/game)
     (apply println args)))
 
 (defn handle-choose-action [game strategy]
@@ -70,14 +48,14 @@
   (assoc game :game-over true))
 
 (defn play-turn [game]
-  (let [show (:show? @config-atom)]
+  (let [show (:show? @config/game)]
     (loop [current-game game]
       (let [updated-game (handle current-game)]
         (when show
           (platform/clear-console))
         (view/show-state updated-game)
         (when show
-          (platform/sleep delay-time))
+          (platform/sleep (:delay-time @config/game)))
         (if (or (:game-over updated-game) (= (:state updated-game) :roll-dice))
           updated-game
           (recur updated-game))))))
@@ -86,12 +64,12 @@
   ([]
    (play-game (engine/init)))
   ([initial-state]
-   (if (:show? @config-atom)
+   (if (:show? @config/game)
      (enable-print-line!)
      (disable-print-line!))
    (loop [game (assoc
                 initial-state
-                :strategy (get-in @config-atom
+                :strategy (get-in @config/game
                                   [:strategies (:current-player initial-state)]))
           move-count 0]
      (if (:game-over game)
@@ -99,7 +77,7 @@
        (recur
         (-> game
             (play-turn)
-            (assoc :strategy (get-in @config-atom [:strategies (:current-player game)])))
+            (assoc :strategy (get-in @config/game [:strategies (:current-player game)])))
         (inc move-count))))))
 
 (defn run-single-chunk [chunk]
@@ -115,8 +93,8 @@
 
 (defn run-simulation []
   #?(:clj
-     (let [num-games (:num-games @config-atom)
-           parallel (:parallel @config-atom)
+     (let [num-games (:num-games @config/game)
+           parallel (:parallel @config/game)
            chunk-size (max 1 (quot num-games parallel))
            chunks (partition-all chunk-size (range num-games))
            results-chan (async/chan)]
@@ -148,7 +126,7 @@
                        {:wins {} :total-moves 0 :num-games (reduce + (map count results))}
                        results))))))
      :cljs
-     (let [num-games (:num-games @config-atom)]
+     (let [num-games (:num-games @config/game)]
        (loop [games-left num-games
               wins {:A 0 :B 0}
               total-moves 0]
@@ -160,48 +138,6 @@
              (recur (dec games-left)
                     (update wins winner (fnil inc 0))
                     (+ total-moves moves))))))))
-
-(defn parse-value [v]
-  (cond
-    (number? v) v
-    (string? v)
-    (cond
-      (re-matches #"^\d+(\.\d+)?$" v)
-      (if (re-matches #"\." v)
-        (platform/parse-float v)
-        (platform/parse-int v))
-      (re-matches #"(?i)true|false" v) (platform/parse-bool v)
-      :else (keyword v))
-    :else v))
-
-(defn parse-args [args]
-  (let [arg-map (into {} (map #(let [[k v] (str/split % #"=")] [k (parse-value v)]) args))
-        strategies (reduce (fn [acc [k v]]
-                             (if-let [[_ player param] (re-matches #"strategy-(A|B)-(.*)" k)]
-                               (assoc-in acc [(keyword player) :params (keyword param)] v)
-                               acc))
-                           {}
-                           arg-map)]
-    (swap! config-atom merge
-           {:num-games (or (platform/parse-int (get arg-map "num-games")) (:num-games @config-atom))
-            :debug? (platform/parse-bool (get arg-map "debug" "false"))
-            :show? (platform/parse-bool (get arg-map "show" "false"))
-            :parallel (or (platform/parse-int (get arg-map "parallel")) (:parallel @config-atom))
-            :validate? (platform/parse-bool (get arg-map "validate" "true"))  ; New line for validate flag
-            :strategies (merge-with merge
-                                    (:strategies @config-atom)
-                                    {:A (merge (:A strategies)
-                                               {:name (keyword (get arg-map "strategy-A"))})
-                                     :B (merge (:B strategies)
-                                               {:name (keyword (get arg-map "strategy-B"))})})})))
-
-(defn print-strategy-info [player]
-  (let [{:keys [name params]} (get-in @config-atom [:strategies player])]
-    (println
-     (str "Player " (clojure.core/name player)
-          " strategy: " (clojure.core/name name)
-          (when (seq params)
-            (str " " params))))))
 
 (defn format-number [n decimals]
   (let [factor (Math/pow 10 decimals)
@@ -223,15 +159,15 @@
                        (println (str label ": " (format-number value decimals))))]
     (println "\nSimulation Results:")
     (println "Total games:" num-games)
-    (println "Strategy A (Player A):" (get-in @config-atom [:strategies :A :name]))
-    (println "Strategy B (Player B):" (get-in @config-atom [:strategies :B :name]))
+    (println "Strategy A (Player A):" (get-in @config/game [:strategies :A :name]))
+    (println "Strategy B (Player B):" (get-in @config/game [:strategies :B :name]))
     (println "Player A wins:" a-wins)
     (println "Player B wins:" b-wins)
     (print-metric "Player A win percentage" win-percentage-a 2)
     (print-metric "Average moves per game" avg-moves-per-game 0)
     (print-metric "Elapsed time" elapsed-time 2)))
 
-(defn run-simulation-and-report []
+(defn run-and-report []
   (let [start-time #?(:clj (System/nanoTime) :cljs (js/Date.now))
         results (run-simulation)
         end-time #?(:clj (System/nanoTime) :cljs (js/Date.now))
@@ -239,22 +175,8 @@
                         :cljs (/ (- end-time start-time) 1000))]
     (print-simulation-results results elapsed-time)))
 
-(defn print-config []
-  (println "Running" (:num-games @config-atom) "games...")
-  (print-strategy-info :A)
-  (print-strategy-info :B)
-  (println "Debug mode:" (:debug? @config-atom))
-  (println "Show mode:" (:show? @config-atom))
-  (println "Parallel:" (:parallel @config-atom))
-  (println "Validation:" (:validate? @config-atom)))
-
-(defn -main [& args]
-  (parse-args args)
-  (print-config)
-  (run-simulation-and-report))
-
 (comment
-  (swap! config-atom merge
+  (swap! config/game merge
          {:debug? false
           :show? false
           :num-games 10000
@@ -273,5 +195,4 @@
           ;;           ;; :B {:name :minimax
           ;;           ;;     :params {:depth 4}}
           ;;              }})
-  (print-config)
-  (run-simulation-and-report))
+  (run-and-report))

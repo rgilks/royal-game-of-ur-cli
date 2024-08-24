@@ -5,6 +5,7 @@
             [clojure.data :as data]
             [clojure.string :as str]
             [engine-test]
+            [play-test]
             [sim-test]
             [strategy.mcts-test]
             [strategy.minimax-test]
@@ -75,6 +76,7 @@
    'util-test
    'cli-test
    'sim-test
+   'play-test
    'view-test
    'validate-test
    'strategy.minimax-test

@@ -3,8 +3,7 @@
     "update": "ncu -u && rm -rf node_modules && rm yarn.lock && yarn",
     "test": "nbb -cp src:test -m test-runner",
     "test:watch": "nodemon --watch src --watch test --ext cljs,cljc --exec 'clear && echo \"Running tests...\" && yarn test || true'",
-    "cli": "nbb -cp src -m cli",
-    "sim": "nbb -cp src -m sim"
+    "cli": "nbb -cp src -m cli"
   },
   "dependencies": {
     "nbb": "^1.2.191",

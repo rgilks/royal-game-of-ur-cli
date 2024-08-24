@@ -1,93 +1,68 @@
 (ns cli
   (:gen-class)
-  (:require [config]
-            [engine]
+  (:require [clojure.string :as str]
+            [config]
             [platform]
-            [sim :as sim]
-            [strategy.first-in-list]
-            [strategy.minimax]
-            [strategy.random]
-            [strategy.strategic]
-            [util]
-            [view]))
+            [play]
+            [sim]))
 
-(def long-wait 1000)
-(def short-wait 300)
-
-;; (def long-wait 0)
-;; (def short-wait 0)
-
-(defn get-user-move [possible-moves]
-  (when (seq possible-moves)
-    (view/show-moves possible-moves)
-    (loop []
-      (let [input (platform/read-single-key)]
-        (case input
-          "q" (throw (ex-info "User quit" {:reason :expected}))
-          (let [choice (platform/parse-int input)]
-            (if (and (pos? choice) (<= choice (count possible-moves)))
-              (nth possible-moves (dec choice))
-              (do
-                (view/show-invalid-choice (count possible-moves))
-                (recur)))))))))
-
-(defmulti handle :state)
-
-(defmethod handle :roll-dice [game]
-  (engine/roll game))
-
-(defn get-move [player possible-moves game]
+(defn parse-value [v]
   (cond
-    (empty? possible-moves) nil
-    (= player :A) (get-user-move possible-moves)
-    :else (engine/select-move (get-in game [:strategy :name]) game)))
+    (number? v) v
+    (string? v)
+    (cond
+      (re-matches #"^\d+(\.\d+)?$" v)
+      (if (re-matches #"\." v)
+        (platform/parse-float v)
+        (platform/parse-int v))
+      (re-matches #"(?i)true|false" v) (platform/parse-bool v)
+      :else (keyword v))
+    :else v))
 
-(defmethod handle :choose-action [game]
-  (let [possible-moves (engine/get-moves game)
-        player (:current-player game)]
-    (if-let [move (get-move player possible-moves game)]
-      (do
-        (when (= player :B)
-          (view/show-ai-move move)
-          (platform/sleep long-wait))
-        (engine/choose-action game move))
-      (do
-        (view/show-no-moves)
-        (platform/sleep long-wait)
-        (engine/choose-action game nil)))))
+(defn parse-args [args]
+  (let [arg-map (into {} (map #(let [[k v] (str/split % #"=")] [k (parse-value v)]) args))
+        strategies (reduce (fn [acc [k v]]
+                             (if-let [[_ player param] (re-matches #"strategy-(A|B)-(.*)" k)]
+                               (assoc-in acc [(keyword player) :params (keyword param)] v)
+                               acc))
+                           {}
+                           arg-map)]
+    (swap! config/game merge
+           {:num-games (or (platform/parse-int (get arg-map "num-games")) (:num-games @config/game))
+            :debug? (platform/parse-bool (get arg-map "debug" "false"))
+            :show? (platform/parse-bool (get arg-map "show" "false"))
+            :parallel (or (platform/parse-int (get arg-map "parallel")) (:parallel @config/game))
+            :validate? (platform/parse-bool (get arg-map "validate" "true"))  ; New line for validate flag
+            :strategies
+            (merge-with
+             merge
+             (:strategies @config/game)
+             {:A (merge (:A strategies)
+                        {:name (keyword (get arg-map "strategy-A"))})
+              :B (merge (:B strategies)
+                        {:name (keyword (get arg-map "strategy-B"))})})})))
 
-(defmethod handle :end-game [game]
-  (view/show-winner (:current-player game))
-  (throw (ex-info "Game over" {:reason :expected}))
-  game)
+(defn print-strategy-info [player]
+  (let [{:keys [name params]} (get-in @config/game [:strategies player])]
+    (println
+     (str "Player " (clojure.core/name player)
+          " strategy: " (clojure.core/name name)
+          (when (seq params)
+            (str " " params))))))
 
-(defn play-game [ai-strategy ai-depth]
-  (platform/clear-console)
-  (util/hide-cursor)
-  (view/show-welcome)
-  (platform/readln)
-  (try
-    (loop [game (-> (engine/start-game)
-                    (assoc-in [:strategy :name] ai-strategy)
-                    (assoc-in [:strategy :params :depth] ai-depth))]
-      (platform/clear-console)
-      (view/show-state game)
-      (platform/sleep short-wait)
-      (recur (handle game)))
-    (catch #?(:clj Throwable :cljs :default) e
-      (when-not (= :expected (:reason (ex-data e)))
-        (throw e)))
-    (finally
-      (util/show-cursor))))
-
-(defn run-simulation [args]
-  (sim/parse-args args)
-  (sim/print-config)
-  (sim/run-simulation-and-report))
+(defn print-config []
+  (println "Running" (:num-games @config/game) "games...")
+  (print-strategy-info :A)
+  (print-strategy-info :B)
+  (println "Debug mode:" (:debug? @config/game))
+  (println "Show mode:" (:show? @config/game))
+  (println "Parallel:" (:parallel @config/game))
+  (println "Validation:" (:validate? @config/game)))
 
 (defn -main [& args]
-  (if (= (first args) "simulate")
-    (run-simulation (rest args))
+  (parse-args (rest args))
+  (if (= (first args) "sim")
     (do
-      (play-game :minimax 10)
-      (view/show-goodbye))))
+      (print-config)
+      (sim/run-and-report))
+    (play/ur :minimax 10)))

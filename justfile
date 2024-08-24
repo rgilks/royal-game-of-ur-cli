@@ -117,23 +117,15 @@ test-clj:
 build:
     ./scripts/build_project.sh
 
-# Run the CLI application (nbb)
-run:
-    yarn cli
-
-# Run the CLI application (Clojure)
-run-clj:
-    clojure -M:run
-
 # Run a simulation with custom parameters (nbb)
-# Usage: just sim-nbb num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
-sim-nbb *args:
-    yarn sim {{args}}
+# Usage: just nbb sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
+nbb *args:
+    yarn cli {{args}}
 
 # Run a simulation with custom parameters (Clojure)
-# Usage: just sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
-sim *args:
-    clojure -M:sim {{args}}
+# Usage: just clj sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug?=<bool> show?=<bool> parallel=<num> validate=<bool>
+clj *args:
+    clojure -M:clj {{args}}
 
 # =================
 # Utility Commands
@@ -157,16 +149,12 @@ docker-build:
     docker build --platform linux/arm64 -t royal-game-of-ur .
 
 # Run the application in a Docker container with passed arguments
-docker-run *args:
+# Usage: just docker sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
+docker *args:
     docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}}
 
 # Build and run in Docker with passed arguments
 docker-build-run *args:
     just docker-build
-    just docker-run {{args}}
-
-# Run a simulation with custom parameters in Docker
-# Usage: just sim-docker num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
-sim-docker *args:
-    just docker-run {{args}}
+    just docker {{args}}
 

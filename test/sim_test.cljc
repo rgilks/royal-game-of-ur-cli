@@ -1,5 +1,6 @@
 (ns sim-test
   (:require [clojure.test :refer [are deftest is testing]]
+            [config]
             [engine :as game]
             [sim :as sim]
             [validate]
@@ -7,11 +8,11 @@
 
 (deftest test-debug-function
   (testing "debug function"
-    (with-redefs [sim/config-atom (atom {:debug? true})]
+    (with-redefs [config/game (atom {:debug? true})]
       (is (= "Debug message\n"
              (with-out-str (sim/debug "Debug message")))))
 
-    (with-redefs [sim/config-atom (atom {:debug? false})]
+    (with-redefs [config/game (atom {:debug? false})]
       (is (= "" (with-out-str (sim/debug "Debug message")))))))
 
 (deftest test-handle-choose-action
@@ -55,7 +56,7 @@
                                  :roll-dice (assoc game :state :choose-action)
                                  :choose-action (assoc game :state :roll-dice)))
                   view/show-state identity
-                  sim/config-atom (atom {:show? false})]
+                  config/game (atom {:show? false})]
       (is (= {:state :roll-dice
               :board [0 0 0 0 0 0]
               :players {:A {:position 0} :B {:position 0}}
@@ -79,9 +80,9 @@
                                            :state :start-game
                                            :selected-move nil})
                   sim/play-turn (fn [game] (assoc game :game-over true))
-                  sim/config-atom (atom {:show? false
-                                         :validate? false
-                                         :strategies {:A {:name :minimax :params {:depth 3}}}})]
+                  config/game (atom {:show? false
+                                     :validate? false
+                                     :strategies {:A {:name :minimax :params {:depth 3}}}})]
       (is (= {:current-player :A
               :board (vec (repeat 24 nil))
               :players {:A {:in-hand 7 :off-board 0}
@@ -110,10 +111,10 @@
 
 (deftest test-print-simulation-results
   (testing "print-simulation-results function"
-    (with-redefs [sim/config-atom (atom {:strategies {:A {:name :minimax
-                                                          :params {:depth 2}}
-                                                      :B {:name :minimax
-                                                          :params {:depth 4}}}})]
+    (with-redefs [config/game (atom {:strategies {:A {:name :minimax
+                                                      :params {:depth 2}}
+                                                  :B {:name :minimax
+                                                      :params {:depth 4}}}})]
       (is (= (str "\nSimulation Results:\n"
                   "Total games: 100\n"
                   "Strategy A (Player A): :minimax\n"
@@ -124,23 +125,3 @@
                   "Average moves per game: 50\n"
                   "Elapsed time: 10.50\n")
              (with-out-str (sim/print-simulation-results {:wins {:A 60 :B 40} :total-moves 5000 :num-games 100} 10.5)))))))
-
-(deftest test-parse-args
-  (testing "parse-args function"
-    (with-redefs [sim/config-atom (atom {:num-games 10
-                                         :debug? false
-                                         :show? false
-                                         :parallel 8
-                                         :validate? true
-                                         :strategies {:A {:name :minimax :params {:depth 4}}
-                                                      :B {:name :minimax :params {:depth 4}}}})]
-      (sim/parse-args ["num-games=20" "debug=true" "show=true" "parallel=4" "validate=false"
-                       "strategy-A=mcts" "strategy-A-iterations=200" "strategy-B=first-in-list"])
-      (is (= {:num-games 20
-              :debug? true
-              :show? true
-              :parallel 4
-              :validate? false
-              :strategies {:A {:name :mcts :params {:iterations 200}}
-                           :B {:name :first-in-list :params {:depth 4}}}}
-             @sim/config-atom)))))

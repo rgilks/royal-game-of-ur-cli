@@ -20,11 +20,8 @@
    :main-opts ["-m" "cognitect.test-runner"]
    :exec-fn cognitect.test-runner.api/test}
 
-  :run
+  :clj
   {:main-opts ["-m" "cli"]}
-
-  :sim
-  {:main-opts ["-m" "sim"]}
 
   :build
   {:deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
