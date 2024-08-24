@@ -8,23 +8,24 @@
   (let [board {0 :A, 8 :B}]
     (testing "cell function"
       (are [idx expected] (= expected (view/cell board idx))
-        0 (view/symbols :A)
-        8 (view/symbols :B)
-        1 (view/symbols :empty)
-        6 (view/symbols :rosette)
-        20 (view/symbols :blank)))))
+        0 (:A (view/get-symbols))
+        8 (:B (view/get-symbols))
+        1 (:empty (view/get-symbols))
+        6 (:rosette (view/get-symbols))
+        20 (:blank (view/get-symbols))))))
 
 (deftest test-board-row
   (let [board {0 :A, 4 :B}
+        symbols (view/get-symbols)
         expected (str (util/cstr :cyan "A ")
-                      (view/symbols :A)
-                      (view/symbols :empty)
-                      (view/symbols :empty)
-                      (view/symbols :empty)
-                      (view/symbols :B)
-                      (view/symbols :blank)
-                      (view/symbols :rosette)
-                      (view/symbols :empty))]
+                      (:A symbols)
+                      (:empty symbols)
+                      (:empty symbols)
+                      (:empty symbols)
+                      (:B symbols)
+                      (:blank symbols)
+                      (:rosette symbols)
+                      (:empty symbols))]
     (is (= expected (view/board-row board 0 8 "A")))))
 
 (deftest test-show-board
@@ -35,21 +36,22 @@
         (view/show-board board)
         (are [idx expected] (= expected (nth @calls idx))
           1 [:cyan "    1 2 3 4 5 6 7 8"]
-          3 [:cyan "│" (view/board-row board 0 8 "A") "│"])
+          3 [:cyan (:border (view/get-symbols)) (view/board-row board 0 8 "A") (:border (view/get-symbols))])
         (is (= 7 (count @calls)))))))
 
 (deftest test-show-roll
   (testing "show-roll function"
     (with-redefs [shuffle identity]
-      (is (= (str "\u001b[1m" (:dice-filled view/symbols) "\u001b[0m"
-                  "\u001b[1m" (:dice-filled view/symbols) "\u001b[0m"
-                  "\u001b[1m" (:dice-empty view/symbols) "\u001b[0m"
-                  "\u001b[1m" (:dice-empty view/symbols) "\u001b[0m")
-             (view/show-roll 2))))))
+      (let [symbols (view/get-symbols)]
+        (is (= (str "\u001b[1m" (:dice-filled symbols) "\u001b[0m"
+                    "\u001b[1m" (:dice-filled symbols) "\u001b[0m"
+                    "\u001b[1m" (:dice-empty symbols) "\u001b[0m"
+                    "\u001b[1m" (:dice-empty symbols) "\u001b[0m")
+               (view/show-roll 2)))))))
 
 (deftest test-player-stats
   (testing "player-stats function"
-    (is (= (str "\u001b[31m 5" (:arrow view/symbols) "2\u001b[0m")
+    (is (= (str "\u001b[31m 5" (:arrow (view/get-symbols)) "2\u001b[0m")
            (view/player-stats :red {:in-hand 5 :off-board 2})))))
 
 (deftest test-show-state
@@ -64,10 +66,10 @@
 (deftest test-format-move
   (testing "format-move function"
     (are [move expected] (= expected (view/format-move move))
-      {:from :entry :to 4} (str "entry" (:arrow view/symbols) "A5")
-      {:from 0 :to 4} (str "A1" (:arrow view/symbols) "A5")
-      {:from 15 :to :off-board} (str "B8" (:arrow view/symbols) "off")
-      {:from 7 :to 8 :captured true} (str "A8" (:arrow view/symbols) "B1\u001b[31m capture\u001b[0m"))))
+      {:from :entry :to 4} (str "entry" (:arrow (view/get-symbols)) "A5")
+      {:from 0 :to 4} (str "A1" (:arrow (view/get-symbols)) "A5")
+      {:from 15 :to :off-board} (str "B8" (:arrow (view/get-symbols)) "off")
+      {:from 7 :to 8 :captured true} (str "A8" (:arrow (view/get-symbols)) "B1\u001b[31m capture\u001b[0m"))))
 
 (deftest test-show-moves
   (testing "show-moves function"
@@ -75,8 +77,8 @@
           calls (atom [])]
       (with-redefs [util/show (fn [& args] (swap! calls conj args))]
         (view/show-moves moves)
-        (is (= [[:red " " 1 " " "entry → A5"]
-                [:red " " 2 " " "A1 → A5"]]
+        (is (= [[:red " " 1 " " (str "entry" (:arrow (view/get-symbols)) "A5")]
+                [:red " " 2 " " (str "A1" (:arrow (view/get-symbols)) "A5")]]
                @calls))))))
 
 (deftest test-show-winner
@@ -96,8 +98,8 @@
         (view/show-welcome)
         (is (= [[:red "The Royal Game of Ur"]
                 nil
-                [(:A view/symbols) " Your pieces"]
-                [(:B view/symbols) " AI pieces"]
+                [(:A (view/get-symbols)) " Your pieces"]
+                [(:B (view/get-symbols)) " AI pieces"]
                 nil
                 ["Press 'q' to quit at any time."]
                 ["Press Enter to begin!"]]
@@ -123,7 +125,8 @@
 
 (deftest test-show-ai-move
   (testing "show-ai-move function"
-    (with-redefs [util/show (fn [& args] args)]
+    (with-redefs [util/show (fn [& args] args)
+                  view/format-move (fn [move] "A1 → B2")]
       (is (= [:yellow "  AI: " "A1 → B2"]
              (view/show-ai-move {:from 0 :to 9}))))))
 
