@@ -4,7 +4,7 @@
 
 ## Introduction
 
-The Royal Game of Ur, is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of the game.
+The Royal Game of Ur is one of the oldest known board games, dating back to around 2600 BCE. This project implements a digital version of the game.
 
 ## Features
 
@@ -66,50 +66,44 @@ This project utilizes a variety of technologies and tools:
 
 This project was developed on a Mac (M1). Users on different operating systems may need to adapt these instructions to their environment.
 
-At present the native build targets ARM64 only.
+At present, the native build targets ARM64 only.
 
-Before you begin, make sure you have the following installed:
+### Installation
 
-1. **Homebrew**: Install with:
+1. Install Homebrew (if not already installed):
    ```
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
    Follow the terminal instructions to add Homebrew to your PATH.
 
-2. **Git**: Install with Homebrew:
+2. Install Git:
    ```
    brew install git
    ```
 
-3. **asdf**: Install with Homebrew:
-   ```
-   brew install asdf
-   ```
-   Add to your `~/.zshrc` or `~/.bash_profile`:
-   ```
-   echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ~/.zshrc
-   ```
-   Restart your terminal or run `source ~/.zshrc`.
-
-### Installation
-
-1. Clone the repository:
+3. Clone the repository:
    ```
    git clone https://github.com/yourusername/royal-game-of-ur.git
    cd royal-game-of-ur
    ```
 
-2. Initialize the project:
+4. Make the setup script executable:
+   ```
+   chmod +x scripts/setup.sh
+   ```
+
+5. Run the setup script:
+   ```
+   ./scripts/setup.sh
+   ```
+   This script will install the remaining dependencies (Docker, Just, asdf).
+
+6. Initialize the project:
    ```
    just init
    ```
 
-   This command will:
-   - Set up asdf and install required plugins and versions
-   - Install necessary tools (including GraalVM, Clojure, Node.js, nbb and Yarn)
-   - Set up Git hooks
-   - Install project dependencies
-   - Perform any other necessary initialization steps
+   This command will set up the development environment and install project dependencies.
 
 ## Development
 
