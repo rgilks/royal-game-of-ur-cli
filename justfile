@@ -118,12 +118,10 @@ build:
     ./scripts/build_project.sh
 
 # Run a simulation with custom parameters (nbb)
-# Usage: just nbb sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 nbb *args:
     yarn cli {{args}}
 
 # Run a simulation with custom parameters (Clojure)
-# Usage: just clj sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 clj *args:
     clojure -M:clj {{args}}
 
@@ -149,7 +147,6 @@ docker-build:
     docker build --platform linux/arm64 -t royal-game-of-ur .
 
 # Run the application in a Docker container with passed arguments
-# Usage: just docker sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 docker *args:
     docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}} icons=simple
 
@@ -174,9 +171,6 @@ ecr-tag:
 ecr-push:
     docker push public.ecr.aws/n1r2w5d4/rgou:latest
 
-# tag, and push Docker image to ECR
+# Login, tag, and push Docker image to ECR
 ecr-deploy: ecr-login ecr-tag ecr-push
     @echo "Image successfully built and pushed to ECR"
-
-
-
