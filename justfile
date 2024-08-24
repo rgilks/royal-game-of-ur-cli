@@ -151,7 +151,7 @@ docker-build:
 # Run the application in a Docker container with passed arguments
 # Usage: just docker sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 docker *args:
-    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}}
+    docker run --platform linux/arm64 -it --rm royal-game-of-ur icons=simple {{args}}
 
 # Build and run in Docker with passed arguments
 docker-build-run *args:

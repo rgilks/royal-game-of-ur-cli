@@ -11,7 +11,7 @@
   (atom {:debug false
          :show false
          :validate false
-         :view-symbols :fancy
+         :icons :fancy
          :winning-pieces 7
          :num-games 10
          :delay-time 30

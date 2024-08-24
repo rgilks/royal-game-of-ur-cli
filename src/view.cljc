@@ -30,7 +30,7 @@
    :bottom-border " ------------------ "})
 
 (defn get-symbols []
-  (if (= (:view-symbols @config/game) :fancy)
+  (if (= (:icons @config/game) :fancy)
     fancy-symbols
     simple-symbols))
 
