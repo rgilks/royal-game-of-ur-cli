@@ -69,7 +69,6 @@
                              :roll 0
                              :selected-move nil}))))))
 
-
 (deftest test-play-game
   (testing "play-game function"
     (with-redefs [game/init (constantly {:current-player :A

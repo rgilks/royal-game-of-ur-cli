@@ -3,12 +3,33 @@
             [config]
             [util :refer [cstr show]]))
 
-(def symbols
+(def fancy-symbols
   {:A (cstr :red " ●")
    :B (cstr :yellow " ●")
    :rosette (cstr :cyan " ✧")
    :empty (cstr :cyan " ·")
-   :blank "  "})
+   :blank "  "
+   :arrow " → "
+   :dice-filled "▲"
+   :dice-empty "△"
+   :border "│"
+   :top-border "┌──────────────────┐"
+   :bottom-border "└──────────────────┘"})
+
+(def simple-symbols
+  {:A (cstr :red " O")
+   :B (cstr :yellow " O")
+   :rosette (cstr :cyan " +")
+   :empty (cstr :cyan " -")
+   :blank "  "
+   :arrow " > "
+   :dice-filled "1"
+   :dice-empty "0"
+   :border " "
+   :top-border " ------------------ "
+   :bottom-border " ------------------ "})
+
+(def symbols fancy-symbols)
 
 (defn cell [board idx]
   (cond
@@ -25,14 +46,16 @@
 (defn show-board [board]
   (show)
   (show :cyan "    1 2 3 4 5 6 7 8")
-  (show :cyan "┌──────────────────┐")
+  (show :cyan (:top-border symbols))
   (doseq [[start end label] [[0 8 "A"] [8 16 "B"] [16 24 "C"]]]
-    (show :cyan "│" (board-row board start end label) "│"))
-  (show :cyan "└──────────────────┘"))
+    (show :cyan (:border symbols)
+          (board-row board start end label)
+          (:border symbols)))
+  (show :cyan (:bottom-border symbols)))
 
 (defn show-roll [roll]
-  (->> (concat (repeat roll "▲")
-               (repeat (- 4 roll) "△"))
+  (->> (concat (repeat roll (:dice-filled symbols))
+               (repeat (- 4 roll) (:dice-empty symbols)))
        shuffle
        (map #(cstr :bold %))
        str/join))
@@ -40,7 +63,7 @@
 (defn player-stats [color player-data]
   (cstr color
         " " (:in-hand player-data)
-        " → "
+        (:arrow symbols)
         (:off-board player-data)))
 
 (defn show-state [{:keys [board players roll]}]
@@ -58,7 +81,7 @@
 
 (defn format-move [{:keys [from to captured]}]
   (cstr (if (= from :entry) "entry" (coords from))
-        " → "
+        (:arrow symbols)
         (if (= to :off-board) "off" (coords to))
         (when captured (cstr :red " capture"))))
 
@@ -74,8 +97,8 @@
 (defn show-welcome []
   (show :red "The Royal Game of Ur")
   (show)
-  (show (cstr :red "●") " Your pieces")
-  (show (cstr :yellow "●") " AI pieces")
+  (show (:A symbols) " Your pieces")
+  (show (:B symbols) " AI pieces")
   (show)
   (show "Press 'q' to quit at any time.")
   (show "Press Enter to begin!"))

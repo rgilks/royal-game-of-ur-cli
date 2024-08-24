@@ -41,11 +41,16 @@
 (deftest test-show-roll
   (testing "show-roll function"
     (with-redefs [shuffle identity]
-      (is (= "\u001b[1m▲\u001b[0m\u001b[1m▲\u001b[0m\u001b[1m△\u001b[0m\u001b[1m△\u001b[0m" (view/show-roll 2))))))
+      (is (= (str "\u001b[1m" (:dice-filled view/symbols) "\u001b[0m"
+                  "\u001b[1m" (:dice-filled view/symbols) "\u001b[0m"
+                  "\u001b[1m" (:dice-empty view/symbols) "\u001b[0m"
+                  "\u001b[1m" (:dice-empty view/symbols) "\u001b[0m")
+             (view/show-roll 2))))))
 
 (deftest test-player-stats
   (testing "player-stats function"
-    (is (= "\u001b[31m 5 → 2\u001b[0m" (view/player-stats :red {:in-hand 5 :off-board 2})))))
+    (is (= (str "\u001b[31m 5" (:arrow view/symbols) "2\u001b[0m")
+           (view/player-stats :red {:in-hand 5 :off-board 2})))))
 
 (deftest test-show-state
   (let [state {:board {0 :A 8 :B}
@@ -59,10 +64,10 @@
 (deftest test-format-move
   (testing "format-move function"
     (are [move expected] (= expected (view/format-move move))
-      {:from :entry :to 4} "entry → A5"
-      {:from 0 :to 4} "A1 → A5"
-      {:from 15 :to :off-board} "B8 → off"
-      {:from 7 :to 8 :captured true} "A8 → B1\u001b[31m capture\u001b[0m")))
+      {:from :entry :to 4} (str "entry" (:arrow view/symbols) "A5")
+      {:from 0 :to 4} (str "A1" (:arrow view/symbols) "A5")
+      {:from 15 :to :off-board} (str "B8" (:arrow view/symbols) "off")
+      {:from 7 :to 8 :captured true} (str "A8" (:arrow view/symbols) "B1\u001b[31m capture\u001b[0m"))))
 
 (deftest test-show-moves
   (testing "show-moves function"
@@ -91,8 +96,8 @@
         (view/show-welcome)
         (is (= [[:red "The Royal Game of Ur"]
                 nil
-                [(util/cstr :red "●") " Your pieces"]
-                [(util/cstr :yellow "●") " AI pieces"]
+                [(:A view/symbols) " Your pieces"]
+                [(:B view/symbols) " AI pieces"]
                 nil
                 ["Press 'q' to quit at any time."]
                 ["Press Enter to begin!"]]
