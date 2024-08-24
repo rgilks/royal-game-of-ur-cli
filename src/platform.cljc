@@ -48,7 +48,7 @@
   #?(:clj  (read-line)
      :cljs (.question readline-sync "")))
 
-(defn sleep [ms]
+(defn sleep [^long ms]
   #?(:clj  (Thread/sleep ms)
      :cljs (let [start (js/Date.now)]
              (while (< (- (js/Date.now) start) ms)))))

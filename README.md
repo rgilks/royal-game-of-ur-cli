@@ -60,6 +60,14 @@ This project utilizes a variety of technologies and tools:
 
 ## Getting Started
 
+### Quick Start
+
+If you have docker installed and just want to play the game:
+
+```
+docker run --platform linux/arm64 -it --rm public.ecr.aws/n1r2w5d4/rgou:latest play icons=simple
+```
+
 ### Prerequisites
 
 This project was developed on a Mac (M1). Users on different operating systems may need to adapt these instructions to their environment.

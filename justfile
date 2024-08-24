@@ -20,7 +20,7 @@ setup-scripts:
 
 # Set up asdf version manager
 setup-asdf:
-    asdf plugin add clojure nodejs yarn || true
+    asdf plugin add clojure nodejs yarn awscli || true
     asdf install
 
 # Install additional tools
@@ -151,10 +151,32 @@ docker-build:
 # Run the application in a Docker container with passed arguments
 # Usage: just docker sim num-games=<num> strategy-A=<strategy> strategy-A-<param>=<value> ... strategy-B=<strategy> strategy-B-<param>=<value> ... debug=<bool> show=<bool> parallel=<num> validate=<bool>
 docker *args:
-    docker run --platform linux/arm64 -it --rm royal-game-of-ur icons=simple {{args}}
+    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}} icons=simple
 
 # Build and run in Docker with passed arguments
 docker-build-run *args:
     just docker-build
     just docker {{args}}
+
+# =================
+# ECR Commands
+# =================
+
+# Authenticate Docker to Amazon ECR public registry
+ecr-login:
+    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/n1r2w5d4
+
+# Tag Docker image for ECR
+ecr-tag:
+    docker tag royal-game-of-ur:latest public.ecr.aws/n1r2w5d4/rgou:latest
+
+# Push Docker image to ECR
+ecr-push:
+    docker push public.ecr.aws/n1r2w5d4/rgou:latest
+
+# tag, and push Docker image to ECR
+ecr-deploy: ecr-login ecr-tag ecr-push
+    @echo "Image successfully built and pushed to ECR"
+
+
 
