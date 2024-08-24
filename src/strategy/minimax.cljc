@@ -53,7 +53,7 @@
 
 (defn select-move [game]
   (when (seq (engine/get-possible-moves game))
-    (let [depth (get-in game [:strategy :params :depth] 3)]  ; Default to depth 3 if not specified
+    (let [depth (get-in game [:strategy :params :depth] 3)]
       (second (minimax game depth true (- platform/infinity) platform/infinity)))))
 
 (defmethod engine/select-move :minimax [_ game]

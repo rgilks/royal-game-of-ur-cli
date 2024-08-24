@@ -55,18 +55,20 @@
   (throw (ex-info "Game over" {:reason :expected}))
   game)
 
-(defn ur [ai-strategy ai-depth]
+(defn ur []
   (platform/clear-console)
   (util/hide-cursor)
   (view/show-welcome)
   (platform/readln)
   (try
     (loop [game (-> (engine/start-game)
-                    (assoc-in [:strategy :name] ai-strategy)
-                    (assoc-in [:strategy :params :depth] ai-depth))]
+                    (assoc-in [:strategy :name] (get-in @config/game [:strategies :B :name]))
+                    (assoc-in [:strategy :params] (get-in @config/game [:strategies :B :params])))]
+      (when (:debug @config/game)
+        (println "Current game state:" game))
       (platform/clear-console)
       (view/show-state game)
-      (platform/sleep (:short-wait config/game))
+      (platform/sleep (:short-wait @config/game))
       (recur (handle game)))
     (catch #?(:clj Throwable :cljs :default) e
       (when-not (= :expected (:reason (ex-data e)))

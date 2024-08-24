@@ -72,6 +72,8 @@
                 :strategy (get-in @config/game
                                   [:strategies (:current-player initial-state)]))
           move-count 0]
+     (when (:debug @config/game)
+       (println "Current game state:" game))
      (if (:game-over game)
        (assoc game :move-count move-count)
        (recur

@@ -29,7 +29,10 @@
    :top-border " ------------------ "
    :bottom-border " ------------------ "})
 
-(def symbols fancy-symbols)
+(def symbols
+  (if (= (:view-symbols @config/game) :fancy)
+    fancy-symbols
+    simple-symbols))
 
 (defn cell [board idx]
   (cond

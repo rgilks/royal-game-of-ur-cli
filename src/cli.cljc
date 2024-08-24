@@ -42,4 +42,4 @@
     (do
       (print-config)
       (sim/run-and-report))
-    (play/ur :minimax 10)))
+    (play/ur)))

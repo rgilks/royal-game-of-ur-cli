@@ -36,6 +36,8 @@
   [:map
    [:debug boolean?]
    [:show boolean?]
+   [:view-symbols [:fancy-symbols :simple-symbols]]
+   [:winning-pieces pos-int?]
    [:num-games pos-int?]
    [:delay-time pos-int?]
    [:long-wait pos-int?]

@@ -11,6 +11,8 @@
   (atom {:debug false
          :show false
          :validate false
+         :view-symbols :fancy
+         :winning-pieces 7
          :num-games 10
          :delay-time 30
          :long-wait 1000
@@ -19,5 +21,6 @@
          :strategies {:A {:name :mcts
                           :params {:iterations 100
                                    :exploration 1.41}}
-                      :B {:name :first-in-list}}}))
+                      :B {:name :minimax
+                          :params {:depth 8}}}}))
 

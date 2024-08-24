@@ -83,9 +83,8 @@
                all-moves))))
 
 (defn over? [game]
-  (let [off-board-pieces
-        (get-in game [:players (:current-player game) :off-board])]
-    (>= off-board-pieces 7)))
+  (let [off-board-pieces (get-in game [:players (:current-player game) :off-board])]
+    (>= off-board-pieces (:winning-pieces @config/game))))
 
 (defmulti transition (fn [game _rolls _inputs] (:state game)))
 
