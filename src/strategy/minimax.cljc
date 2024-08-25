@@ -29,7 +29,7 @@
         current-score (score-player game current-player)
         opponent-score (score-player game opponent)
         evaluation (- current-score opponent-score)]
-    (debug "State eval:" current-player evaluation)
+    ;; (debug "State eval:" current-player evaluation)
     evaluation))
 
 (defn- order-moves [game moves]
@@ -71,7 +71,7 @@
   (let [cache-k (cache-key game depth maximizing?)]
     (if-let [cached-result (get @minimax-cache cache-k)]
       (do
-        ;; (println "Cache hit for" cache-k)
+        (debug "Cache hit for" cache-k)
         cached-result)
       (if (or (zero? depth) (= :end-game (:state game)))
         (let [value (evaluate-state game)]
@@ -86,7 +86,7 @@
                                       [score _] (minimax rolled-game (dec depth) (not maximizing?) alpha beta)]
                                   (* (dice-probabilities roll) score)))
                   avg-score (/ (apply + roll-scores) (count roll-scores))]
-              (debug "No moves available. Average score:" avg-score)
+              (debug (if maximizing? 1 0) depth "   →   " avg-score)
               [avg-score nil])
             (loop [remaining-moves moves
                    best-score init-score
@@ -95,7 +95,7 @@
                    beta beta]
               (if (empty? remaining-moves)
                 (do
-                  (debug "Finished evaluating all moves at depth" depth ". Best score:" best-score)
+                  ;; (debug depth "score:" best-score)
                   [best-score best-move])
                 (let [move (first remaining-moves)
                       roll-scores (for [roll (range 5)]
@@ -110,7 +110,8 @@
                                                        [best-score best-move])
                       new-alpha (if maximizing? (max alpha new-best-score) alpha)
                       new-beta (if-not maximizing? (min beta new-best-score) beta)]
-                  (debug "Move" move "evaluated. Average score:" avg-score)
+                  ;; (debug "Move" move "evaluated. Average score:" avg-score)
+                  (debug (if maximizing? 1 0) depth (view/format-move move) avg-score)
                   (if (<= beta alpha)
                     (do
                       (debug "Pruning at depth" depth)
@@ -125,7 +126,7 @@
     (let [base-depth (get-in game [:strategy :params :depth] 3)
           depth (adaptive-depth game base-depth)
           [score best-move] (minimax game depth true (- platform/infinity) platform/infinity)]
-      (debug "Selected move:" best-move "with score" score)
+      (debug ">" (view/format-move best-move) score)
       best-move)))
 
 (defmethod engine/select-move :minimax [_ game]

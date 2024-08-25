@@ -66,7 +66,7 @@
 (deftest test-format-move
   (testing "format-move function"
     (are [move expected] (= expected (view/format-move move))
-      {:from :entry :to 4} (str "entry" (:arrow (view/get-symbols)) "A5")
+      {:from :entry :to 4} (str "  " (:arrow (view/get-symbols)) "A5")
       {:from 0 :to 4} (str "A1" (:arrow (view/get-symbols)) "A5")
       {:from 15 :to :off-board} (str "B8" (:arrow (view/get-symbols)) "off")
       {:from 7 :to 8 :captured true} (str "A8" (:arrow (view/get-symbols)) "B1\u001b[31m capture\u001b[0m"))))
@@ -77,7 +77,7 @@
           calls (atom [])]
       (with-redefs [util/show (fn [& args] (swap! calls conj args))]
         (view/show-moves moves)
-        (is (= [[:red " " 1 " " (str "entry" (:arrow (view/get-symbols)) "A5")]
+        (is (= [[:red " " 1 " " (str "  " (:arrow (view/get-symbols)) "A5")]
                 [:red " " 2 " " (str "A1" (:arrow (view/get-symbols)) "A5")]]
                @calls))))))
 

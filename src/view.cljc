@@ -89,7 +89,7 @@
 
 (defn format-move [{:keys [from to captured]}]
   (let [symbols (get-symbols)]
-    (cstr (if (= from :entry) "entry" (coords from))
+    (cstr (if (= from :entry) "  " (coords from))
           (:arrow symbols)
           (if (= to :off-board) "off" (coords to))
           (when captured (cstr :red " capture")))))
