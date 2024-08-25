@@ -14,10 +14,11 @@
 
 (defn fmt-num
   [fmt-str num]
-  #?(:clj  (format fmt-str num)
-     :cljs (if (= fmt-str "%.2f")
-             (.toFixed num 2)
-             (str fmt-str " " num))))
+  #?(:clj (str num)
+     :cljs (cond
+             (js/Number.isInteger num) (str num)
+             (= fmt-str "%.2f") (.toFixed num 2)
+             :else (str num))))
 
 (defn parse-int [s]
   (cond

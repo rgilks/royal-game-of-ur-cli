@@ -57,6 +57,15 @@
    3 1/4   ; 4 * (1/2) * (1/2)^3
    4 1/16}) ; (1/2)^4
 
+(def avg-prob
+  (/ (reduce + (vals dice-probabilities))
+     (count dice-probabilities)))
+
+(defn dampened-prob
+  [roll dampening]
+  (+ (* (dice-probabilities roll) (- 1 dampening))
+     (* avg-prob dampening)))
+
 (defn- simulate-roll [game roll]
   (-> game
       (assoc :roll roll)
@@ -64,11 +73,11 @@
 
 (def minimax-cache (atom {}))
 
-(defn- cache-key [game depth maximizing?]
-  (hash [(:board game) (:current-player game) depth maximizing?]))
+(defn- cache-key [game depth maximizing? damp]
+  [(:board game) (:current-player game) depth damp maximizing?])
 
-(defn- minimax [game depth maximizing? alpha beta]
-  (let [cache-k (cache-key game depth maximizing?)
+(defn- minimax [game depth maximizing? alpha beta damp]
+  (let [cache-k (cache-key game depth maximizing? damp)
         indent (apply str (repeat (- 3 depth) "  "))
         player-symbol (if maximizing? "↑" "↓")
         infinity-symbol "∞"
@@ -89,8 +98,8 @@
           (if (empty? moves)
             (let [roll-scores (for [roll (range 5)]
                                 (let [rolled-game (simulate-roll game roll)
-                                      [score _] (minimax rolled-game (dec depth) (not maximizing?) alpha beta)]
-                                  (* (dice-probabilities roll) score)))
+                                      [score _] (minimax rolled-game (dec depth) (not maximizing?) alpha beta damp)]
+                                  (* (dampened-prob roll damp) score)))
                   avg-score (/ (apply + roll-scores) (count roll-scores))]
               (debug (str indent "∅ " (platform/fmt-num "%.2f" avg-score)))
               [avg-score nil])
@@ -110,8 +119,8 @@
                                     (let [next-game (-> game
                                                         (engine/choose-action move)
                                                         (simulate-roll roll))
-                                          [score _] (minimax next-game (dec depth) (not maximizing?) alpha beta)]
-                                      (* (dice-probabilities roll) score)))
+                                          [score _] (minimax next-game (dec depth) (not maximizing?) alpha beta damp)]
+                                      (* (dampened-prob roll damp) score)))
                       avg-score (/ (apply + roll-scores) (count roll-scores))
                       [new-best-score new-best-move] (if (comparator avg-score best-score)
                                                        [avg-score move]
@@ -132,7 +141,8 @@
   (when (seq (engine/get-possible-moves game))
     (let [base-depth (get-in game [:strategy :params :depth] 3)
           depth (adaptive-depth game base-depth)
-          [score best-move] (minimax game depth true (- platform/infinity) platform/infinity)]
+          damp (get-in game [:strategy :params :damp] 0.5)
+          [score best-move] (minimax game depth true (- platform/infinity) platform/infinity damp)]
       (debug ">" (view/format-move best-move) score)
       best-move)))
 

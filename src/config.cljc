@@ -22,5 +22,6 @@
                           :params {:iterations 100
                                    :exploration 1.41}}
                       :B {:name :minimax
-                          :params {:depth 3}}}}))
+                          :params {:depth 3
+                                   :damp 0.3}}}}))
 
