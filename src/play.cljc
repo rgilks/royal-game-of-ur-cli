@@ -59,8 +59,10 @@
   (platform/clear-console)
   (util/hide-cursor)
   (view/show-welcome)
-  (platform/readln)
   (try
+    (let [input (platform/read-single-key)]
+      (when (= input "q")
+        (throw (ex-info "User quit" {:reason :expected}))))
     (loop [game (-> (engine/start-game)
                     (assoc-in [:strategy :name] (get-in @config/game [:strategies :B :name]))
                     (assoc-in [:strategy :params] (get-in @config/game [:strategies :B :params])))]

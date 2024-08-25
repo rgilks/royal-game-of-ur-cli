@@ -111,7 +111,7 @@
     (show (:B symbols) " AI pieces")
     (show)
     (show "Press 'q' to quit at any time.")
-    (show "Press Enter to begin!")))
+    (show "Press Space to begin!")))
 
 (defn show-no-moves []
   (show "  No moves"))

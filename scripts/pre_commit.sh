@@ -12,7 +12,7 @@ if ! just fmt; then
 fi
 
 # Add the changes made by the format command
-git add -u
+# git add -u
 
 echo "Running tests..."
 if ! just test; then

@@ -22,5 +22,5 @@
                           :params {:iterations 100
                                    :exploration 1.41}}
                       :B {:name :minimax
-                          :params {:depth 8}}}}))
+                          :params {:depth 3}}}}))
 
