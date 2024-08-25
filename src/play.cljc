@@ -3,11 +3,7 @@
   (:require [config]
             [engine]
             [platform]
-            [strategy.first-in-list]
-            [strategy.mcts]
-            [strategy.minimax]
-            [strategy.random]
-            [strategy.strategic]
+            [strategy.core]
             [util]
             [view]))
 

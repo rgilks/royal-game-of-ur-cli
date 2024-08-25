@@ -4,11 +4,7 @@
             [config]
             [engine]
             [platform]
-            [strategy.first-in-list]
-            [strategy.mcts]
-            [strategy.minimax]
-            [strategy.random]
-            [strategy.strategic]
+            [strategy.core]
             [util :refer [disable-print-line! enable-print-line! debug]]
             [validate]
             [view]))
