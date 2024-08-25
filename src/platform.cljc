@@ -12,6 +12,13 @@
 (def infinity #?(:clj Double/POSITIVE_INFINITY
                  :cljs js/Number.POSITIVE_INFINITY))
 
+(defn fmt-num
+  [fmt-str num]
+  #?(:clj  (format fmt-str num)
+     :cljs (if (= fmt-str "%.2f")
+             (.toFixed num 2)
+             (str fmt-str " " num))))
+
 (defn parse-int [s]
   (cond
     (integer? s) s

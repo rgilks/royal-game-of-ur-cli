@@ -68,14 +68,20 @@
   (hash [(:board game) (:current-player game) depth maximizing?]))
 
 (defn- minimax [game depth maximizing? alpha beta]
-  (let [cache-k (cache-key game depth maximizing?)]
+  (let [cache-k (cache-key game depth maximizing?)
+        indent (apply str (repeat (- 3 depth) "  "))
+        player-symbol (if maximizing? "↑" "↓")
+        infinity-symbol "∞"
+        alpha-str (if (= alpha (- platform/infinity)) (str "-" infinity-symbol) (platform/fmt-num "%.2f" alpha))
+        beta-str (if (= beta platform/infinity) infinity-symbol (platform/fmt-num "%.2f" beta))]
+    (debug (str indent player-symbol " D" depth " α:" alpha-str " β:" beta-str))
     (if-let [cached-result (get @minimax-cache cache-k)]
       (do
-        (debug "Cache hit for" cache-k)
+        (debug (str indent "↺ " (platform/fmt-num "%.2f" (first cached-result))))
         cached-result)
       (if (or (zero? depth) (= :end-game (:state game)))
         (let [value (evaluate-state game)]
-      ;; (debug "Leaf node reached. Value:" value)
+          (debug (str indent "⚑ " (platform/fmt-num "%.2f" value)))
           [value nil])
         (let [moves (order-moves game (safe-get-moves game))
               init-score (if maximizing? (- platform/infinity) platform/infinity)
@@ -86,7 +92,7 @@
                                       [score _] (minimax rolled-game (dec depth) (not maximizing?) alpha beta)]
                                   (* (dice-probabilities roll) score)))
                   avg-score (/ (apply + roll-scores) (count roll-scores))]
-              (debug (if maximizing? 1 0) depth "   →   " avg-score)
+              (debug (str indent "∅ " (platform/fmt-num "%.2f" avg-score)))
               [avg-score nil])
             (loop [remaining-moves moves
                    best-score init-score
@@ -95,8 +101,10 @@
                    beta beta]
               (if (empty? remaining-moves)
                 (do
-                  ;; (debug depth "score:" best-score)
-                  [best-score best-move])
+                  (debug (str indent "★ Best: " (view/format-move best-move) " (" (platform/fmt-num "%.2f" best-score) ")"))
+                  (let [result [best-score best-move]]
+                    (swap! minimax-cache assoc cache-k result)
+                    result))
                 (let [move (first remaining-moves)
                       roll-scores (for [roll (range 5)]
                                     (let [next-game (-> game
@@ -110,11 +118,10 @@
                                                        [best-score best-move])
                       new-alpha (if maximizing? (max alpha new-best-score) alpha)
                       new-beta (if-not maximizing? (min beta new-best-score) beta)]
-                  ;; (debug "Move" move "evaluated. Average score:" avg-score)
-                  (debug (if maximizing? 1 0) depth (view/format-move move) avg-score)
+                  (debug (str indent "→ " (view/format-move move) " (" (platform/fmt-num "%.2f" avg-score) ")"))
                   (if (<= beta alpha)
                     (do
-                      (debug "Pruning at depth" depth)
+                      (debug (str indent "✂ Pruned"))
                       (let [result [new-best-score new-best-move]]
                         (swap! minimax-cache assoc cache-k result)
                         result))
