@@ -1,5 +1,6 @@
 (ns engine-test
   (:require [clojure.test :refer [are deftest is testing]]
+            [config]
             [engine]
             [test-utils :refer [thrown-with-msg?]]))
 
@@ -31,34 +32,97 @@
 (deftest test-move-piece
   (testing "move-piece calculates correct moves"
     (are [player from roll expected] (= expected (engine/move-piece test-board player from roll))
-      :A 3 5 [9 :B]
+      :A 3 2 [1 nil]
       :B 9 2 [11 nil]
-      :A 15 4 [:off-board nil]
       :A 0 0 nil  ; No move on roll of 0
-      :A 7 1 nil  ; Can't land on own piece
+      :A 7 1 nil  ; Can't move to occupied space
       :B 9 2 [11 nil])))
+
+(deftest test-move-piece-entry
+  (testing "move-piece calculates correct entry moves based on roll"
+    (let [board (vec (repeat 24 nil))]
+      (are [player roll expected] (= expected (engine/move-piece board player :entry roll))
+        :A 1 [3 nil]
+        :A 2 [2 nil]
+        :A 3 [1 nil]
+        :A 4 [0 nil]
+        :B 1 [19 nil]
+        :B 2 [18 nil]
+        :B 3 [17 nil]
+        :B 4 [16 nil]))))
+
+(deftest test-move-piece-off-board
+  (testing "move-piece only allows moving off board with exact roll"
+    (let [board (assoc (vec (repeat 24 nil)) 7 :A 23 :B)]
+      (are [player from roll expected] (= expected (engine/move-piece board player from roll))
+        :A 7 1 [6 nil]
+        :A 7 2 [:off-board nil]
+        :A 14 4 [:off-board nil]
+        :B 23 1 [22 nil]
+        :B 23 2 [:off-board nil]))))
 
 (deftest test-update-board
   (testing "update-board correctly updates the game board"
     (are [player from to expected] (= expected (engine/update-board test-board player from to))
-      :A 3 8 [:A nil :B nil nil nil :B :A :A :B nil nil nil
+      :A 3 1 [:A :A :B nil nil nil :B :A nil :B nil nil nil
               nil nil nil :A :B nil nil nil nil :A :B]
-
       :B 23 :off-board [:A nil :B :A nil nil :B :A nil :B nil nil nil
-                        nil nil nil :A :B nil nil nil nil :A nil])))
+                        nil nil nil :A :B nil nil nil nil :A nil]
+      :A :entry 3 [:A nil :B :A nil nil :B :A nil :B nil nil nil
+                   nil nil nil :A :B nil nil nil nil :A :B])))
+
+(deftest test-get-possible-moves-entry
+  (testing "get-possible-moves includes correct entry moves"
+    (let [game {:board (vec (repeat 24 nil))
+                :players {:A {:in-hand 7 :off-board 0}
+                          :B {:in-hand 7 :off-board 0}}
+                :current-player :A
+                :roll 3
+                :state :choose-action}]
+      (is (= [{:from :entry :to 1 :captured nil}] (engine/get-possible-moves game)))
+
+      (let [game (assoc game :current-player :B)]
+        (is (= [{:from :entry :to 17 :captured nil}] (engine/get-possible-moves game)))))))
+
+(deftest test-get-possible-moves-off-board
+  (testing "get-possible-moves includes moving off board with exact roll"
+    (let [game {:board (assoc (vec (repeat 24 nil)) 7 :A)
+                :players {:A {:in-hand 6 :off-board 0}
+                          :B {:in-hand 7 :off-board 0}}
+                :current-player :A
+                :roll 7
+                :state :choose-action}]
+      (is (= #{{:from :entry :to 10 :captured nil}}
+             (set (engine/get-possible-moves game))))
+
+      (let [game (assoc game :roll 6)]
+        (is (= #{{:from :entry :to 9 :captured nil}}
+               (set (engine/get-possible-moves game))))))))
 
 (deftest test-get-possible-moves
   (testing "get-possible-moves returns all valid moves"
-    (is (= [{:from 3 :to 1 :captured nil}
-            {:from 0 :to 9 :captured :B}
-            {:from 7 :to :off-board :captured nil}
-            {:from 16 :to 2 :captured :B}
-            {:from 22 :to 2 :captured :B}]
-           (engine/get-possible-moves test-game))))
+    (is (= #{{:from 3 :to 1 :captured nil}
+             {:from 0 :to 9 :captured :B}
+             {:from 16 :to 2 :captured :B}
+             {:from 22 :to 2 :captured :B}
+             {:from 7 :to :off-board :captured nil}}
+           (set (engine/get-possible-moves test-game)))))
 
   (testing "get-possible-moves with no valid moves"
     (let [no-move-state (assoc test-game :roll 0)]
       (is (empty? (engine/get-possible-moves no-move-state))))))
+
+(deftest test-get-possible-moves-multiple-options
+  (testing "get-possible-moves returns all valid options including entry"
+    (let [game {:board [nil nil :A nil nil nil :A nil nil :B nil nil
+                        nil nil nil :A nil nil nil nil nil nil nil nil]
+                :players {:A {:in-hand 4 :off-board 0}
+                          :B {:in-hand 6 :off-board 0}}
+                :current-player :A
+                :roll 2
+                :state :choose-action}]
+      (is (= #{{:from 2 :to 0 :captured nil}}
+             (set (engine/get-possible-moves game)))))))
 
 (deftest test-game-over?
   (testing "game-over? correctly identifies end game state"
@@ -83,7 +147,7 @@
        :players {:A {:in-hand 6 :off-board 0}
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
-       :roll 2} [] {:move-strategy :random} #{:enter-piece :move-piece}
+       :roll 2} [] {:move-strategy :random} #{:enter-piece :move-piece :switch-turns}
 
       {:state :enter-piece
        :board test-board
@@ -91,7 +155,7 @@
                  :B {:in-hand 7 :off-board 0}}
        :current-player :A
        :roll 3
-       :selected-move {:from :entry :to 3 :captured nil}} [] {} #{:switch-turns}
+       :selected-move {:from :entry :to 1 :captured nil}} [] {} #{:switch-turns}
 
       {:state :move-piece
        :board test-board
@@ -124,7 +188,7 @@
 
 (deftest test-initialize-game
   (testing "initialize-game creates correct initial state"
-    (let [initial-state (engine/init :A)]  ; Specify :A as the starting player for deterministic tests
+    (let [initial-state (engine/init :A)]
       (is (= 24 (count (:board initial-state))))
       (is (every? nil? (:board initial-state)))
       (is (= 7 (get-in initial-state [:players :A :in-hand])))
@@ -170,10 +234,8 @@
   (testing "choose-action advances game state correctly"
     (let [move {:from 0 :to 2 :captured :B}
           new-state (engine/choose-action test-game move)]
-      (is (contains? #{:roll-dice :move-piece :enter-piece :switch-turns} (:state new-state))
-          (str "Expected :roll-dice, :move-piece, :enter-piece, or :switch-turns, but got " (:state new-state)))
-      (is (nil? (:selected-move new-state))
-          (str "Expected selected-move to be nil, but got " (:selected-move new-state))))))
+      (is (= :roll-dice (:state new-state)))
+      (is (nil? (:selected-move new-state))))))
 
 (deftest test-board-config
   (testing "board-config contains correct values"

@@ -6,6 +6,9 @@
             [clojure.string :as str]
             ["readline-sync" :as readline-sync])))
 
+(def max-int #?(:clj Integer/MAX_VALUE
+                :cljs js/Number.MAX_SAFE_INTEGER))
+
 (def infinity #?(:clj Double/POSITIVE_INFINITY
                  :cljs js/Number.POSITIVE_INFINITY))
 

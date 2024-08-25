@@ -1,5 +1,6 @@
 (ns engine
   (:require [config]
+            [platform]
             [schema]
             [validate]))
 
@@ -27,26 +28,28 @@
   (if (zero? roll)
     nil  ; No move possible on a roll of 0
     (let [path (get-in config/board [:paths player])
-          last-square (last path)
-          new-pos (if (= from :entry)
-                    (first path)
-                    (find-next-position path from roll))]
+          steps-to-end (if (= from :entry)
+                         (count path)
+                         (- (count path) (find-index path from)))]
       (cond
-        ;; If the new position is beyond the last square, move off board
-        (and (number? from) (or (nil? new-pos) (> (+ (find-index path from) roll) (find-index path last-square))))
+        ;; If the piece is on the path and the roll is exactly
+        ;; the number of steps needed to move off board
+        (and (not= from :entry) (= roll steps-to-end))
         [:off-board nil]
 
-        (nil? new-pos)
-        nil
-
+        ;; For normal moves (including from :entry)
         :else
-        (let [target (get board new-pos)]
-          (cond
-            (nil? target) [new-pos nil]
-            (= target player) nil  ; Invalid move
-            (and (contains? (:rosettes config/board) new-pos)
-                 (not= target player)) nil  ; Can't land on opponent's rosette
-            :else [new-pos target]))))))  ; Capture opponent's piece
+        (let [new-pos (if (= from :entry)
+                        (nth path (dec roll))
+                        (find-next-position path from roll))]
+          (when new-pos  ; Only proceed if new-pos is valid
+            (let [target (get board new-pos)]
+              (cond
+                (nil? target) [new-pos nil]
+                (= target player) nil  ; Invalid move
+                (and (contains? (:rosettes config/board) new-pos)
+                     (not= target player)) nil  ; Can't land on opponent's rosette
+                :else [new-pos target]))))))))  ; Capture opponent's piece
 
 (defn update-board [board player from to]
   (cond-> board
@@ -59,7 +62,7 @@
   (when (pos? roll)
     (let [player-positions (get-piece-positions board current-player)
           path (get-in config/board [:paths current-player])
-          entry-point (first path)
+          entry-point (nth path (dec roll))  ; Calculate the correct entry point based on roll
           can-enter? (and (pos? (get-in players [current-player :in-hand]))
                           (nil? (get board entry-point)))
 
@@ -77,7 +80,7 @@
       (sort-by (fn [move]
                  (cond
                    (= (:from move) :entry) -1
-                   (= (:to move) :off-board) (count path)
+                   (= (:to move) :off-board) platform/max-int
                    :else (or (find-index path (:from move))
                              (inc (apply max (map #(find-index path %) path))))))
                all-moves))))
