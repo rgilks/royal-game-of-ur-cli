@@ -4,7 +4,7 @@
             [config]
             [platform]
             [play]
-            [sim :as sim]))
+            [sim]))
 
 (def test-config
   {:num-games 10

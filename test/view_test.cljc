@@ -1,7 +1,7 @@
 (ns view-test
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
-            [util :as util]
+            [util]
             [view]))
 
 (deftest test-cell
@@ -102,7 +102,7 @@
                 [(:B (view/get-symbols)) " AI pieces"]
                 nil
                 ["Press 'q' to quit at any time."]
-                ["Press Enter to begin!"]]
+                ["Press Space to begin!"]]
                @calls))))))
 
 (deftest test-show-no-moves

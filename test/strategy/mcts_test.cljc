@@ -1,6 +1,5 @@
 (ns strategy.mcts-test
   (:require [clojure.test :refer [deftest is testing]]
-            [engine :as game]
             [strategy.mcts :as mcts]))
 
 (defn- create-test-game []

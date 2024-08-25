@@ -1,7 +1,17 @@
 (ns util-test
   (:require [clojure.string :as str]
             [clojure.test :refer [are deftest is testing]]
-            [util :as util]))
+            [config]
+            [util]))
+
+(deftest test-debug-function
+  (testing "debug function"
+    (with-redefs [config/game (atom {:debug true})]
+      (is (= "Debug message\n"
+             (with-out-str (util/debug "Debug message")))))
+
+    (with-redefs [config/game (atom {:debug false})]
+      (is (= "" (with-out-str (util/debug "Debug message")))))))
 
 (deftest test-logging
   (testing "log function"

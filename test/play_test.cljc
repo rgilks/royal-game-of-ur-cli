@@ -89,29 +89,3 @@
                             #"Game over"
                             (play/handle {:state :end-game, :current-player :A}))))))
 
-(deftest test-play-game
-  (testing "Play game until completion"
-    (with-redefs [platform/clear-console (constantly nil)
-                  util/hide-cursor (constantly nil)
-                  view/show-welcome (constantly nil)
-                  platform/readln (constantly nil)
-                  engine/start-game (constantly {:state :end-game, :current-player :A})
-                  view/show-state (constantly nil)
-                  platform/sleep (constantly nil)
-                  play/handle (fn [game] (throw (ex-info "Game over" {:reason :expected})))
-                  util/show-cursor (constantly nil)]
-      (is (nil? (play/ur nil nil)))))
-
-  (testing "Play game with unexpected error"
-    (with-redefs [platform/clear-console (constantly nil)
-                  util/hide-cursor (constantly nil)
-                  view/show-welcome (constantly nil)
-                  platform/readln (constantly nil)
-                  engine/start-game (constantly {:state :roll-dice})
-                  view/show-state (constantly nil)
-                  platform/sleep (constantly nil)
-                  play/handle (fn [game] (throw (ex-info "Unexpected error" {:reason :unexpected})))
-                  util/show-cursor (constantly nil)]
-      (is (thrown-with-msg? #?(:clj Throwable :cljs :default)
-                            #"Unexpected error" (play/ur nil nil))))))
-

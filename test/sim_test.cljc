@@ -1,19 +1,10 @@
 (ns sim-test
   (:require [clojure.test :refer [are deftest is testing]]
             [config]
-            [engine :as game]
-            [sim :as sim]
+            [engine]
+            [sim]
             [validate]
-            [view :as view]))
-
-(deftest test-debug-function
-  (testing "debug function"
-    (with-redefs [config/game (atom {:debug true})]
-      (is (= "Debug message\n"
-             (with-out-str (sim/debug "Debug message")))))
-
-    (with-redefs [config/game (atom {:debug false})]
-      (is (= "" (with-out-str (sim/debug "Debug message")))))))
+            [view]))
 
 (deftest test-handle-choose-action
   (testing "handle-choose-action function"

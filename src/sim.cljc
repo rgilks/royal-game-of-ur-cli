@@ -9,13 +9,9 @@
             [strategy.minimax]
             [strategy.random]
             [strategy.strategic]
-            [util :refer [disable-print-line! enable-print-line!]]
+            [util :refer [disable-print-line! enable-print-line! debug]]
             [validate]
             [view]))
-
-(defn debug [& args]
-  (when (:debug @config/game)
-    (apply println args)))
 
 (defn handle-choose-action [game strategy]
   (if-let [move (engine/select-move strategy game)]

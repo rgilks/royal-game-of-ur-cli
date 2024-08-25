@@ -1,7 +1,7 @@
 (ns strategy.mcts
   (:require [clojure.math :as math]
             [config]
-            [engine :as game]
+            [engine]
             [platform])
   #?(:clj (:import [java.util.concurrent Executors Future])))
 

@@ -66,9 +66,10 @@
     (loop [game (-> (engine/start-game)
                     (assoc-in [:strategy :name] (get-in @config/game [:strategies :B :name]))
                     (assoc-in [:strategy :params] (get-in @config/game [:strategies :B :params])))]
-      (when (:debug @config/game)
-        (println "Current game state:" game))
-      (platform/clear-console)
+      #_(when (:debug @config/game)
+          (println "Current game state:" game))
+      (when (not (:debug @config/game))
+        (platform/clear-console))
       (view/show-state game)
       (platform/sleep (:short-wait @config/game))
       (recur (handle game)))

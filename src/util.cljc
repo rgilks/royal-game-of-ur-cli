@@ -1,5 +1,6 @@
 (ns util
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [config]))
 
 (def print-line-enabled (atom true))
 
@@ -12,6 +13,10 @@
 
 (defn disable-print-line! []
   (reset! print-line-enabled false))
+
+(defn debug [& args]
+  (when (:debug @config/game)
+    (apply println args)))
 
 (def colors
   {:reset "[0m" :bold "[1m" :red "[31m" :green "[32m"
