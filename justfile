@@ -122,12 +122,12 @@ build:
     ./scripts/build_project.sh
 
 # Run a simulation with custom parameters (nbb)
-nbb *args:
-    yarn cli {{args}}
+nbb *ARGS:
+    yarn cli {{ARGS}}
 
 # Run a simulation with custom parameters (Clojure)
-clj *args:
-    clojure -M:clj {{args}}
+clj *ARGS:
+    clojure -M:clj {{ARGS}}
 
 # =================
 # Utility Commands
@@ -146,21 +146,70 @@ clean:
 # ECR Commands
 # =================
 
+ECR_PUBLIC_REGISTRY := "public.ecr.aws/n1r2w5d4"
+ECR_PRIVATE_REGISTRY := "250357559699.dkr.ecr.eu-west-1.amazonaws.com"
+ECR_REPOSITORY := "rgou"
+REGION := "eu-west-1"
+LAMBDA_FUNCTION := "ur-test"
+
 # Authenticate Docker to Amazon ECR public registry
-ecr-login:
-    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/n1r2w5d4
+ecr-login-public:
+    aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{ECR_PUBLIC_REGISTRY}}
 
-# Tag Docker image for ECR
-ecr-tag:
-    docker tag royal-game-of-ur:latest public.ecr.aws/n1r2w5d4/rgou:latest
+# Authenticate Docker to Amazon ECR private registry
+ecr-login-private:
+    aws ecr get-login-password --region {{REGION}} | docker login --username AWS --password-stdin {{ECR_PRIVATE_REGISTRY}}
 
-# Push Docker image to ECR
-ecr-push:
-    docker push public.ecr.aws/n1r2w5d4/rgou:latest
+# Tag Docker image for public ECR
+ecr-tag-public:
+    docker tag royal-game-of-ur:latest {{ECR_PUBLIC_REGISTRY}}/{{ECR_REPOSITORY}}:latest
 
-# Login, tag, and push Docker image to ECR
-ecr-deploy: ecr-login ecr-tag ecr-push
-    @echo "Image successfully built and pushed to ECR"
+# Tag Docker image for private ECR
+ecr-tag-private:
+    #!/usr/bin/env bash
+    set -e
+    VERSION=$(cat version.txt)
+    docker tag royal-game-of-ur:latest {{ECR_PRIVATE_REGISTRY}}/{{ECR_REPOSITORY}}:v${VERSION}
+
+# Push Docker image to public ECR
+ecr-push-public:
+    docker push {{ECR_PUBLIC_REGISTRY}}/{{ECR_REPOSITORY}}:latest
+
+# Push Docker image to private ECR
+ecr-push-private:
+    #!/usr/bin/env bash
+    set -e
+    VERSION=$(cat version.txt)
+    docker push {{ECR_PRIVATE_REGISTRY}}/{{ECR_REPOSITORY}}:v${VERSION}
+
+# Increment version
+increment-version:
+    #!/usr/bin/env bash
+    set -e
+    VERSION=$(cat version.txt)
+    NEW_VERSION=$((VERSION + 1))
+    echo $NEW_VERSION > version.txt
+    echo "Version incremented to $NEW_VERSION"
+
+# Update Lambda function
+update-lambda:
+    #!/usr/bin/env bash
+    set -e
+    VERSION=$(cat version.txt)
+    aws lambda update-function-code \
+    --function-name {{LAMBDA_FUNCTION}} \
+    --image-uri {{ECR_PRIVATE_REGISTRY}}/{{ECR_REPOSITORY}}:v${VERSION} \
+    --region {{REGION}} \
+    --profile tre \
+    --no-cli-pager
+
+# Login, tag, push Docker image to public ECR
+ecr-deploy-public: ecr-login-public ecr-tag-public ecr-push-public
+    @echo "Image successfully pushed to public ECR"
+
+# Login, tag, push Docker image to private ECR, and update Lambda
+deploy: ecr-login-private ecr-tag-private ecr-push-private update-lambda increment-version
+    @echo "Image successfully pushed to private ECR, Lambda updated, and version incremented"
 
 # =================
 # Docker Commands
@@ -171,9 +220,14 @@ docker-build:
     docker build --platform linux/arm64 -t royal-game-of-ur .
 
 # Run the application in a Docker container with passed arguments
-docker *args:
-    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}} icons=simple
+docker *ARGS:
+    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{ARGS}} icons=simple
 
 # Build and run in Docker with passed arguments
-docker-build-run *args: ecr-login docker-build
-    just docker play {{args}}
+docker-build-run *ARGS: ecr-login-public docker-build
+    just docker play {{ARGS}}
+
+# Build and deploy
+docker-build-deploy *ARGS: ecr-login-private docker-build deploy
+     @echo "Image successfully built and deployed"
+

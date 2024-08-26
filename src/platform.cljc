@@ -1,6 +1,7 @@
 (ns platform
   #?(:clj (:import [org.jline.terminal TerminalBuilder]))
   #?(:clj (:require [clojure.string :as str]
+                    [babashka.http-client :as http]
                     [clojure.data.json :as json]))
   #?(:cljs (:require
             [clojure.string :as str]
@@ -101,3 +102,14 @@
   [data]
   #?(:clj  (json/write-str data)
      :cljs (.stringify js/JSON (clj->js data))))
+
+#?(:clj
+   (defn http-request [url method body]
+     (let [options {:body (when body (platform/json-stringify body))
+                    :headers {:content-type "application/json"}}]
+       (case method
+         "GET" (http/get url options)
+         "POST" (http/post url options)
+         "PUT" (http/put url options)
+         "DELETE" (http/delete url options)
+         (throw (IllegalArgumentException. (str "Unsupported method: " method)))))))

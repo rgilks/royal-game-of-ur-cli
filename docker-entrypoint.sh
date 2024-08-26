@@ -9,6 +9,6 @@ if [ -z "${AWS_LAMBDA_RUNTIME_API}" ]; then
     exec /var/task/bootstrap "$@"
 else
     echo "Running in Lambda mode"
-    echo "Command: /var/runtime/bootstrap"
-    exec /var/runtime/bootstrap
+    echo "Command: /var/task/bootstrap"
+    exec /var/task/bootstrap lambda debug=true
 fi

@@ -59,7 +59,7 @@
          (< to (:size config/board))) (assoc to player)))
 
 (defn get-possible-moves [{:keys [board current-player roll players]}]
-  (when (pos? roll)
+  (when (and roll (pos? roll))
     (let [player-positions (get-piece-positions board current-player)
           path (get-in config/board [:paths current-player])
           entry-point (nth path (dec roll))  ; Calculate the correct entry point based on roll

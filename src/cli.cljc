@@ -56,13 +56,11 @@
 (defn -handler [event _context]
   (try
     (debug "Received event:" event)
-    (let [input (platform/json-parse (:body event))
-          _ (debug "Parsed input:" input)
-          game-state (or (:game-state input) (engine/init))
-          _ (debug "Initial game state:" game-state)
-          updated-state (process-game-state game-state)
-          _ (debug "Updated game state:" updated-state)
-          response-body (platform/json-stringify updated-state)]
+    (let [game-state (engine/init)
+          ;; _ (debug "Initial game state:" game-state)
+          ;; updated-state (process-game-state game-state)
+          ;; _ (debug "Updated game state:" updated-state)
+          response-body (platform/json-stringify game-state)]
       {:statusCode 200
        :headers {"Content-Type" "application/json"}
        :body response-body})
@@ -80,15 +78,23 @@
 
 #?(:clj
    (defn lambda-execution-loop []
-     (let [runtime-api (platform/get-env "AWS_LAMBDA_RUNTIME_API")]
-       (loop []
-         (let [next-invocation-url (str "http://" runtime-api "/2018-06-01/runtime/invocation/next")
-               response (slurp next-invocation-url)
-               request-id (-> response meta :headers (get "Lambda-Runtime-Aws-Request-Id"))
-               result (-handler (platform/json-parse (:body response)) {})
-               result-url (str "http://" runtime-api "/2018-06-01/runtime/invocation/" request-id "/response")]
-           (spit result-url (platform/json-stringify result))
-           (recur))))))
+     (let [runtime-api (System/getenv "AWS_LAMBDA_RUNTIME_API")]
+       (try
+         (loop []
+           (let [next-invocation-url (str "http://" runtime-api "/2018-06-01/runtime/invocation/next")
+                 response (platform/http-request next-invocation-url "GET" nil)
+                 _ (debug "Received response:" (pr-str response))
+                 request-id (get-in response [:headers "lambda-runtime-aws-request-id"])
+                 _ (debug "Request ID:" request-id)
+                 result (-handler (platform/json-parse (:body response)) {})
+                 _ (debug "Result:" result)
+                 result-url (str "http://" runtime-api "/2018-06-01/runtime/invocation/" request-id "/response")]
+             (platform/http-request result-url "POST" result)
+             (recur)))
+         (catch Exception e
+           (let [error-url (str "http://" runtime-api "/2018-06-01/runtime/init/error")]
+             (platform/http-request error-url "POST" {:errorMessage (str e)
+                                                      :errorType (str (.getClass e))})))))))
 
 (defn -main [& args]
   (parse-args (rest args))
