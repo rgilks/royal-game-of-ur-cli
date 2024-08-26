@@ -1,7 +1,7 @@
 (ns platform
-  #?(:clj (:import [org.jline.terminal TerminalBuilder]
-                   [java.lang Thread]))
-  #?(:clj (:require [clojure.string :as str]))
+  #?(:clj (:import [org.jline.terminal TerminalBuilder]))
+  #?(:clj (:require [clojure.string :as str]
+                    [clojure.data.json :as json]))
   #?(:cljs (:require
             [clojure.string :as str]
             ["readline-sync" :as readline-sync])))
@@ -85,3 +85,19 @@
 
   #?(:cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
+
+(defn get-env [var-name]
+  #?(:clj (System/getenv var-name)
+     :cljs (aget js/process.env var-name)))
+
+(defn json-parse
+  "Platform-independent function to parse JSON string."
+  [json-str]
+  #?(:clj  (json/read-str json-str :key-fn keyword)
+     :cljs (js->clj (.parse js/JSON json-str) :keywordize-keys true)))
+
+(defn json-stringify
+  "Platform-independent function to convert to JSON string."
+  [data]
+  #?(:clj  (json/write-str data)
+     :cljs (.stringify js/JSON (clj->js data))))

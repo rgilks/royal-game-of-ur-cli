@@ -72,9 +72,13 @@ state-diagram:
 
 # Concatenate all relevant files (for an LLM to read)
 concat:
-    ./scripts/concat_files.sh . justfile .cljc .cljs .clj .md .dot .edn .json -- node_modules/ .clj-kondo/ reflect-config.json resource-config.json build.clj .cljfmt.edn
+    ./scripts/concat_files.sh . justfile Dockerfile .cljc .cljs .clj .md .dot .edn .json -- node_modules/ .clj-kondo/ reflect-config.json resource-config.json build.clj .cljfmt.edn
 
-# Concatenate just the program files (for an LLM to read)
+# Concatenate all important files clojure
+cci:
+    ./scripts/concat_files.sh . justfile Dockerfile .cljc .cljs .clj .edn -- node_modules/ ./test/ .clj-kondo/ reflect-config.json resource-config.json .cljfmt.edn nbb.edn
+
+# Concatenate just the program (for an LLM to read)
 cc:
     ./scripts/concat_files.sh . README.md .cljc .cljs .clj -- build.clj ./test/
 
@@ -139,23 +143,6 @@ clean:
     rm -rf .cpcache
 
 # =================
-# Docker Commands
-# =================
-
-# Build Docker image
-docker-build:
-    docker build --platform linux/arm64 -t royal-game-of-ur .
-
-# Run the application in a Docker container with passed arguments
-docker *args:
-    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}} icons=simple
-
-# Build and run in Docker with passed arguments
-docker-build-run *args:
-    just docker-build
-    just docker {{args}}
-
-# =================
 # ECR Commands
 # =================
 
@@ -174,3 +161,19 @@ ecr-push:
 # Login, tag, and push Docker image to ECR
 ecr-deploy: ecr-login ecr-tag ecr-push
     @echo "Image successfully built and pushed to ECR"
+
+# =================
+# Docker Commands
+# =================
+
+# Build Docker image
+docker-build:
+    docker build --platform linux/arm64 -t royal-game-of-ur .
+
+# Run the application in a Docker container with passed arguments
+docker *args:
+    docker run --platform linux/arm64 -it --rm royal-game-of-ur {{args}} icons=simple
+
+# Build and run in Docker with passed arguments
+docker-build-run *args: ecr-login docker-build
+    just docker play {{args}}
