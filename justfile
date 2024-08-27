@@ -86,8 +86,13 @@ cc:
 # Update and Upgrade
 # ==================
 
+# Show out-dated Clojure dependencies
+ancient:
+    clojure -Sdeps '{:deps {com.github.liquidz/antq {:mvn/version "RELEASE"}}}' \
+    -m antq.core
+
 # Update all dependencies and tools
-update: update-deps update-tools
+update: update-deps update-tools ancient
 
 # Update the node dependencies
 update-deps:
