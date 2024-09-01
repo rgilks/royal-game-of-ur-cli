@@ -5,6 +5,7 @@
             [clojure.data :as data]
             [clojure.string :as str]
             [engine-test]
+            [new-engine-test]
             [play-test]
             [sim-test]
             [strategy.mcts-test]
@@ -81,6 +82,7 @@
    'validate-test
    'strategy.minimax-test
    'strategy.mcts-test
+   'new-engine-test
    'engine-test)
   ;; Enable logging after tests if needed
   (enable-print-line!))
