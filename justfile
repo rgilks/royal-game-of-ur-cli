@@ -76,7 +76,7 @@ concat:
 
 # Concatenate all important files clojure
 cci:
-    ./scripts/concat_files.sh . justfile Dockerfile .cljc .cljs .clj .edn -- node_modules/ ./test/ .clj-kondo/ reflect-config.json resource-config.json .cljfmt.edn nbb.edn
+    ./scripts/concat_files.sh . justfile Dockerfile .cljc .cljs .clj .edn -- node_modules/ .clj-kondo/ reflect-config.json resource-config.json .cljfmt.edn nbb.edn
 
 # Concatenate just the program (for an LLM to read)
 cc:

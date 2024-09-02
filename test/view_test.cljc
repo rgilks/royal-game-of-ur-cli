@@ -15,14 +15,14 @@
         20 (:blank (view/get-symbols))))))
 
 (deftest test-board-row
-  (let [board {0 :A, 4 :B}
+  (let [board {0 :A, 2 :B}
         symbols (view/get-symbols)
         expected (str (util/cstr :cyan "A ")
                       (:A symbols)
                       (:empty symbols)
-                      (:empty symbols)
-                      (:empty symbols)
                       (:B symbols)
+                      (:empty symbols)
+                      (:blank symbols)
                       (:blank symbols)
                       (:rosette symbols)
                       (:empty symbols))]

@@ -5,7 +5,7 @@
 
 (def fancy-symbols
   {:A (cstr :red " ●")
-   :B (cstr :yellow " ●")
+   :B (cstr :yellow " ■")
    :rosette (cstr :cyan " ✧")
    :empty (cstr :cyan " ·")
    :blank "  "
@@ -18,7 +18,7 @@
 
 (def simple-symbols
   {:A (cstr :red " O")
-   :B (cstr :yellow " O")
+   :B (cstr :yellow " @")
    :rosette (cstr :cyan " +")
    :empty (cstr :cyan " -")
    :blank "  "
@@ -37,16 +37,15 @@
 (defn cell [board idx]
   (let [symbols (get-symbols)]
     (cond
-      (get board idx) (symbols (get board idx))
       ((:exclude config/board) idx) (:blank symbols)
+      (get board idx) (symbols (get board idx))
       ((:rosettes config/board) idx) (:rosette symbols)
       :else (:empty symbols))))
 
 (defn board-row [board start end label]
-  (let [symbols (get-symbols)]
-    (cstr (cstr :cyan label " ")
-          (apply cstr (map #(cell board %)
-                           (range start end))))))
+  (cstr (cstr :cyan label " ")
+        (apply cstr (map #(cell board %)
+                         (range start end)))))
 
 (defn show-board [board]
   (let [symbols (get-symbols)]

@@ -1,6 +1,6 @@
 (ns new-engine
   (:require [clojure.pprint :refer [cl-format]]
-            [clojure.string :as str]))
+            [view]))
 
 ;; Constants
 (def ^:const BOARD-MASK 0xFFFFFFFFFF00000000) ; Bits 24-63 for board (20 positions * 2 bits each)
@@ -12,9 +12,9 @@
 (def ^:const DICE-MASK 0xE000)       ; Bits 13-15
 (def ^:const EXTRA-TURN-MASK 0x10000) ; Bit 16
 
-(def ROSETTES #{0 4 8 14 18})
-(def PATHS {:A [3 2 1 0 8 9 10 11 12 13 14 15 6 7]
-            :B [19 18 17 16 8 9 10 11 12 13 14 15 22 23]})
+(def ROSETTES #{0 6 11 16 22})
+(def PATHS {:A [3 2 1 0 8 9 10 11 12 13 14 15 7 6]
+            :B [19 18 17 16 8 9 10 11 12 13 14 15 23 22]})
 
 ;; Helper functions
 (defn binary-str [n]
@@ -70,6 +70,18 @@
     (bit-or state EXTRA-TURN-MASK)
     (bit-and state (bit-not EXTRA-TURN-MASK))))
 
+(defn get-board-positions [state]
+  (let [board-array (vec (repeat 24 nil))]
+    (reduce
+     (fn [board pos]
+       (let [piece (get-position state pos)]
+         (case piece
+           1 (assoc board pos :A)
+           2 (assoc board pos :B)
+           board)))
+     board-array
+     (range 24))))
+
 ;; Game logic functions
 (defn initial-state []
   (-> 0
@@ -82,27 +94,33 @@
 
 (defn move-piece [state from to player]
   (println "Moving piece for player" player "from" from "to" to)
-  (println "Initial state:" (binary-str state))
+  (println "Initial state:")
+  (view/show-board (get-board-positions state))
   (let [opponent (if (= player :A) :B :A)
         player-value (if (= player :A) 1 2)]
     (if (= to :off-board)
       (let [new-state (-> state
                           (set-position from 0)
                           (set-completed player (inc (get-completed state player))))]
-        (println "Moving off board. New state:" (binary-str new-state))
+        (println "Moving off board. New state:")
+        (view/show-board (get-board-positions new-state))
         new-state)
       (let [captured-piece (get-position state to)
             new-state (-> state
                           (set-position from 0)
                           (set-position to player-value))]
-        (println "Moved piece. Intermediate state:" (binary-str new-state))
+        (println "Moved piece. Intermediate state:")
+        (view/show-board (get-board-positions new-state))
         (cond-> new-state
           (and (not= captured-piece 0) (not= captured-piece player-value) (not= to 11))
           (as-> s
                 (do
                   (println "Capturing piece at" to)
-                  (let [updated-state (set-off-board s opponent (inc (get-off-board s opponent)))]
-                    (println "After capture. State:" (binary-str updated-state))
+                  (let [off-board (get-off-board s opponent)
+                        _ (println "Opponent off-board:" off-board)
+                        updated-state (set-off-board s opponent (inc off-board))]
+                    (println "After capture. State:")
+                    (view/show-board (get-board-positions updated-state))
                     updated-state)))
 
           (ROSETTES to)
@@ -145,7 +163,7 @@
              :when (< to-index (count path))
              :let [to (nth path to-index)]
              :when (or (zero? (get-position state to))
-                       (= to 11) ; safe square
+                      ;;  (= to 11) ; safe square
                        (and (not= to 11)
                             (not= (get-position state to) player-bit)))]
          {:from from :to (if (= to-index (dec (count path))) :off-board to)})
@@ -165,18 +183,7 @@
     (= (get-completed state :B) 7) :B
     :else nil))
 
-;; Utility functions for display and debugging
-(defn board-to-string [state]
-  (let [symbols {0 "·" 1 "A" 2 "B" 3 "R"}]
-    (str/join "\n"
-              (for [row [0 8 16]]
-                (str/join " " (map #(if (ROSETTES %)
-                                      (str (symbols (get-position state %)) "*")
-                                      (symbols (get-position state %)))
-                                   (range row (+ row 8))))))))
-
 (defn print-game-state [state]
-  (println (board-to-string state))
   (println "A off-board:" (get-off-board state :A)
            "completed:" (get-completed state :A))
   (println "B off-board:" (get-off-board state :B)
