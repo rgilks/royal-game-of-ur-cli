@@ -38,42 +38,53 @@
       :B (engine/get-current-player state)
       true (engine/get-extra-turn state))))
 
-#_(deftest test-move-piece
-    (let [initial (-> (engine/initial-state)
-                      (engine/set-position 3 1)  ; A piece
-                      (engine/set-position 8 2)  ; B piece
-                      (engine/set-off-board :A 5)
-                      (engine/set-off-board :B 6)
-                      (engine/set-position 7 1))
-        ;; _ (util/enable-print-line!)
-          move-a (engine/apply-move initial 3 8 :A)
-          move-b (engine/apply-move initial 8 11 :B)
-          move-off-board (engine/apply-move initial 7 :off-board :A)
-          move-to-rosette (engine/apply-move initial 3 6 :A)
-          move-from-rosette (engine/apply-move (engine/set-position initial 6 1) 6 8 :A)]
-      (are [expected actual] (= expected actual)
-        0 (engine/get-position move-a 3)
-        1 (engine/get-position move-a 8)
-        7 (engine/get-off-board move-a :B)
-        false (engine/get-extra-turn move-a)
-        :B (engine/get-current-player move-a)
+(deftest test-move-piece
+  (let [initial (-> (engine/initial-state)
+                    (engine/set-position 0 1)  ; A piece
+                    (engine/set-position 8 2)  ; B piece
+                    (engine/set-off-board :A 5)
+                    (engine/set-off-board :B 6)
+                    (engine/set-position 7 1)
+                    (engine/set-completed :A 7)
+                    (engine/set-completed :B 7)
+                    (engine/set-dice-roll 4)
+                    (engine/set-current-player :B)
+                    (engine/set-extra-turn true))
+        _ (util/enable-print-line!)
+        _ (println 2r1000000000000000000000000000000000000000000000000000000000000000)
+        _ (println (engine/binary-str initial))
+        _ (println (engine/get-board-positions initial))
+        _ (view/show-board (engine/get-board-positions initial))
+        move-a (engine/apply-move initial 3 8 :A)
+        _ (view/show-board (engine/get-board-positions move-a))
+        move-b (engine/apply-move initial 8 11 :B)
+        _ (view/show-board (engine/get-board-positions move-b))
+        move-off-board (engine/apply-move initial 7 :off-board :A)
+        move-to-rosette (engine/apply-move initial 3 6 :A)
+        move-from-rosette (engine/apply-move (engine/set-position initial 6 1) 6 8 :A)]
+    (are [expected actual] (= expected actual)
+      0 (engine/get-position move-a 3)
+      1 (engine/get-position move-a 8)
+      7 (engine/get-off-board move-a :B)
+      false (engine/get-extra-turn move-a)
+      :B (engine/get-current-player move-a)
 
-        0 (engine/get-position move-b 8)
-        2 (engine/get-position move-b 11)
-        true (engine/get-extra-turn move-b)  ; rosette at 11
-        :B (engine/get-current-player move-b)  ; extra turn, still B's turn
+      0 (engine/get-position move-b 8)
+      2 (engine/get-position move-b 11)
+      true (engine/get-extra-turn move-b)  ; rosette at 11
+      :B (engine/get-current-player move-b)  ; extra turn, still B's turn
 
-        0 (engine/get-position move-off-board 7)
-        1 (engine/get-completed move-off-board :A)
-        :B (engine/get-current-player move-off-board)  ; turn switches to B
+      0 (engine/get-position move-off-board 7)
+      1 (engine/get-completed move-off-board :A)
+      :B (engine/get-current-player move-off-board)  ; turn switches to B
 
-        1 (engine/get-position move-to-rosette 6)
-        true (engine/get-extra-turn move-to-rosette)
-        :A (engine/get-current-player move-to-rosette)  ; extra turn, still A's turn
+      1 (engine/get-position move-to-rosette 6)
+      true (engine/get-extra-turn move-to-rosette)
+      :A (engine/get-current-player move-to-rosette)  ; extra turn, still A's turn
 
-        1 (engine/get-position move-from-rosette 8)
-        false (engine/get-extra-turn move-from-rosette)
-        :B (engine/get-current-player move-from-rosette))))  ; turn switches to B
+      1 (engine/get-position move-from-rosette 8)
+      false (engine/get-extra-turn move-from-rosette)
+      :B (engine/get-current-player move-from-rosette))))  ; turn switches to B
 
 #_(deftest test-get-possible-moves
     (let [state (-> (engine/initial-state)
