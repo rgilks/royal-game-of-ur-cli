@@ -29,8 +29,8 @@ install-tools: install-nbb install-graphviz install-graalvm verify-graalvm
 # Set up Git hooks
 setup-hooks:
     mkdir -p .git/hooks
-    cp scripts/pre_commit.sh .git/hooks/pre_commit
-    chmod +x .git/hooks/pre_commit
+    cp scripts/pre_commit.sh .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
     @echo "Git hooks have been set up successfully."
 
 # =================

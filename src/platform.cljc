@@ -49,7 +49,7 @@
     (string? v)
     (cond
       (re-matches #"^\d+(\.\d+)?$" v)
-      (if (re-matches #"\." v)
+      (if (str/includes? v ".")
         (parse-float v)
         (parse-int v))
       (re-matches #"(?i)true|false" v) (parse-bool v)
@@ -60,7 +60,7 @@
   #?(:clj  (read-line)
      :cljs (.question readline-sync "")))
 
-(defn sleep [^long ms]
+(defn sleep [ms]
   #?(:clj  (Thread/sleep ms)
      :cljs (let [start (js/Date.now)]
              (while (< (- (js/Date.now) start) ms)))))
@@ -82,9 +82,8 @@
          (str (char (.read reader)))
          (finally
            (.close reader)
-           (.close terminal)))))
-
-  #?(:cljs
+           (.close terminal))))
+     :cljs
      (.keyIn readline-sync "" #js {:hideEchoBack true :mask ""})))
 
 (defn get-env [var-name]
@@ -105,7 +104,7 @@
 
 #?(:clj
    (defn http-request [url method body]
-     (let [options {:body (when body (platform/json-stringify body))
+     (let [options {:body (when body (json-stringify body))
                     :headers {:content-type "application/json"}}]
        (case method
          "GET" (http/get url options)

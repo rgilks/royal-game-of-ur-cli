@@ -48,8 +48,7 @@
 
 (defmethod handle :end-game [game]
   (view/show-winner (:current-player game))
-  (throw (ex-info "Game over" {:reason :expected}))
-  game)
+  (throw (ex-info "Game over" {:reason :expected})))
 
 (defn ur []
   (platform/clear-console)

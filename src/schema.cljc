@@ -36,7 +36,7 @@
   [:map
    [:debug boolean?]
    [:show boolean?]
-   [:icons [:fancy-symbols :simple-symbols]]
+   [:icons [:enum :fancy :simple]]
    [:winning-pieces pos-int?]
    [:num-games pos-int?]
    [:delay-time pos-int?]

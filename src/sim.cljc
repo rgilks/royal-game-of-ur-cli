@@ -68,11 +68,12 @@
        (println "Current game state:" game))
      (if (:game-over game)
        (assoc game :move-count move-count)
-       (recur
-        (-> game
-            (play-turn)
-            (assoc :strategy (get-in @config/game [:strategies (:current-player game)])))
-        (inc move-count))))))
+       (let [updated-game (play-turn game)]
+         (recur
+          (assoc updated-game
+                 :strategy (get-in @config/game
+                                   [:strategies (:current-player updated-game)]))
+          (inc move-count)))))))
 
 (defn run-single-chunk [chunk]
   (reduce (fn [acc _]

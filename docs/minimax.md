@@ -19,78 +19,58 @@ The algorithm explores the game tree to a certain depth, evaluates the resulting
 
 ```clojure
 (defn- score-player [game player]
-  (+ (* 10 (get-in game [:players player :off-board]))
-     (count (state/get-piece-positions (:board game) player))))
+  (let [off-board (get-in game [:players player :off-board])
+        on-board-pieces (engine/get-piece-positions (:board game) player)
+        on-board-count (count on-board-pieces)
+        rosette-count (count (filter #(contains? (get-in config/board [:rosettes]) %) on-board-pieces))
+        last-square (last (get-in config/board [:paths player]))
+        pieces-ready-to-exit (count (filter #(= % last-square) on-board-pieces))]
+    (+ (* 100 off-board)
+       (* 10 on-board-count)
+       (* 5 rosette-count)
+       (* 50 pieces-ready-to-exit))))
 
 (defn- evaluate-state [game]
   (let [current-player (:current-player game)
-        opponent (state/other-player current-player)]
+        opponent (engine/other-player current-player)]
     (- (score-player game current-player)
        (score-player game opponent))))
 ```
 
 This function evaluates the game state by considering:
-- The number of pieces that have completed the board (multiplied by 10 for higher importance)
-- The number of pieces on the board
+- The number of pieces off the board (highest priority, weighted 100)
+- The number of pieces on the board (weighted 10)
+- The number of pieces on rosette squares (weighted 5)
+- The number of pieces ready to exit (weighted 50)
 
 It calculates this for both players and returns the difference, favoring the current player.
 
 ### 2. Move Generation
 
 ```clojure
-(defn- get-next-state [game move]
+(defn- simulate-roll [game roll]
   (-> game
-      (state/choose-action move)
-      (assoc :roll (reduce + (repeatedly 4 #(rand-int 2))))))
+      (assoc :roll roll)
+      (assoc :state :choose-action)))
 
 (defn- safe-get-moves [game]
   (if (= (:state game) :choose-action)
-    (state/get-moves game)
+    (engine/get-moves game)
     []))
 ```
 
-These functions generate possible moves and apply them to create new game states.
+These functions generate possible moves and simulate dice rolls to create new game states. The minimax implementation considers all possible dice rolls (0-4) weighted by their dampened probabilities.
 
 ### 3. The Minimax Function
 
-```clojure
-(defn- minimax [game depth maximizing? alpha beta]
-  (if (or (zero? depth) (= :end-game (:state game)))
-    [(evaluate-state game) nil]
-    (let [moves (safe-get-moves game)
-          init-score (if maximizing? (- platform/infinity) platform/infinity)
-          comparator (if maximizing? > <)]
-      (if (empty? moves)
-        [(evaluate-state game) nil]
-        (loop [[move & rest-moves] moves
-               best-score init-score
-               best-move nil
-               alpha alpha
-               beta beta]
-          (if-not move
-            [best-score best-move]
-            (let [[score _] (minimax (get-next-state game move)
-                                     (dec depth)
-                                     (not maximizing?)
-                                     alpha
-                                     beta)
-                  [new-best-score new-best-move] (if (comparator score best-score)
-                                                   [score move]
-                                                   [best-score best-move])
-                  new-alpha (if maximizing? (max alpha new-best-score) alpha)
-                  new-beta (if-not maximizing? (min beta new-best-score) beta)]
-              (if (<= beta alpha)
-                [new-best-score new-best-move]
-                (recur rest-moves new-best-score new-best-move new-alpha new-beta))))))))
-```
-
-This is the core of the algorithm:
+The core minimax function uses alpha-beta pruning and considers all possible dice outcomes at each step, weighted by dampened probabilities:
 
 1. It first checks if we've reached the maximum depth or the end of the game. If so, it evaluates the current state.
-2. If not, it gets all possible moves and initializes the best score based on whether we're maximizing or minimizing.
-3. It then loops through all possible moves, recursively calling itself for each move.
+2. If no moves are available, it computes the expected value across all dice rolls for the opponent's turn.
+3. If moves are available, it loops through all possible moves, computing each move's expected value across all dice outcomes.
 4. For each move, it updates the best score and move if a better option is found.
-5. It uses alpha-beta pruning to optimize the search.
+5. It uses alpha-beta pruning to cut off branches that can't improve the result.
+6. Results are cached in a transposition table to avoid redundant calculations.
 
 ### 4. Alpha-Beta Pruning
 
@@ -105,20 +85,24 @@ If at any point beta becomes less than or equal to alpha, the rest of that branc
 
 ```clojure
 (defn select-move [game]
-  (when (seq (state/get-possible-moves game))
-    (let [depth (get-in game [:strategy :params :depth] 3)]
-      (second (minimax game depth true (- platform/infinity) platform/infinity)))))
+  (when (seq (engine/get-possible-moves game))
+    (let [base-depth (get-in game [:strategy :params :depth] 3)
+          depth (adaptive-depth game base-depth)
+          damp (get-in game [:strategy :params :damp] 0.5)
+          [score best-move] (minimax game depth true (- platform/infinity) platform/infinity damp)]
+      best-move)))
 ```
 
-This function initiates the minimax algorithm and returns the best move found. The search depth is configurable through the game's strategy parameters.
+This function initiates the minimax algorithm and returns the best move found. The search depth is adaptive based on the number of pieces remaining in the game, and dice probability dampening is configurable through the `:damp` strategy parameter.
 
-## Performance Considerations
+## Performance Optimizations
 
-While minimax with alpha-beta pruning is powerful, its performance can be further improved:
+This implementation includes several performance optimizations:
 
-1. **Move Ordering**: By considering promising moves first, we can improve the efficiency of alpha-beta pruning.
-2. **Transposition Tables**: Storing and reusing evaluations of previously seen positions can prevent redundant calculations.
-3. **Iterative Deepening**: This technique allows the algorithm to make the best use of available time by progressively increasing the search depth.
+1. **Move Ordering**: Moves are sorted by the resulting score for the current player, ensuring promising moves are evaluated first for better alpha-beta pruning.
+2. **Transposition Table**: A cache stores evaluations of previously seen board positions to prevent redundant calculations.
+3. **Adaptive Depth**: The search depth dynamically increases as pieces leave the hand, deepening the search in the endgame when the branching factor is lower.
+4. **Dice Probability Dampening**: The `:damp` parameter allows flattening the dice probability distribution, reducing the impact of unlikely rolls on the evaluation.
 
 ## References
 

@@ -19,6 +19,7 @@ The Royal Game of Ur implementation features several AI strategies, each with it
 
 **Customizable Parameters**:
 - `depth`: The number of moves to look ahead. Higher values result in stronger play but require more computation time.
+- `damp`: Dampening factor for dice probabilities (0.0-1.0). Higher values flatten the probability distribution, reducing the impact of unlikely rolls.
 
 For more details, see the [Minimax Algorithm Documentation](./minimax.md).
 
@@ -90,17 +91,17 @@ The effectiveness of each strategy can vary depending on the specific game situa
 You can use the simulation mode to compare the performance of different strategies. For example:
 
 ```
-just sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false parallel=6 validate=false
+just nbb sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list debug=false show=false parallel=6 validate=false
 ```
 
-This will run 1000 games pitting the Minimax strategy (with depth 3) against the 'first in list' strategy.
+This will run 100 games pitting the Minimax strategy (with depth 3) against the 'first in list' strategy.
 
 ## Running Simulations
 
 To run a simulation, use the following command format:
 
 ```
-just sim [parameters]
+just nbb sim [parameters]
 ```
 
 Available parameters:

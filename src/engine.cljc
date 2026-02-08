@@ -28,28 +28,30 @@
   (if (zero? roll)
     nil  ; No move possible on a roll of 0
     (let [path (get-in config/board [:paths player])
-          steps-to-end (if (= from :entry)
-                         (count path)
-                         (- (count path) (find-index path from)))]
-      (cond
-        ;; If the piece is on the path and the roll is exactly
-        ;; the number of steps needed to move off board
-        (and (not= from :entry) (= roll steps-to-end))
-        [:off-board nil]
+          path-index (when (not= from :entry) (find-index path from))]
+      (when (or (= from :entry) path-index)
+        (let [steps-to-end (if (= from :entry)
+                             (count path)
+                             (- (count path) path-index))]
+          (cond
+            ;; If the piece is on the path and the roll is exactly
+            ;; the number of steps needed to move off board
+            (and (not= from :entry) (= roll steps-to-end))
+            [:off-board nil]
 
-        ;; For normal moves (including from :entry)
-        :else
-        (let [new-pos (if (= from :entry)
-                        (nth path (dec roll))
-                        (find-next-position path from roll))]
-          (when new-pos  ; Only proceed if new-pos is valid
-            (let [target (get board new-pos)]
-              (cond
-                (nil? target) [new-pos nil]
-                (= target player) nil  ; Invalid move
-                (and (contains? (:rosettes config/board) new-pos)
-                     (not= target player)) nil  ; Can't land on opponent's rosette
-                :else [new-pos target]))))))))  ; Capture opponent's piece
+            ;; For normal moves (including from :entry)
+            :else
+            (let [new-pos (if (= from :entry)
+                            (nth path (dec roll))
+                            (find-next-position path from roll))]
+              (when new-pos  ; Only proceed if new-pos is valid
+                (let [target (get board new-pos)]
+                  (cond
+                    (nil? target) [new-pos nil]
+                    (= target player) nil  ; Invalid move
+                    (and (contains? (:rosettes config/board) new-pos)
+                         (not= target player)) nil  ; Can't land on opponent's rosette
+                    :else [new-pos target]))))))))))  ; Capture opponent's piece
 
 (defn update-board [board player from to]
   (cond-> board
@@ -109,7 +111,7 @@
         strategy (get inputs :move-strategy :random)]
     (if (empty? possible-moves)
       [(assoc game :state :switch-turns) rolls]
-      (let [selected-move (or (some-> (:selected-move inputs))
+      (let [selected-move (or (:selected-move inputs)
                               (select-move strategy game))]
         [(-> game
              (assoc :selected-move selected-move)

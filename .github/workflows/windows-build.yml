@@ -7,20 +7,20 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
     - name: Set up Clojure
-      uses: DeLaGuardo/setup-clojure@10.1
+      uses: DeLaGuardo/setup-clojure@12.5
       with:
         cli: latest
     - name: Install GraalVM
       uses: graalvm/setup-graalvm@v1
       with:
-        version: '22.3.0'
+        version: '22.3.2'
         java-version: '17'
         components: 'native-image'
         github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -33,7 +33,7 @@ jobs:
         dir
         dir *.exe
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: royal-game-of-ur-windows
         path: royal-game-of-ur.exe

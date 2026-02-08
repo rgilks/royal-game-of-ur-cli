@@ -33,7 +33,7 @@ The game logic follows a finite state machine design. The following diagram illu
 This project implements several AI strategies for playing the Royal Game of Ur:
 
 1. **Minimax**: Looks ahead several moves, considering both its own opportunities and the opponent's potential responses.
-2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves. (in development)
+2. **Monte Carlo Tree Search (MCTS)**: A probabilistic algorithm that balances exploration and exploitation to find optimal moves.
 3. **Random**: Chooses moves randomly.
 4. **First-in-list**: Always chooses the first available move.
 5. **Strategic**: Uses a simple heuristic to prioritize moves.
@@ -83,8 +83,8 @@ At present, the native build targets ARM64 only.
 
 3. Clone the repository:
    ```
-   git clone https://github.com/yourusername/royal-game-of-ur.git
-   cd royal-game-of-ur
+   git clone https://github.com/rgilks/royal-game-of-ur-cli.git
+   cd royal-game-of-ur-cli
    ```
 
 4. Make the setup script executable:

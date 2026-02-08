@@ -50,7 +50,7 @@
           expanded-node (#'mcts/expand node)]
       (is (seq (:children expanded-node))
           "Should create child nodes")
-      (is (every? #(instance? mcts/Node %) (:children expanded-node))
+      (is (every? #(instance? #?(:clj strategy.mcts.Node :cljs mcts/Node) %) (:children expanded-node))
           "All children should be Node instances"))))
 
 (deftest test-select-best-child
