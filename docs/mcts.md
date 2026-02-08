@@ -177,7 +177,7 @@ This function updates the statistics of all nodes along the path from the simula
         (.shutdown executor)))))
 ```
 
-This function implements a parallel version of MCTS, utilizing multiple threads to perform searches concurrently. This significantly improves the performance of the algorithm, especially on multi-core systems.
+This function implements a parallel version of MCTS on the JVM, utilizing multiple threads to perform searches concurrently. This significantly improves the performance of the algorithm on multi-core systems. On ClojureScript (nbb), the search runs sequentially as JavaScript is single-threaded.
 
 ## MCTS in Action
 

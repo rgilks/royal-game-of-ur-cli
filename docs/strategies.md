@@ -38,6 +38,7 @@ For more details, see the [Minimax Algorithm Documentation](./minimax.md).
 **Customizable Parameters**:
 - `iterations`: The number of simulations to run. More iterations generally lead to better performance but require more computation time.
 - `exploration`: Controls the balance between exploration and exploitation in the search.
+- `rave`: Controls how quickly the algorithm shifts from RAVE values to UCT values (default: 300).
 
 For more details, see the [Monte Carlo Tree Search (MCTS) Documentation](./mcts.md).
 
@@ -123,5 +124,5 @@ Strategy-specific parameters can be set using the format `strategy-X-param=value
 If you're interested in implementing a new strategy:
 
 1. Create a new file in the `src/strategy` directory (e.g., `my_strategy.cljc`).
-2. Implement the `select-move` multimethod for your strategy.
-3. Add your strategy to the options in the simulation configuration.
+2. Implement the `engine/select-move` multimethod for your strategy keyword (e.g., `(defmethod engine/select-move :my-strategy [_ game] ...)`).
+3. Add a require for your new namespace in `src/strategy/core.cljc` so it gets loaded.

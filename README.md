@@ -162,7 +162,7 @@ Available parameters:
 - `strategy-B`: Strategy for Player B
 - `debug`: Enable debug mode (true/false)
 - `show`: Show game state (true/false)
-- `parallel`: Number of parallel threads to use
+- `parallel`: Number of parallel threads to use (Clojure only; nbb runs sequentially)
 - `validate`: Enable validation of the board after each move (true/false)
 
 Strategy-specific parameters can be set using the format `strategy-X-param=value`, where X is A or B, and param is the parameter name.
@@ -181,15 +181,16 @@ For more detailed information about available strategies and their parameters, p
 To build and run the game using Docker:
 
 ```
-just docker-build-run [parameters]
+just docker-build
+just docker [parameters]
 ```
 
-This command will build the Docker image and run the game or simulation with the specified parameters.
+For example, to run a simulation:
+```
+just docker sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list
+```
 
-Example:
-```
-just docker-build-run sim num-games=100 strategy-A=minimax strategy-A-depth=3 strategy-B=first-in-list
-```
+Note: `just docker-build-run` is also available but requires AWS ECR credentials as it pulls base images from ECR.
 
 ## Testing
 
