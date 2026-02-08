@@ -23,6 +23,7 @@ __pycache__/
 .lsp/
 .calva/
 .dir-locals.el
+.claude/
 
 # OS generated files
 .DS_Store
